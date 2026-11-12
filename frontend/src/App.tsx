@@ -9,10 +9,12 @@ import {
   logout,
   type Me,
   type NatalChart,
+  type Place,
   register,
   saveBirth,
 } from './api'
-import { BODIES, degrees, signName, signOfLongitude } from './labels'
+import { BODIES, degrees, describePlace, signName, signOfLongitude } from './labels'
+import { PlaceSearch } from './PlaceSearch'
 
 type State =
   | { kind: 'loading' }
@@ -83,17 +85,34 @@ function AuthForm({ onDone }: { onDone: () => unknown }) {
 function BirthForm({ onDone, problem }: { onDone: () => unknown; problem?: string }) {
   const [error, setError] = useState<string | null>(problem ?? null)
   const [ambiguous, setAmbiguous] = useState(false)
+  const [place, setPlace] = useState<Place | null>(null)
+  const [manual, setManual] = useState(false)
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const form = new FormData(event.currentTarget)
     const occurrence = form.get('occurrence')
+    if (!manual && !place) {
+      setError('Escolhe o local de nascimento na lista.')
+      return
+    }
+    const where = manual
+      ? {
+          place_name: String(form.get('place_name')),
+          latitude: Number(form.get('latitude')),
+          longitude: Number(form.get('longitude')),
+          zone: null,
+        }
+      : {
+          place_name: describePlace(place as Place).slice(0, 200),
+          latitude: (place as Place).latitude,
+          longitude: (place as Place).longitude,
+          zone: (place as Place).zone,
+        }
     const data: BirthData = {
       birth_date: String(form.get('birth_date')),
       birth_time: String(form.get('birth_time')),
-      place_name: String(form.get('place_name')),
-      latitude: Number(form.get('latitude')),
-      longitude: Number(form.get('longitude')),
+      ...where,
       occurrence: occurrence === null ? null : (Number(occurrence) as 0 | 1),
     }
     try {
@@ -120,20 +139,32 @@ function BirthForm({ onDone, problem }: { onDone: () => unknown; problem?: strin
         Hora exata
         <input name="birth_time" type="time" step={60} required />
       </label>
-      <label>
-        Local de nascimento
-        <input name="place_name" required maxLength={200} placeholder="Lisboa" />
-      </label>
-      <div className="row">
-        <label>
-          Latitude
-          <input name="latitude" type="number" step="any" min={-90} max={90} required />
-        </label>
-        <label>
-          Longitude
-          <input name="longitude" type="number" step="any" min={-180} max={180} required />
-        </label>
-      </div>
+      {manual ? (
+        <>
+          <label>
+            Local de nascimento
+            <input name="place_name" required maxLength={200} />
+          </label>
+          <div className="row">
+            <label>
+              Latitude
+              <input name="latitude" type="number" step="any" min={-90} max={90} required />
+            </label>
+            <label>
+              Longitude
+              <input name="longitude" type="number" step="any" min={-180} max={180} required />
+            </label>
+          </div>
+        </>
+      ) : (
+        <PlaceSearch onSelect={setPlace} />
+      )}
+      <button type="button" className="link" onClick={() => {
+          setPlace(null)
+          setManual(!manual)
+        }}>
+        {manual ? 'Procurar o local pelo nome' : 'Não encontro o meu local: indicar coordenadas'}
+      </button>
       {ambiguous && (
         <fieldset>
           <legend>Nesse dia o relógio atrasou e esta hora aconteceu duas vezes</legend>

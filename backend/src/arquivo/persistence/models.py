@@ -11,6 +11,7 @@ from sqlalchemy import (
     Float,
     ForeignKey,
     Identity,
+    Index,
     Integer,
     MetaData,
     String,
@@ -72,6 +73,30 @@ class AuthSession(Base):
     token_hash: Mapped[str] = mapped_column(String(64), unique=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class Place(Base):
+    """Localidade do GeoNames (CC BY 4.0). `search_text` = nomes normalizados entre `|`."""
+
+    __tablename__ = "places"
+    __table_args__ = (
+        Index(
+            "ix_places_search_text_trgm",
+            "search_text",
+            postgresql_using="gin",
+            postgresql_ops={"search_text": "gin_trgm_ops"},
+        ),
+    )
+
+    geoname_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
+    name: Mapped[str] = mapped_column(String(200))
+    region: Mapped[str | None] = mapped_column(String(200))
+    country_code: Mapped[str] = mapped_column(String(2))
+    latitude: Mapped[float] = mapped_column(Float)
+    longitude: Mapped[float] = mapped_column(Float)
+    zone: Mapped[str] = mapped_column(String(64))
+    population: Mapped[int] = mapped_column(BigInteger)
+    search_text: Mapped[str] = mapped_column(Text)
 
 
 class BirthProfile(Base):
