@@ -11,8 +11,8 @@ Lacunas recuperadas do dossiê §53. Uma lacuna só fecha com uma fonte (convers
 | L-005 | Especificação original completa de F60 e F61 | F60/F61 «especificada» | aberta | O F60 avança com o dossiê §18 como base mínima |
 | L-006 | Documento Mestre do Produto, se existir | Fase 1 | aberta | — |
 | L-007 | Decisões de interface, navegação e experiência de utilizador | Fase 4 (UI) | aberta | — |
-| L-008 | Técnicas astrológicas aprovadas para a primeira versão | Fase 4 (trânsitos, etc.) | aberta | — |
-| L-009 | Fontes/efemérides e regras de cálculo | Fase 4 | **parcialmente fechada** | Swiss Ephemeris + Skyfield/JPL (D-013). Faltam o zodíaco, o sistema de casas por defeito e as orbes |
+| L-008 | Técnicas astrológicas aprovadas para a primeira versão | Fase 4 (trânsitos, etc.) | aberta | Mapa natal base definido (D-021); faltam trânsitos, progressões, etc. |
+| L-009 | Fontes/efemérides e regras de cálculo | Fase 4 | **fechada** | Swiss Ephemeris + Skyfield/JPL (D-013); zodíaco, casas e orbes por omissão em D-021 |
 | L-010 | Arquitetura e stack existentes | — | **fechada** | Não havia código (D-011). Stack em ADR-0001 |
 | L-011 | Nome, URL e estado do repositório | — | **fechada** | `arquivo-do-universo` (público, AGPL) |
 | L-012 | Estado real de cada funcionalidade | — | **fechada** | Baseline: [auditoria 0000](../auditoria/0000-baseline.md) |
