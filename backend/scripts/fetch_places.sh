@@ -5,8 +5,14 @@ dest="${ARQUIVO_GEONAMES_PATH:-$(cd "$(dirname "$0")/../.." && pwd)/data/geoname
 mkdir -p "$dest"
 base="https://download.geonames.org/export/dump"
 for name in cities500.zip admin1CodesASCII.txt; do
-  [ -f "$dest/$name" ] || curl -sfL --retry 3 -o "$dest/$name" "$base/$name"
+  if [ ! -f "$dest/$name" ]; then
+    curl -sfL --retry 3 -o "$dest/$name.part" "$base/$name"
+    mv "$dest/$name.part" "$dest/$name"
+  fi
 done
-[ -f "$dest/cities500.txt" ] || unzip -oq "$dest/cities500.zip" -d "$dest"
+if [ ! -f "$dest/cities500.txt" ]; then
+  unzip -p "$dest/cities500.zip" cities500.txt > "$dest/cities500.txt.part"
+  mv "$dest/cities500.txt.part" "$dest/cities500.txt"
+fi
 cd "$(dirname "$0")/.."
 uv run python -m arquivo.persistence.places "$dest"
