@@ -159,7 +159,10 @@ function BirthForm({ onDone, problem }: { onDone: () => unknown; problem?: strin
       ) : (
         <PlaceSearch onSelect={setPlace} />
       )}
-      <button type="button" className="link" onClick={() => setManual(!manual)}>
+      <button type="button" className="link" onClick={() => {
+          setPlace(null)
+          setManual(!manual)
+        }}>
         {manual ? 'Procurar o local pelo nome' : 'Não encontro o meu local: indicar coordenadas'}
       </button>
       {ambiguous && (
