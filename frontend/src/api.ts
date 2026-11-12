@@ -15,6 +15,7 @@ export interface BirthData {
   place_name: string
   latitude: number
   longitude: number
+  zone?: string | null
   occurrence?: 0 | 1 | null
 }
 
@@ -79,3 +80,16 @@ export const logout = () => post<void>('/auth/logout')
 export const fetchBirth = () => request<BirthProfile>('/me/birth')
 export const saveBirth = (data: BirthData) => post<BirthProfile>('/me/birth', data, 'PUT')
 export const fetchChart = () => request<NatalChart>('/me/chart')
+
+export interface Place {
+  id: number
+  name: string
+  region: string | null
+  country_code: string
+  latitude: number
+  longitude: number
+  zone: string
+}
+
+export const searchPlaces = (q: string) =>
+  request<{ results: Place[]; attribution: string }>(`/places?q=${encodeURIComponent(q)}`)

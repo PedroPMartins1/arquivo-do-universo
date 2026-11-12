@@ -18,5 +18,5 @@ Lacunas recuperadas do dossiê §53. Uma lacuna só fecha com uma fonte (convers
 | L-012 | Estado real de cada funcionalidade | — | **fechada** | Baseline: [auditoria 0000](../auditoria/0000-baseline.md) |
 | L-013 | Testes, deployments e ambiente de execução | Fase 2 (deploy) | parcialmente fechada | CI no GitHub Actions. Fornecedor do servidor por decidir (D-017) |
 | L-014 | Calendários não gregorianos (juliano, etc.) nas datas históricas | F60 completo | aberta | O F60 só aceita gregoriano proléptico até haver decisão |
-| L-015 | Pesquisa do local de nascimento por nome (geocodificação) | Registo para o público | aberta | Para já indicam-se latitude e longitude; o fuso é deduzido das coordenadas. Opções: base offline GeoNames (CC-BY) ou serviço externo |
+| L-015 | Pesquisa do local de nascimento por nome (geocodificação) | Registo para o público | fechada (D-027) | Base offline GeoNames; localidades com menos de 500 habitantes podem faltar e ficam com a alternativa das coordenadas |
 | L-016 | Recuperação de palavra-passe, verificação de email e limite de tentativas de login | Antes de abrir ao público | aberta | Exige escolher fornecedor de email |

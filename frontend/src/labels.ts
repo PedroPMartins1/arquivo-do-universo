@@ -1,3 +1,5 @@
+import type { Place } from './api'
+
 export const SIGNS = [
   'Carneiro',
   'Touro',
@@ -49,3 +51,8 @@ export const degrees = (value: number) => {
   const whole = Math.floor(value)
   return `${whole}°${String(Math.floor((value - whole) * 60)).padStart(2, '0')}′`
 }
+
+const countries = new Intl.DisplayNames(['pt-PT'], { type: 'region' })
+
+export const describePlace = (place: Place) =>
+  [place.name, place.region, countries.of(place.country_code)].filter(Boolean).join(', ')

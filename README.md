@@ -26,6 +26,7 @@ docker compose up -d db
 # Backend: http://localhost:8000/docs
 cd backend
 ./scripts/fetch_ephemerides.sh   # Swiss Ephemeris + JPL DE421 em data/ephe (não versionado)
+./scripts/fetch_places.sh        # localidades do GeoNames em data/geonames e na base de dados (depois de alembic upgrade)
 uv sync
 uv run alembic upgrade head
 uv run uvicorn arquivo.main:app --reload
@@ -53,3 +54,5 @@ repositório nem em testes. Usar dados fictícios ou de figuras públicas com fo
 ## Licença
 
 [GNU Affero General Public License v3.0 ou posterior](LICENSE). Ver [ADR-0002](docs/adr/0002-licenca-agpl.md).
+
+Os dados de localidades vêm do [GeoNames](https://www.geonames.org), sob licença [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).

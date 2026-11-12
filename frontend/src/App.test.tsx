@@ -44,15 +44,29 @@ describe('App', () => {
           return json({})
         },
         'GET /api/v1/me/chart': () => json(CHART),
+        'GET /api/v1/places?q=Lisb': () =>
+          json({
+            results: [
+              {
+                id: 1,
+                name: 'Lisbon',
+                region: 'Lisbon',
+                country_code: 'PT',
+                latitude: 38.7,
+                longitude: -9.1,
+                zone: 'Europe/Lisbon',
+              },
+            ],
+            attribution: 'GeoNames',
+          }),
       }),
     )
     render(<App />)
     const form = await screen.findByRole('form', { name: 'Dados de nascimento' })
     fireEvent.change(screen.getByLabelText('Data de nascimento'), { target: { value: '1993-05-20' } })
     fireEvent.change(screen.getByLabelText('Hora exata'), { target: { value: '14:35' } })
-    fireEvent.change(screen.getByLabelText('Local de nascimento'), { target: { value: 'Lisboa' } })
-    fireEvent.change(screen.getByLabelText('Latitude'), { target: { value: '38.72' } })
-    fireEvent.change(screen.getByLabelText('Longitude'), { target: { value: '-9.14' } })
+    fireEvent.change(screen.getByLabelText('Local de nascimento'), { target: { value: 'Lisb' } })
+    fireEvent.click(await screen.findByRole('button', { name: 'Lisbon, Lisbon, Portugal' }))
     fireEvent.submit(form)
     expect(await screen.findAllByText('Touro')).toHaveLength(2)
     expect(screen.getAllByText('Peixes')).toHaveLength(2)
@@ -68,7 +82,11 @@ describe('App', () => {
       }),
     )
     render(<App />)
-    fireEvent.submit(await screen.findByRole('form', { name: 'Dados de nascimento' }))
+    const form = await screen.findByRole('form', { name: 'Dados de nascimento' })
+    fireEvent.submit(form)
+    expect(await screen.findByRole('alert')).toHaveTextContent('Escolhe o local')
+    fireEvent.click(screen.getByRole('button', { name: /indicar coordenadas/ }))
+    fireEvent.submit(form)
     expect(await screen.findByRole('alert')).toHaveTextContent('duas vezes')
     expect(screen.getByText(/Primeira vez/)).toBeInTheDocument()
   })
