@@ -54,7 +54,7 @@ export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
     fetchToday()
       .then(setSky)
       .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)))
-  }, [me.residence_zone])
+  }, [me.residence_zone, me.residence_name])
 
   if (error) return <p role="alert">{error}</p>
   if (!sky) return <p>A ler o céu de hoje…</p>
