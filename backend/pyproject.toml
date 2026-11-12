@@ -90,3 +90,9 @@ name = "Natal chart does not depend on persistence or API"
 type = "forbidden"
 source_modules = ["arquivo.natal"]
 forbidden_modules = ["arquivo.persistence", "arquivo.api"]
+
+[[tool.importlinter.contracts]]
+name = "Transits do not depend on persistence or API"
+type = "forbidden"
+source_modules = ["arquivo.transits"]
+forbidden_modules = ["arquivo.persistence", "arquivo.api"]

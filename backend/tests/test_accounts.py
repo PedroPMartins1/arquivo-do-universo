@@ -120,3 +120,19 @@ def test_profiles_are_isolated_and_account_deletion(client: TestClient, session:
         if event.owner_id is None:
             assert event.actor in ("titular", "anónimo")
             assert event.entity_id == "-"
+
+
+def test_today_uses_residence_zone(client: TestClient) -> None:
+    _register(client)
+    assert client.put("/api/v1/me/birth", json=BIRTH).status_code == 200
+    sky = client.get("/api/v1/me/today", params={"date": "2026-11-12"}).json()
+    assert sky["zone"] == "Europe/Lisbon"
+    assert len(sky["revelations"]) <= 5
+    bad = {"place_name": "Lugar", "zone": "Marte/Olympus"}
+    assert client.put("/api/v1/me/residence", json=bad).status_code == 422
+    home = {"place_name": "Tokyo, Japão", "zone": "Asia/Tokyo"}
+    assert client.put("/api/v1/me/residence", json=home).json()["residence_zone"] == "Asia/Tokyo"
+    sky = client.get("/api/v1/me/today", params={"date": "2026-11-12"}).json()
+    assert sky["zone"] == "Asia/Tokyo"
+    assert sky["day_starts"].startswith("2026-11-12T00:00:00+09:00")
+    assert client.get("/api/v1/me/today", params={"date": "1700-01-01"}).status_code == 422

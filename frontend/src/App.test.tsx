@@ -44,6 +44,47 @@ describe('App', () => {
           return json({})
         },
         'GET /api/v1/me/chart': () => json(CHART),
+        'GET /api/v1/me/today': () =>
+          json({
+            date: '2026-11-12',
+            zone: 'Europe/Lisbon',
+            day_starts: '2026-11-12T00:00:00Z',
+            revelations: [
+              {
+                weight: 6,
+                transit: {
+                  body: 'saturn',
+                  natal_point: 'jupiter',
+                  kind: 'square',
+                  starts: null,
+                  ends: null,
+                  exact: ['2026-11-12T21:58:53Z'],
+                  orb: 0.02,
+                  applying: true,
+                  natal_house: 8,
+                  weight: 6,
+                },
+                event: null,
+              },
+            ],
+            tomorrow: {
+              weight: 3.75,
+              transit: null,
+              event: {
+                kind: 'station_direct',
+                at: '2026-11-13T15:53:57Z',
+                body: 'mercury',
+                sign: 'scorpio',
+                natal_house: 3,
+                eclipse_type: null,
+                contacts: [],
+                weight: 3.75,
+              },
+            },
+            active: [],
+            upcoming: [],
+            events: [],
+          }),
         'GET /api/v1/places?q=Lisb': () =>
           json({
             results: [
@@ -75,6 +116,8 @@ describe('App', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Lisbon, Lisbon, Portugal' }))
     fireEvent.submit(form)
     expect(await screen.findAllByText('Touro')).toHaveLength(2)
+    expect(await screen.findByText('Saturno em quadratura com Júpiter natal')).toBeInTheDocument()
+    expect(screen.getByText('Mercúrio retoma o movimento direto em Escorpião, na tua casa 3')).toBeInTheDocument()
     expect(screen.getAllByText('Peixes')).toHaveLength(2)
     expect(screen.getByText('Virgem')).toBeInTheDocument()
   })
