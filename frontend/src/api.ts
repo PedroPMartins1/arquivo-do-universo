@@ -7,6 +7,8 @@ export interface Me {
   id: string
   email: string
   display_name: string
+  residence_name?: string | null
+  residence_zone?: string | null
 }
 
 export interface BirthData {
@@ -93,3 +95,48 @@ export interface Place {
 
 export const searchPlaces = (q: string) =>
   request<{ results: Place[]; attribution: string }>(`/places?q=${encodeURIComponent(q)}`)
+
+export interface Transit {
+  body: string
+  natal_point: string
+  kind: string
+  starts: string | null
+  ends: string | null
+  exact: string[]
+  orb: number | null
+  applying: boolean | null
+  natal_house: number
+  weight: number
+}
+
+export interface SkyEvent {
+  kind: string
+  at: string
+  body: string
+  sign: string | null
+  natal_house: number | null
+  eclipse_type: string | null
+  contacts: string[]
+  weight: number
+}
+
+export interface Revelation {
+  weight: number
+  transit: Transit | null
+  event: SkyEvent | null
+}
+
+export interface DailySky {
+  date: string
+  zone: string
+  day_starts: string
+  revelations: Revelation[]
+  tomorrow: Revelation | null
+  active: Transit[]
+  upcoming: Transit[]
+  events: SkyEvent[]
+}
+
+export const fetchToday = () => request<DailySky>('/me/today')
+export const saveResidence = (place_name: string, zone: string) =>
+  post<Me>('/me/residence', { place_name, zone }, 'PUT')

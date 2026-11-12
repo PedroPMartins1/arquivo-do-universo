@@ -15,6 +15,7 @@ import {
 } from './api'
 import { BODIES, degrees, describePlace, signName, signOfLongitude } from './labels'
 import { PlaceSearch } from './PlaceSearch'
+import { Today } from './Today'
 
 type State =
   | { kind: 'loading' }
@@ -280,7 +281,12 @@ function App() {
       {state.kind === 'error' && <p role="alert">Servidor indisponível: {state.message}</p>}
       {state.kind === 'anonymous' && <AuthForm onDone={refresh} />}
       {state.kind === 'needs-birth' && <BirthForm onDone={refresh} problem={state.problem} />}
-      {state.kind === 'ready' && <ChartSummary chart={state.chart} />}
+      {state.kind === 'ready' && (
+        <>
+          <Today me={state.me} onMoved={refresh} />
+          <ChartSummary chart={state.chart} />
+        </>
+      )}
     </main>
   )
 }
