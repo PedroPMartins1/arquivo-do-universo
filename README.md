@@ -26,6 +26,7 @@ docker compose up -d db
 # Backend: http://localhost:8000/docs
 cd backend
 uv sync
+uv run alembic upgrade head
 uv run uvicorn arquivo.main:app --reload
 
 # Frontend: http://localhost:5173 (encaminha /api para o backend)

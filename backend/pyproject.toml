@@ -39,6 +39,12 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "DTZ", "RUF"]
+# Texto em português usa travessões e aspas tipográficas legitimamente.
+ignore = ["RUF001", "RUF002", "RUF003"]
+
+[tool.ruff.lint.per-file-ignores]
+# Horas locais "de parede" (sem fuso) são precisamente o que se testa.
+"tests/**" = ["DTZ001"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -58,7 +64,19 @@ markers = ["db: requires a PostgreSQL database (DATABASE_URL)"]
 root_package = "arquivo"
 
 [[tool.importlinter.contracts]]
-name = "Configuration does not depend on the API layer"
+name = "Core is independent of engines, persistence and API"
 type = "forbidden"
-source_modules = ["arquivo.config"]
+source_modules = ["arquivo.core"]
+forbidden_modules = ["arquivo.temporal", "arquivo.persistence", "arquivo.api"]
+
+[[tool.importlinter.contracts]]
+name = "F60 (temporal) does not depend on persistence or API"
+type = "forbidden"
+source_modules = ["arquivo.temporal"]
+forbidden_modules = ["arquivo.persistence", "arquivo.api", "arquivo.core"]
+
+[[tool.importlinter.contracts]]
+name = "Persistence does not depend on the API layer"
+type = "forbidden"
+source_modules = ["arquivo.persistence"]
 forbidden_modules = ["arquivo.api"]

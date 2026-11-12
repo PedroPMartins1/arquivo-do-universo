@@ -11,16 +11,16 @@ Estados conforme [estados oficiais](../governanca/estados.md). Baseline: [audito
 | AU-NUC | Inteligência Pessoal / núcleo central | §12 | 2 | em especificação | — |
 | AU-ORQ | Orquestração global e gestão de tarefas | §12, §29 | 2–3 | em especificação | — |
 | AU-COM | Comunicação, síntese e personalização | §25 | 5 | em especificação | — |
-| AU-CTX | Gestão de contexto, identidade e permissões | §26, §28 | 2 | em especificação | — |
-| AU-EPI | Classificação epistemológica transversal | §10–11 | 2 | em especificação | — |
-| AU-MEM | Memória e conhecimento | §13 | 2, 5 | em especificação | — |
+| AU-CTX | Gestão de contexto, identidade e permissões | §26, §28 | 2 | em desenvolvimento | Isolamento por utilizador na persistência |
+| AU-EPI | Classificação epistemológica transversal | §10–11 | 2 | em desenvolvimento | Classes, metadados e regra da astrologia implementados |
+| AU-MEM | Memória e conhecimento | §13 | 2, 5 | em desenvolvimento | Afirmações versionadas e proveniência |
 | AU-INV | Investigação e aquisição de fontes | §16 | 5 | em especificação | — |
 | AU-RAC | Raciocínio e decisão | §22 | 3 | em especificação | — |
 | AU-AST | Motor astrológico (inclui Mapa Natal) | §14 | 4 | em especificação | Bloqueado parcialmente por L-002, L-003, L-008 |
 | AU-ASN | Motor astronómico | §15 | 4 | em especificação | — |
 | AU-CIE | Motor científico / análise de evidência | §16 | 5 | em especificação | — |
 | F59 | Inteligência Preditiva | §17 | 3 | em especificação | — |
-| F60 | Inteligência Temporal | §18 | 2–3 | em especificação | Especificação original em falta (L-005) |
+| F60 | Inteligência Temporal | §18 | 2–3 | em desenvolvimento | Primitivas temporais implementadas; especificação original em falta (L-005) |
 | F61 | Inteligência Relacional | §19 | 3 | em especificação | Especificação original em falta (L-005) |
 | F62 | Inteligência Causal, Mecanismos e Explicabilidade | §20 | 3 | em especificação | — |
 | AU-OBS | Observabilidade e monitorização global | §21 | 3, 6 | em especificação | — |
