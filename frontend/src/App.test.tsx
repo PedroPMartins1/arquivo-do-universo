@@ -172,6 +172,45 @@ describe('App', () => {
     expect(screen.getByText('Sair')).toBeInTheDocument()
   })
 
+  it('mostra o erro do mapa depois de guardar os dados de nascimento', async () => {
+    let saved = false
+    vi.stubGlobal(
+      'fetch',
+      route({
+        'GET /api/v1/me': () => json(ME),
+        'GET /api/v1/me/birth': () => (saved ? json({}) : json({ detail: 'sem dados' }, 404)),
+        'PUT /api/v1/me/birth': () => {
+          saved = true
+          return json({})
+        },
+        'GET /api/v1/me/chart': () => json({ detail: 'Placidus não está definido' }, 422),
+        'GET /api/v1/places?q=Lisb': () =>
+          json({
+            results: [
+              {
+                id: 1,
+                name: 'Lisbon',
+                region: 'Lisbon',
+                country_code: 'PT',
+                latitude: 38.7,
+                longitude: -9.1,
+                zone: 'Europe/Lisbon',
+              },
+            ],
+            attribution: 'GeoNames',
+          }),
+      }),
+    )
+    render(<App />)
+    const form = await screen.findByRole('form', { name: 'Dados de nascimento' })
+    fireEvent.change(screen.getByLabelText('Data de nascimento'), { target: { value: '1993-05-20' } })
+    fireEvent.change(screen.getByLabelText('Hora exata'), { target: { value: '14:35' } })
+    fireEvent.change(screen.getByLabelText('Local de nascimento'), { target: { value: 'Lisb' } })
+    fireEvent.click(await screen.findByRole('button', { name: 'Lisbon, Lisbon, Portugal' }))
+    fireEvent.submit(form)
+    expect(await screen.findByRole('alert')).toHaveTextContent('Placidus')
+  })
+
   it('mostra erro quando o servidor falha', async () => {
     vi.stubGlobal('fetch', route({ 'GET /api/v1/me': () => new Response('', { status: 503 }) }))
     render(<App />)
