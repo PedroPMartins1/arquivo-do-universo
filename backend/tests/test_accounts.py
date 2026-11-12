@@ -99,5 +99,11 @@ def test_profiles_are_isolated_and_account_deletion(client: TestClient, session:
     assert client.delete("/api/v1/me").status_code == 204
     assert session.scalar(select(User).where(User.email == "ana@example.org")) is None
     assert session.scalars(select(BirthProfile)).all() == []
-    deleted = session.scalars(select(AuditEvent).where(AuditEvent.action == "account.deleted"))
-    assert all(event.owner_id is None for event in deleted)
+    events = session.scalars(select(AuditEvent).where(AuditEvent.entity_type == "user")).all()
+    assert any(event.action == "account.deleted" for event in events)
+    ana = "ana@example.org"
+    for event in events:
+        assert ana not in str(event.details)
+        if event.owner_id is None:
+            assert event.actor in ("titular", "anónimo")
+            assert event.entity_id == "-"

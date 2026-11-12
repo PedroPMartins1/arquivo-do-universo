@@ -38,10 +38,10 @@ def audit(session: Session, user_id: uuid.UUID | None, action: str, **details: A
     session.add(
         AuditEvent(
             owner_id=user_id,
-            actor=str(user_id) if user_id else "anónimo",
+            actor="titular" if user_id else "anónimo",
             action=action,
             entity_type="user",
-            entity_id=str(user_id) if user_id else "-",
+            entity_id="-",
             correlation_id=uuid.uuid4(),
             details=details,
         )
