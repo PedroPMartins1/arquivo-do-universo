@@ -8,6 +8,7 @@ O ayanamsa devolvido inclui a nutação, para coincidir com as longitudes sidera
 
 import math
 import threading
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from itertools import combinations
 from pathlib import Path
@@ -55,6 +56,36 @@ _SIDEREAL_MODES = {
     Ayanamsa.RAMAN: swe.SIDM_RAMAN,
     Ayanamsa.KRISHNAMURTI: swe.SIDM_KRISHNAMURTI,
 }
+
+
+# O estado da Swiss Ephemeris é por thread: guardar o caminho em uso também por thread.
+_THREAD = threading.local()
+
+
+def _use_path(directory: Path) -> None:
+    """Muda o caminho das efemérides só quando necessário (abrir ficheiros custa tempo)."""
+    if getattr(_THREAD, "path", None) != str(directory):
+        swe.set_ephe_path(str(directory))
+        _THREAD.path = str(directory)
+
+
+def ecliptic_positions(
+    jds_ut: Sequence[float],
+    body: Body,
+    *,
+    node: NodeType = NodeType.TRUE,
+    ephemeris_dir: Path | None = None,
+) -> list[tuple[float, float]]:
+    """(longitude tropical, velocidade em °/dia) de um corpo em cada dia juliano UT."""
+    body_id = _NODE_IDS[node] if body is Body.NORTH_NODE else _BODY_IDS[body]
+    flags = swe.FLG_SWIEPH | swe.FLG_SPEED
+    with _LOCK:
+        _use_path(ephemeris_dir or default_ephemeris_dir())
+        result = []
+        for jd in jds_ut:
+            values = swe.calc_ut(jd, body_id, flags)[0]
+            result.append((_norm(float(values[0])), float(values[3])))
+        return result
 
 
 class ChartError(ValueError):
@@ -210,7 +241,7 @@ def calculate_chart(
     seconds = utc.second + utc.microsecond / 1e6
 
     with _LOCK:
-        swe.set_ephe_path(str(directory))
+        _use_path(directory)
         jd_tt, jd_ut = swe.utc_to_jd(
             utc.year, utc.month, utc.day, utc.hour, utc.minute, seconds, swe.GREG_CAL
         )

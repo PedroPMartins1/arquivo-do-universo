@@ -1,15 +1,18 @@
 from datetime import date, datetime, time
 from typing import Annotated, Literal
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel, Field, StringConstraints
 
+from arquivo.api.auth import Me
 from arquivo.api.deps import CurrentUser, Db
 from arquivo.natal.birth import InexactBirthDataError, resolve_birth_instant
 from arquivo.natal.chart import ChartError, NatalChart, calculate_chart
 from arquivo.persistence.accounts import audit
 from arquivo.persistence.models import BirthProfile
 from arquivo.temporal.zones import UnknownTimeZoneError, zone_for_coordinates
+from arquivo.transits.engine import DailySky, daily_sky
 
 router = APIRouter(prefix="/me", tags=["Perfil"])
 
@@ -88,10 +91,47 @@ def get_birth(user: CurrentUser, db: Db) -> BirthProfileOut:
     return _out(_profile(db, user))
 
 
-@router.get("/chart")
-def my_chart(user: CurrentUser, db: Db) -> NatalChart:
-    profile = _profile(db, user)
+def _chart(profile: BirthProfile) -> NatalChart:
     try:
         return calculate_chart(profile.birth_utc, profile.latitude, profile.longitude)
     except ChartError as error:
         raise HTTPException(422, str(error)) from error
+
+
+@router.get("/chart")
+def my_chart(user: CurrentUser, db: Db) -> NatalChart:
+    return _chart(_profile(db, user))
+
+
+class Residence(BaseModel):
+    place_name: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)
+    ]
+    zone: Annotated[str, StringConstraints(min_length=1, max_length=64)]
+
+
+@router.put("/residence")
+def save_residence(data: Residence, user: CurrentUser, db: Db) -> Me:
+    try:
+        ZoneInfo(data.zone)
+    except (ZoneInfoNotFoundError, ValueError) as error:
+        raise HTTPException(422, f"fuso desconhecido: {data.zone}") from error
+    user.residence_name = data.place_name
+    user.residence_zone = data.zone
+    db.flush()
+    return Me.of(user)
+
+
+@router.get("/today")
+def today(
+    user: CurrentUser,
+    db: Db,
+    day: Annotated[date | None, Query(alias="date")] = None,
+) -> DailySky:
+    """O céu do dia, no fuso onde a pessoa vive (por omissão, o do nascimento)."""
+    profile = _profile(db, user)
+    zone = user.residence_zone or profile.zone
+    day = day or datetime.now(ZoneInfo(zone)).date()
+    if not 1801 <= day.year <= 2398:
+        raise HTTPException(422, "data fora do intervalo das efemérides (1801–2398)")
+    return daily_sky(_chart(profile), day, zone)

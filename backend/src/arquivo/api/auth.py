@@ -28,10 +28,18 @@ class Me(BaseModel):
     id: str
     email: str
     display_name: str
+    residence_name: str | None = None
+    residence_zone: str | None = None
 
     @classmethod
     def of(cls, user: User) -> "Me":
-        return cls(id=str(user.id), email=user.email, display_name=user.display_name)
+        return cls(
+            id=str(user.id),
+            email=user.email,
+            display_name=user.display_name,
+            residence_name=user.residence_name,
+            residence_zone=user.residence_zone,
+        )
 
 
 def _set_cookie(response: Response, token: str) -> None:
