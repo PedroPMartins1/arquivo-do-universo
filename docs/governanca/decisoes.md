@@ -29,3 +29,4 @@ Cada decisão tem ID, origem e data. As decisões não se reabrem sem um novo re
 | D-023 | Tom místico e envolvente na experiência; internamente nunca se inventam acontecimentos celestes nem se apresenta a astrologia como ciência comprovada (mantém D-005) | Pedro, sessão Devin | 2026-11-12 |
 | D-024 | Identidade visual «opção C»: combinação de experiência mística com design premium e navegação simples | Conversa original com o ChatGPT | 2026-11-12 |
 | D-025 | Nova ordem de entrega ([ADR-0004](../adr/0004-ordem-app-astrologica.md)), que substitui o passo 5 de D-016 | Devin, após D-022 | 2026-11-12 |
+| D-026 | **Contas**: email + palavra-passe (mín. 10 caracteres, hash Argon2id). Sessão por cookie `httpOnly`, `SameSite=Lax`, válida 30 dias; na base de dados só fica o hash SHA-256 do token. Um perfil de nascimento por conta, validado pela regra D-020. Apagar a conta remove todos os dados e anonimiza a auditoria (RGPD) | Devin, passo 1 do ADR-0004 | 2026-11-12 |

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from arquivo import __version__
-from arquivo.api import epistemics, health, natal, temporal
+from arquivo.api import auth, epistemics, health, natal, profile, temporal
 from arquivo.config import get_settings
 
 
@@ -13,12 +13,15 @@ def create_app() -> FastAPI:
         CORSMiddleware,
         allow_origins=settings.cors_origins,
         allow_methods=["*"],
+        allow_credentials=True,
         allow_headers=["*"],
     )
     app.include_router(health.router, prefix="/api/v1")
     app.include_router(epistemics.router, prefix="/api/v1")
     app.include_router(temporal.router, prefix="/api/v1")
     app.include_router(natal.router, prefix="/api/v1")
+    app.include_router(auth.router, prefix="/api/v1")
+    app.include_router(profile.router, prefix="/api/v1")
     return app
 
 

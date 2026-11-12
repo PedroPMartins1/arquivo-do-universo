@@ -11,7 +11,7 @@ Estados conforme [estados oficiais](../governanca/estados.md). Baseline: [audito
 | AU-NUC | Inteligência Pessoal / núcleo central | §12 | 2 | em especificação | — |
 | AU-ORQ | Orquestração global e gestão de tarefas | §12, §29 | 2–3 | em especificação | — |
 | AU-COM | Comunicação, síntese e personalização | §25 | 5 | em especificação | — |
-| AU-CTX | Gestão de contexto, identidade e permissões | §26, §28 | 2 | em desenvolvimento | Isolamento por utilizador na persistência |
+| AU-CTX | Gestão de contexto, identidade e permissões | §26, §28 | 2 | em desenvolvimento | Contas e sessões (D-026). Isolamento por utilizador na persistência |
 | AU-EPI | Classificação epistemológica transversal | §10–11 | 2 | em desenvolvimento | Classes, metadados e regra da astrologia implementados |
 | AU-MEM | Memória e conhecimento | §13 | 2, 5 | em desenvolvimento | Afirmações versionadas e proveniência |
 | AU-INV | Investigação e aquisição de fontes | §16 | 5 | em especificação | — |
