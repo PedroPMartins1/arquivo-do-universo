@@ -1,0 +1,1092 @@
+
+ARQUIVO DO UNIVERSO — DOSSIÊ MESTRE DE PRODUTO E TRANSIÇÃO PARA DEVIN
+Versão: 2.0 — reconstrução consolidada do planeamento
+Data: 12 de novembro de 2026
+Finalidade: preservar o máximo possível da visão, origem, decisões, funcionamento pretendido, arquitetura, funcionalidades, plano de desenvolvimento e estado conhecido do projeto, para continuidade técnica no Devin.
+
+Nota de rigor documental
+Este dossiê foi reconstruído a partir do contexto de conversas e das decisões que permanecem disponíveis. Não é uma transcrição integral de todas as conversas históricas nem substitui eventuais documentos originais que estejam noutros locais. Quando um detalhe concreto não está suficientemente recuperado, é assinalado como por recuperar/confirmar. Não inventar decisões em falta. O repositório, o Documento Mestre original e os registos funcionais anteriores, se existirem, devem ser auditados pelo Devin antes de qualquer alteração estrutural.
+
+PARTE I — A ORIGEM E A EVOLUÇÃO DA IDEIA
+1. De onde surgiu o Arquivo do Universo
+O projeto começou a ser explorado a partir da intenção de criar uma aplicação astrológica personalizada, em vez de utilizar apenas aplicações genéricas que apresentam interpretações pré-formatadas. O ponto de partida foi construir uma aplicação capaz de conhecer os dados pessoais relevantes para o mapa natal, calcular corretamente os elementos astrológicos e produzir interpretações articuladas com o contexto e as perguntas do utilizador.
+
+O desenvolvimento da ideia passou rapidamente a exigir mais do que uma interface com um mapa natal e textos interpretativos. Para que a aplicação fosse útil de forma contínua, teria de:
+
+receber e organizar dados pessoais e temporais;
+calcular os elementos do mapa de forma tecnicamente consistente;
+explicar os elementos e as relações entre eles;
+considerar diferentes técnicas e períodos temporais;
+manter contexto entre interações;
+cruzar informações sem confundir domínios ou níveis de evidência;
+acompanhar a evolução ao longo do tempo;
+aprender com novas informações e com a interação, sem alterar silenciosamente os dados de origem;
+passar de interpretações isoladas para uma visão integrada e evolutiva.
+A ambição expandiu-se, portanto, de uma aplicação que interpreta um mapa para uma plataforma que organiza conhecimento sobre a pessoa, o tempo, os acontecimentos e as relações entre fenómenos, oferecendo uma inteligência pessoal contínua.
+
+A designação Arquivo do Universo reflete essa ampliação: um sistema que procura organizar e relacionar conhecimento sobre diferentes dimensões da realidade, mantendo a informação acessível, contextualizada e evolutiva. A expressão Inteligência Pessoal define o papel central do produto: transformar esse conhecimento numa capacidade de compreensão e apoio à vida, às questões e às decisões do utilizador.
+
+2. A mudança de âmbito: de aplicação astrológica para Inteligência Pessoal
+A evolução conceptual pode ser organizada em cinco fases. Esta sequência é uma reconstrução funcional, não uma cronologia datada de cada conversa.
+
+Fase 1 — Aplicação astrológica personalizada
+O primeiro núcleo era a experiência astrológica personalizada: mapa natal, dados de nascimento, cálculos, interpretações e funcionalidades temporais associadas.
+
+O utilizador participou diretamente na definição das opções do Mapa Natal. Entre as decisões recuperadas, escolheu a opção C para o Mapa Natal e também a opção C para a regra relativa à hora de nascimento. A especificação exata dessas opções tem de ser recuperada da conversa ou do documento funcional original; não deve ser reconstruída por suposição.
+
+Fase 2 — Aplicação contextual e evolutiva
+A aplicação deixou de ser pensada apenas como geradora de uma interpretação estática. Passou a ser importante manter o contexto do utilizador, organizar acontecimentos e acompanhar ciclos e alterações ao longo do tempo.
+
+Isto implica que o sistema não deve tratar cada pergunta como se fosse a primeira. Deve recuperar o contexto relevante, distinguir dados confirmados de hipóteses e preservar um histórico que permita compreender a evolução.
+
+Fase 3 — Integração de domínios de conhecimento
+A visão passou a incluir astrologia, astronomia, ciência, conhecimento geral, dados observacionais, raciocínio, análise temporal, relações, causalidade e previsão.
+
+A integração não significa misturar indiscriminadamente esses domínios. Pelo contrário: a plataforma deve conseguir relacioná-los sem apagar as diferenças metodológicas e epistemológicas entre eles.
+
+Fase 4 — Inteligência pessoal integrada
+O produto passou a ser concebido como um conjunto coordenado de capacidades especializadas: memória, conhecimento, raciocínio, motores temporal, relacional, causal e preditivo, observabilidade, planeamento, aprendizagem, validação e orquestração.
+
+A intenção é que estes componentes trabalhem como um sistema único, partilhando contexto e contratos, mas conservando responsabilidades próprias.
+
+Fase 5 — Desenvolvimento como plataforma de longo prazo
+A visão atual é construir uma plataforma extensível, adaptativa, auditável e capaz de evoluir. Não se pretende entregar apenas um protótipo astrológico nem uma coleção de ferramentas desconexas. Pretende-se uma base de produto que possa receber novas capacidades sem comprometer coerência, segurança ou qualidade.
+
+PARTE II — O QUE O PRODUTO É E O QUE DEVE FAZER
+3. Definição consolidada do produto
+Arquivo do Universo — Inteligência Pessoal é uma plataforma privada de conhecimento, análise e apoio à decisão que reúne informação relevante, conserva contexto, identifica relações, analisa evolução temporal, explora hipóteses, produz previsões metodologicamente qualificadas e transforma conclusões em explicações e planos de ação.
+
+A plataforma deve combinar:
+
+memória pessoal controlada pelo utilizador;
+arquivo de conhecimento e fontes;
+análise e interpretação astrológica;
+cálculos astronómicos rigorosos;
+investigação e conhecimento científico;
+raciocínio multidisciplinar;
+análise temporal;
+análise relacional;
+análise causal;
+previsão e cenários;
+monitorização de acontecimentos e sinais;
+planeamento e apoio à execução;
+aprendizagem e evolução supervisionadas;
+comunicação explicável e adaptada ao utilizador.
+O produto deve permitir ao utilizador fazer perguntas, explorar temas, consultar informação já guardada, acompanhar acontecimentos, receber alertas autorizados, compreender relações, testar cenários, refletir sobre decisões e organizar objetivos.
+
+4. O que o produto não deve ser
+Não deve ser:
+
+apenas um chatbot com memória superficial;
+apenas uma aplicação de horóscopos;
+um sistema que apresenta texto convincente sem fontes nem metodologia;
+uma máquina de previsões que atribui certezas artificiais;
+uma base de dados que mistura informação verdadeira, inferida e simbólica;
+uma entidade autónoma sem limites ou controlo humano;
+um sistema que altera dados, objetivos ou permissões sem registo e autorização;
+um conjunto de módulos isolados que repetem a mesma função;
+uma aplicação que apresenta funcionalidades como prontas quando ainda só foram especificadas.
+5. Objetivos estratégicos
+5.1 Compreender
+Ajudar o utilizador a compreender informação, fenómenos, acontecimentos, padrões e relações, explicando os métodos usados e as limitações encontradas.
+
+5.2 Contextualizar
+Ligar a informação nova ao conhecimento anterior relevante, respeitando a origem, a data, o contexto e o grau de confirmação.
+
+5.3 Acompanhar
+Manter acompanhamento de temas, acontecimentos, indicadores, previsões, ciclos e objetivos selecionados pelo utilizador.
+
+5.4 Antecipar
+Identificar tendências, mudanças, riscos e cenários possíveis, apresentando previsões com horizonte, pressupostos e incerteza adequados.
+
+5.5 Decidir
+Apoiar a comparação de alternativas, consequências, custos, riscos, reversibilidade e compatibilidade com objetivos declarados.
+
+5.6 Evoluir
+Melhorar a qualidade do conhecimento, dos métodos e das respostas através de resultados observados, validação, revisão e aprendizagem controlada.
+
+5.7 Preservar
+Manter um arquivo duradouro, pesquisável, organizado e controlado pelo utilizador, com capacidade de exportação, correção e eliminação.
+
+PARTE III — COMO DEFINIMOS QUE O SISTEMA DEVE TRABALHAR
+6. Princípio central de funcionamento
+A orientação escolhida pelo utilizador para a arquitetura e o comportamento do sistema é a opção C: integrada, híbrida, adaptativa e autónoma dentro de objetivos e limites definidos, com transparência, rastreabilidade e possibilidade de intervenção humana.
+
+Esta decisão deve orientar as escolhas futuras. Não é necessário pedir repetidamente ao utilizador que volte a escolher entre sistemas isolados, totalmente manuais ou autónomos sem controlo.
+
+O sistema deve ser proativo e capaz de executar tarefas autorizadas, mas não deve decidir por si próprio que pode ultrapassar as permissões ou alterar os princípios fundamentais do produto.
+
+7. Ciclo operacional global
+O funcionamento pretendido pode ser modelado como um ciclo contínuo, coordenado pela orquestração central.
+
+Etapa 1 — Receber e classificar
+O sistema recebe uma pergunta, instrução, documento, observação, acontecimento ou objetivo. Classifica a intenção: consulta, investigação, cálculo, interpretação, comparação, monitorização, previsão, decisão, planeamento ou execução.
+
+Etapa 2 — Identificar o contexto
+Recupera apenas a memória e o conhecimento relevantes. Verifica preferências, dados previamente fornecidos, objetivos em curso, histórico, permissões e eventuais restrições.
+
+Etapa 3 — Identificar o que é necessário
+Decompõe o pedido em subproblemas, dados, fontes, métodos, motores, dependências e critérios de conclusão. Determina se a informação disponível é suficiente ou se é necessário obter dados adicionais.
+
+Etapa 4 — Recolher e validar informação
+Obtém informação de fontes autorizadas. Regista origem, data, método, versão e grau de fiabilidade. Normaliza formatos e verifica coerência. A informação externa deve ser tratada como dado não confiável até ser analisada.
+
+Etapa 5 — Relacionar e contextualizar
+Relaciona entidades, acontecimentos, conceitos e períodos temporais. Distingue relações semânticas, temporais, estatísticas, estruturais e causais.
+
+Etapa 6 — Analisar
+Aciona os motores especializados adequados: temporal, relacional, causal, preditivo, astronómico, astrológico, científico ou outros. Não deve chamar todos os motores para todas as tarefas; a orquestração escolhe os necessários.
+
+Etapa 7 — Raciocinar e comparar
+Integra os resultados, testa hipóteses alternativas, procura contradições, avalia pressupostos e determina o que pode ser concluído.
+
+Etapa 8 — Validar
+Verifica cálculos, fontes, consistência, limites metodológicos, qualidade dos dados e critérios de aceitação. Quando não há base suficiente, assume essa limitação.
+
+Etapa 9 — Responder e explicar
+Produz a resposta com o nível de detalhe adequado, distinguindo factos, evidências, hipóteses, inferências, interpretações e previsões. Sempre que relevante, explica fontes, métodos, pressupostos e limitações.
+
+Etapa 10 — Planear ou executar
+Quando o pedido implica ação, transforma a conclusão em alternativas, tarefas ou plano. Executa apenas dentro do nível de autonomia autorizado.
+
+Etapa 11 — Registar
+Atualiza o arquivo e a memória apenas de acordo com as regras de retenção, consentimento e qualidade. Guarda resultados, decisões, fontes e histórico sem sobrescrever silenciosamente o passado.
+
+Etapa 12 — Acompanhar e aprender
+Quando autorizado, acompanha mudanças, resultados e previsões. Compara o que foi previsto com o que realmente ocorreu. Usa essa avaliação para melhorar métodos, sem reescrever resultados anteriores.
+
+8. Proatividade e iniciativa
+A plataforma não deve limitar-se a responder. Deve poder:
+
+sinalizar alterações relevantes em assuntos acompanhados;
+identificar quando uma informação guardada ficou desatualizada;
+detetar contradições entre novas fontes e conhecimento existente;
+avisar quando uma previsão se aproxima do fim do horizonte e precisa de avaliação;
+identificar dependências ou riscos num plano;
+sugerir novas perguntas ou análises quando exista uma razão concreta;
+reconhecer lacunas de conhecimento;
+propor atualização de modelos quando a qualidade se degrada.
+A proatividade deve ser configurável: temas, frequência, canais, prioridades, períodos de silêncio e nível de autonomia. Não gerar alertas contínuos sem valor nem duplicar notificações.
+
+9. Níveis de autonomia e aprovação
+Adotar níveis operacionais claros:
+
+A0 — Consultivo: analisar, explicar e recomendar; não executar.
+A1 — Preparatório: preparar ações, documentos, alterações ou planos para revisão.
+A2 — Supervisionado: executar apenas após aprovação humana.
+A3 — Autónomo por operação: executar operações previamente autorizadas, em âmbito e limites explícitos.
+Regras:
+
+nunca autoelevar o nível de autonomia;
+pedir aprovação para ações críticas, irreversíveis, financeiras, sensíveis ou externas, salvo autorização granular previamente definida;
+registar o fundamento da execução e a autorização aplicável;
+permitir suspensão, cancelamento e revisão;
+permitir configurar limites de frequência, orçamento, escopo e impacto quando aplicável.
+PARTE IV — PRINCÍPIOS DE CONHECIMENTO, EVIDÊNCIA E INTERPRETAÇÃO
+10. Classificação epistemológica transversal
+Toda a informação relevante deve ter uma classificação epistemológica, não apenas uma etiqueta textual.
+
+Classe	Significado	Tratamento
+Facto documentado	informação suportada por fonte identificável	conservar fonte, data e contexto
+Evidência empírica	resultado de observação ou estudo com método identificável	conservar desenho, limitações e qualidade
+Hipótese	explicação possível ainda não confirmada	manter como hipótese; testar quando possível
+Inferência	conclusão derivada de dados e pressupostos	registar método e pressupostos
+Interpretação	leitura contextual, conceptual ou simbólica	identificar domínio e referencial interpretativo
+Previsão	afirmação sobre estado ou resultado futuro	registar horizonte, modelo, incerteza e avaliação futura
+Exploração/especulação	possibilidade ainda sem suporte adequado	não apresentar como conclusão estabelecida
+11. Separação entre astrologia, astronomia e ciência
+11.1 Astronomia
+Domínio científico. Exige cálculos e dados com precisão, escalas de tempo e referenciais apropriados, efemérides, algoritmos e fontes técnicas identificáveis.
+
+11.2 Astrologia
+Sistema simbólico e interpretativo. Pode ser implementado com elevado rigor técnico no cálculo e na aplicação das regras do sistema astrológico escolhido. Isso não transforma as interpretações em evidência científica nem demonstra causalidade.
+
+11.3 Ciência e investigação
+A informação científica deve ser avaliada segundo qualidade das fontes, método, amostra, replicabilidade, limitações, consenso e atualidade. O sistema deve procurar evidência contrária e não selecionar apenas resultados que confirmem uma interpretação.
+
+11.4 Regra de integração
+Os domínios podem partilhar dados quando legítimo, mas não podem partilhar automaticamente a mesma autoridade epistemológica. Uma interpretação astrológica pode surgir ao lado de uma análise científica se o utilizador o solicitar, desde que ambas estejam claramente identificadas e não sejam apresentadas como equivalentes.
+
+PARTE V — DOMÍNIOS FUNCIONAIS E MOTORES
+12. Mapa funcional geral
+O produto deve ser organizado por capacidades especializadas e serviços transversais. Os nomes abaixo representam o inventário funcional recuperado; o Devin deve verificar a nomenclatura e os identificadores originais no repositório/documentação.
+
+Núcleo e coordenação
+Inteligência Pessoal / núcleo central;
+Orquestração global;
+comunicação e interação;
+gestão de contexto e permissões.
+Conhecimento e análise
+memória e conhecimento;
+investigação e aquisição de fontes;
+raciocínio e decisão;
+síntese e narrativa;
+personalização.
+Motores especializados
+motor astrológico;
+motor astronómico;
+motor científico / análise de evidência;
+F59 — Inteligência Preditiva;
+F60 — Inteligência Temporal;
+F61 — Inteligência Relacional;
+F62 — Inteligência Causal, Mecanismos e Explicabilidade.
+Operação e evolução
+observabilidade e monitorização global;
+planeamento e execução;
+validação e qualidade;
+inteligência evolutiva e aprendizagem;
+engenharia e gestão de versões;
+segurança e privacidade;
+extensibilidade e portabilidade.
+Não assumir que cada item tem de ser um microserviço. A separação funcional não obriga a separação física. A arquitetura de implantação deve ser decidida depois da auditoria do código, do volume, da equipa e dos requisitos operacionais.
+
+13. Memória e Conhecimento
+13.1 Finalidade
+Construir uma memória pessoal estruturada, contextual e pesquisável que preserve o que o utilizador decidiu guardar, permita relacionar informação e disponibilize contexto aos motores.
+
+13.2 Camadas conceptuais já discutidas
+Memória de trabalho — contexto temporário da tarefa em curso.
+Memória episódica — acontecimentos e interações, com tempo e contexto.
+Memória semântica — conceitos, factos e conhecimento organizado.
+Memória procedural — métodos, regras e processos.
+Memória relacional — ligações entre pessoas, conceitos, entidades e acontecimentos.
+Memória temporal — datas, intervalos, validade e evolução.
+Memória metacognitiva — avaliação do que o sistema sabe, não sabe, assumiu ou precisa de rever.
+13.3 Arquitetura de armazenamento prevista
+Arquitetura híbrida combinando, conforme necessidade:
+
+base relacional para dados estruturados e transacionais;
+índice vetorial para recuperação semântica;
+grafo para relações e caminhos;
+armazenamento documental para fontes e ficheiros;
+índices temporais para cronologias, intervalos e eventos.
+A escolha concreta de tecnologias não está confirmada e deve decorrer da auditoria.
+
+13.4 Ciclo de vida do conhecimento
+Aquisição → normalização → classificação → verificação → relacionamento → armazenamento → indexação → recuperação → utilização → revisão → retenção/eliminação.
+
+13.5 Regras obrigatórias
+guardar proveniência;
+registar quem forneceu ou confirmou a informação;
+distinguir o que foi relatado do que foi documentado e inferido;
+preservar contradições e versões;
+não transformar inferências em factos;
+não memorizar automaticamente qualquer conteúdo sem política de consentimento;
+propagar a eliminação a índices, embeddings, caches e cópias aplicáveis;
+isolar os dados entre utilizadores;
+permitir correção, exportação e eliminação;
+indicar quando uma preferência é declarada, observada, inferida ou possivelmente desatualizada.
+14. Motor Astrológico
+14.1 Objetivo
+Calcular, organizar e interpretar sistemas astrológicos selecionados pelo utilizador, com consistência interna, rastreabilidade dos parâmetros e contextualização temporal.
+
+14.2 Mapa Natal
+O Mapa Natal é uma funcionalidade central do arranque do projeto. As decisões recuperadas confirmam que o utilizador escolheu a opção C para a definição do Mapa Natal e a opção C para o tratamento da hora de nascimento.
+
+Atenção: o significado operacional exato das opções C não está integralmente presente neste dossiê. O Devin deve recuperar a especificação original antes de implementar ou alterar esta regra. Não assumir uma política de retificação, arredondamento, estimativa ou escolha automática sem encontrar a decisão original.
+
+Dados que a funcionalidade terá de tratar, conforme regras aprovadas:
+
+data de nascimento;
+hora de nascimento e respetiva precisão/fiabilidade;
+local de nascimento;
+coordenadas geográficas;
+fuso horário aplicável à data histórica;
+calendário utilizado;
+parâmetros do sistema astrológico;
+sistema de zodíaco;
+sistema de casas;
+posições e aspetos;
+configuração e proveniência do cálculo.
+14.3 Camadas funcionais
+recolha e validação de dados de nascimento;
+resolução de local e fuso histórico;
+cálculo das posições celestes a partir de dados astronómicos adequados;
+transformação para o referencial astrológico selecionado;
+cálculo de casas e aspetos segundo as regras escolhidas;
+apresentação visual do mapa;
+interpretação por elemento, signo, casa, planeta, aspeto e configuração;
+síntese integrada, evitando interpretações isoladas e contraditórias;
+explicação dos parâmetros utilizados;
+controlo de versões dos cálculos e textos interpretativos.
+14.4 Técnicas temporais a suportar conforme âmbito aprovado
+trânsitos;
+progressões;
+revoluções solares e outras revoluções aprovadas;
+técnicas de previsão astrológica selecionadas;
+ciclos e períodos;
+cronologias de ativações;
+comparação entre períodos e mapas, se aprovada.
+Cada técnica deve ter regras, fontes e limites declarados. Não assumir que todas as técnicas devem ser incluídas na primeira versão.
+
+14.5 Interpretação
+As interpretações devem ser contextualizadas, coerentes, identificadas como simbólicas e apresentadas como possibilidades de leitura, não como factos sobre o futuro. Devem permitir diferentes níveis de detalhe e reconhecer tensões entre indicadores sem as resolver artificialmente.
+
+15. Motor Astronómico
+Responsável por dados e cálculos astronómicos subjacentes. Deve suportar:
+
+posições e movimentos celestes;
+coordenadas e referenciais;
+escalas temporais apropriadas;
+efemérides e proveniência;
+precisão e margem de erro;
+validação cruzada de resultados;
+versionamento de algoritmos e datasets.
+Escalas como UTC, UT1, TT e TDB podem ser relevantes consoante o cálculo. Não são intercambiáveis. O motor deve usar bibliotecas e fontes tecnicamente adequadas, documentando a transformação e a precisão. Não implementar fórmulas improvisadas quando existam bibliotecas astronómicas reconhecidas e adequadas.
+
+16. Motor Científico e Investigação
+Deve permitir pesquisar, comparar e sintetizar conhecimento, mantendo:
+
+fontes e datas;
+qualidade metodológica;
+consenso e controvérsia;
+evidência a favor e contra;
+limitações e incerteza;
+distinção entre estudo isolado e conclusão robusta;
+histórico das conclusões e atualizações.
+A investigação autónoma deve respeitar o âmbito, as permissões, as fontes autorizadas, a segurança e os limites de custo. Fontes externas não podem alterar instruções internas do sistema.
+
+17. F59 — Motor de Inteligência Preditiva
+17.1 Finalidade
+Produzir previsões e cenários para variáveis ou acontecimentos definidos, usando métodos adequados ao domínio, aos dados e ao horizonte temporal.
+
+17.2 Capacidades planeadas
+análise estatística e séries temporais;
+métodos probabilísticos e Bayesianos;
+machine learning quando justificado;
+análise de tendências e anomalias;
+deteção de sinais fracos;
+cenários alternativos;
+simulações, incluindo Monte Carlo quando úteis;
+utilização de mecanismos causais quando sustentados;
+previsão multidisciplinar;
+integração com observabilidade e resultados reais.
+O sistema não deve utilizar o método mais complexo por defeito. Deve escolher o método mais adequado e comparar com baselines simples.
+
+17.3 Registo de previsão
+Cada previsão deve conter ID, timestamp, variável/alvo, horizonte, janela, unidade, modelo/versão, dados/fontes, pressupostos, resultado estimado, intervalo, confiança calibrada quando aplicável, limitações e método de validação.
+
+17.4 Validação
+backtesting;
+validação fora da amostra;
+walk-forward;
+baselines;
+prevenção de data leakage;
+calibração;
+MAE/RMSE para regressão, quando apropriado;
+Brier/Log Loss para probabilidades, quando apropriado;
+cobertura e largura de intervalos;
+monitorização de drift;
+recalibração e retreino controlados;
+comparação de versões e rollback.
+17.5 Histórico
+Previsões anteriores não podem ser reescritas para parecerem mais corretas. Atualizações devem ser novas versões ligadas à previsão inicial. No fim do horizonte, o sistema regista o resultado observado e avalia a qualidade.
+
+17.6 Fronteira astrológica
+A previsão científica e a interpretação astrológica devem permanecer separadas. Uma interpretação astrológica pode ser temporalmente projetada, mas não deve ser apresentada como previsão científica validada nem misturada nas métricas do modelo preditivo empírico.
+
+18. F60 — Inteligência Temporal
+A F60 deve funcionar como infraestrutura temporal comum da plataforma. A consolidação detalhada é uma das próximas etapas funcionais prioritárias.
+
+18.1 Modelo temporal comum
+Distinguir:
+
+event_time: quando o acontecimento ocorreu;
+observed_at: quando foi observado;
+recorded_at: quando foi registado no sistema;
+valid_from / valid_to: período de validade da informação;
+predicted_for / forecast_window: período a que a previsão se refere;
+executed_at: quando uma ação ocorreu;
+logical_time / sequência: ordenação lógica quando o relógio não é comparável.
+18.2 Capacidades previstas
+tempo absoluto, relativo e lógico;
+UTC, fusos IANA e horário de verão;
+calendários diferentes e conversões;
+precisão, resolução e granularidade;
+datas incompletas, aproximadas ou desconhecidas;
+intervalos e incerteza temporal;
+acontecimentos e sequências;
+precedências e dependências;
+cronologias multidimensionais;
+ciclos, periodicidades e recorrências;
+janelas temporais;
+tendências e alterações de regime;
+atrasos, persistência e duração;
+bitemporalidade;
+consistência cronológica;
+integração com F59, F61 e F62.
+18.3 Ciclos e periodicidades
+O sistema deve testar se um padrão é realmente periódico, distinguir sazonalidade de coincidência e avaliar estabilidade, amplitude, fase, ruído e mudanças de regime. Um ciclo aparente não deve ser comunicado como lei estabelecida.
+
+18.4 Bitemporalidade
+Sempre que necessário, guardar tanto o tempo em que o facto era válido no mundo como o tempo em que o sistema tomou conhecimento dele. Isto permite corrigir informação sem apagar a história do conhecimento.
+
+18.5 Integração astronómica e astrológica
+Usar escalas técnicas apropriadas para astronomia. Para astrologia, usar data, hora, local, fuso histórico e incerteza de nascimento de acordo com as regras aprovadas no Mapa Natal. Não inventar a regra C em falta.
+
+19. F61 — Inteligência Relacional
+A F61 deve organizar e analisar ligações entre entidades, pessoas, conceitos, acontecimentos, variáveis, documentos e períodos.
+
+Capacidades a consolidar e verificar:
+
+modelo de entidades e identidade;
+relações tipificadas;
+relações diretas e indiretas;
+relações temporais e evolução;
+grafo de conhecimento;
+caminhos, agrupamentos e dependências;
+resolução de entidades duplicadas;
+proveniência de cada relação;
+força/qualidade da evidência quando mensurável;
+contradições e relações concorrentes;
+consulta e explicação dos caminhos que suportam uma conclusão.
+A F61 não deve assumir causalidade. Uma ligação no grafo pode representar associação, referência, pertença, sequência, coocorrência ou relação causal sustentada, mas cada tipo deve ser explícito. A análise causal especializada pertence à F62.
+
+20. F62 — Inteligência Causal, Mecanismos e Explicabilidade
+20.1 Finalidade
+Investigar por que razão fenómenos ocorrem, que mecanismos os ligam e que consequências podem resultar de uma intervenção.
+
+20.2 Componentes
+núcleo causal;
+descoberta causal;
+grafos causais;
+modelação de mecanismos;
+identificação de confundidores;
+inferência causal;
+intervenções;
+contrafactuais;
+mediação e moderação;
+sensibilidade;
+explicabilidade;
+validação e incerteza.
+20.3 Variáveis e grafos
+Distinguir causa potencial, efeito, confundidora, mediadora, moderadora, instrumental e contextual. Utilizar DAGs quando os pressupostos forem adequados; sistemas com feedback exigem modelos temporais ou dinâmicos apropriados.
+
+20.4 Métodos possíveis
+Conforme o desenho e os pressupostos: ajustamento, propensity score, inverse probability weighting, Difference-in-Differences, Regression Discontinuity, variáveis instrumentais, inferência Bayesiana e modelos estruturais.
+
+20.5 Regra essencial
+Distinguir associação observada P(Y|X) de efeito de intervenção P(Y|do(X)). Não afirmar causalidade apenas com base em correlação, precedência temporal ou plausibilidade narrativa.
+
+20.6 Explicação causal
+Toda a conclusão relevante deve identificar pergunta, hipótese, grafo/modelo, mecanismo, dados, método, pressupostos, evidência, alternativas, análise de sensibilidade, limitações e conclusão.
+
+20.7 Estado epistemológico
+Classificações propostas: exploratória, potencial, limitada, consistente, causal sustentada, contestada ou refutada nas condições estudadas.
+
+A astrologia não constitui, por si, evidência de causalidade científica.
+
+21. Observabilidade e Monitorização Global
+Esta capacidade já estava prevista na arquitetura global. As especificações recentes devem ser integradas no núcleo existente, não criar um segundo motor.
+
+Responsabilidades:
+
+aquisição e normalização;
+registo de eventos e indicadores;
+qualidade e proveniência;
+deteção de anomalias e alterações;
+mudanças de regime;
+sinais fracos;
+acompanhamento temporal;
+comparação entre previsão e resultado;
+alertas e notificações;
+deduplicação e agrupamento;
+controlo de frequência e prioridades.
+Distinguir observação, monitorização, deteção, previsão e validação. A ausência de atualização não equivale a estabilidade.
+
+22. Raciocínio e Decisão
+Capacidades:
+
+decomposição de problemas;
+formulação de hipóteses;
+raciocínio lógico, científico, probabilístico, causal, temporal e comparativo;
+procura de evidência contrária;
+análise de pressupostos e limitações;
+comparação de alternativas;
+avaliação de risco, custo, benefício e reversibilidade;
+árvores de decisão, cenários e métodos multicritério;
+síntese multidisciplinar.
+Métodos como AHP, TOPSIS, custo-benefício e otimização podem ser utilizados quando adequados, mas não devem ser usados como decoração matemática. A escolha deve ser justificada.
+
+Fronteira: o raciocínio coordena métodos gerais e integra resultados; F62 assume a especialização causal.
+
+23. Planeamento Estratégico, Objetivos e Execução
+O sistema deve transformar objetivos em planos executáveis.
+
+Tipos de objetivo: estratégico, tático, operacional, exploratório, corretivo e adaptativo.
+
+Cada objetivo deve poder conter ID, descrição, justificação, prioridade, prazo, indicadores, recursos, dependências, responsável, estado e histórico.
+
+O plano deve decompor-se em fases, tarefas, subtarefas, entregáveis, critérios de aceitação e dependências. Deve identificar caminho crítico, riscos, contingências e necessidade de replaneamento.
+
+Estados de tarefa recuperados:
+
+por iniciar;
+preparada;
+em execução;
+bloqueada;
+em validação;
+concluída;
+cancelada.
+A conclusão só ocorre quando os critérios de aceitação estão satisfeitos. O sistema deve medir eficácia, eficiência e impacto.
+
+24. Inteligência Evolutiva e Aprendizagem
+É uma capacidade transversal, não um motor duplicado.
+
+Abrange:
+
+autoavaliação;
+identificação de limitações;
+aprendizagem a partir de resultados;
+melhoria de métodos;
+comparação de versões;
+experiência controlada;
+deteção de regressões;
+validação antes de adotar alterações;
+rollback.
+Não pode alterar objetivos fundamentais, princípios epistemológicos, permissões ou regras de segurança sem aprovação explícita.
+
+25. Comunicação, Síntese e Personalização
+A camada de comunicação deve:
+
+adaptar profundidade e formato ao pedido;
+separar conclusão, evidência, pressupostos e incerteza;
+permitir respostas sintéticas e relatórios técnicos;
+explicar relações e métodos de forma compreensível;
+indicar o que falta saber;
+evitar dramatização, falsas certezas e linguagem de autoridade indevida;
+preservar consistência terminológica.
+A personalização deve partir de preferências declaradas e permitir inferências apenas quando identificadas como tais. O utilizador deve poder rever e corrigir o perfil.
+
+PARTE VI — ARQUITETURA TÉCNICA E GOVERNAÇÃO
+26. Arquitetura lógica de referência
+A arquitetura definida conceptualmente é híbrida e integrada, com coordenação central e responsabilidades especializadas.
+
+26.1 Camadas
+Interface web/app e experiência do utilizador.
+API e camada de identidade/permissões.
+Orquestrador central e gestor de tarefas.
+Serviços/capacidades especializadas.
+Camada de dados e memória.
+Integrações externas e aquisição de fontes.
+Observabilidade, validação e auditoria.
+Segurança, privacidade e governação.
+Engenharia, deployment e evolução.
+26.2 Distribuição física
+Não está decidido se a implementação será monólito modular, serviços separados ou arquitetura híbrida. A opção correta depende da auditoria. Não decompor em microserviços apenas porque existem motores conceptuais distintos.
+
+26.3 Mensagens e eventos
+Cada mensagem deve conter, no mínimo:
+
+ID e correlation ID;
+origem e destinatário;
+tipo de operação;
+contexto;
+prioridade P0–P3;
+dependências;
+versão do contrato;
+timestamps relevantes;
+estado;
+payload tipado;
+resultado/erro;
+proveniência.
+Suportar idempotência, retries com limites, timeout, circuit breaker, deduplicação e recuperação.
+
+27. Dados e modelo conceptual
+O modelo de dados deve permitir representar, pelo menos:
+
+utilizador e preferências;
+entidades e identidades;
+factos e afirmações;
+fontes e documentos;
+eventos e cronologias;
+relações tipificadas;
+hipóteses e inferências;
+modelos e métodos;
+previsões e resultados;
+objetivos e planos;
+tarefas e execuções;
+permissões e consentimentos;
+versões e auditoria.
+Cada objeto relevante deve ter identificador estável, timestamps, proveniência, estado, versão e contexto de acesso. Os modelos concretos devem ser definidos após a inspeção da stack atual.
+
+28. Segurança, privacidade e controlo
+Requisitos transversais:
+
+autenticação segura;
+autorização por função e âmbito;
+princípio do menor privilégio;
+isolamento de dados por utilizador;
+gestão segura de segredos;
+encriptação em trânsito e em repouso, conforme risco;
+registo de acesso e operações sensíveis;
+minimização de dados;
+consentimento e controlo de retenção;
+exportação e eliminação;
+proteção contra prompt injection e conteúdo externo malicioso;
+validação de ficheiros e entradas;
+backups e recuperação;
+gestão de incidentes.
+Dados pessoais não devem ser utilizados para treinar ou partilhar fora do âmbito autorizado. O sistema deve tornar visível o que guarda e porquê.
+
+29. Orquestração e gestão de tarefas
+O orquestrador deve:
+
+interpretar o objetivo;
+decompor o trabalho;
+identificar capacidades;
+construir o grafo de dependências;
+escolher sequência e prioridades;
+executar em modo síncrono ou assíncrono;
+monitorizar estado;
+recuperar falhas;
+consolidar resultados;
+gerir limites de custo e tempo;
+pedir aprovação quando necessário;
+registar a execução de ponta a ponta.
+A autonomia da orquestração não significa que os motores possam alterar as próprias permissões.
+
+PARTE VII — QUALIDADE, VALIDAÇÃO E CICLO DE VIDA
+30. Gestão de requisitos
+Cada funcionalidade/requisito deve possuir:
+
+ID único e nome;
+descrição funcional completa;
+justificação e problema resolvido;
+âmbito e exclusões;
+ator e cenário de utilização;
+regras de negócio;
+dados de entrada e saída;
+dependências;
+módulo responsável;
+prioridades;
+critérios de aceitação;
+testes associados;
+riscos e pressupostos;
+estado e versão;
+histórico e origem da decisão.
+O Documento Mestre do Produto deve ser explicativo e completo, preservando o intuito, o funcionamento, as regras e as decisões. Não reduzir funcionalidades complexas a descrições curtas.
+
+31. Estados oficiais
+Estados de ciclo de vida recuperados:
+
+especificação pendente;
+em especificação;
+especificada;
+em desenvolvimento;
+implementada;
+em validação;
+validada;
+em produção;
+suspensa;
+descontinuada.
+Não saltar de «especificada» para «validada». Especificação, implementação, testes e validação em ambiente real são etapas distintas.
+
+32. Estratégia de testes
+Aplicar, conforme cada componente:
+
+testes unitários;
+testes de integração;
+testes de contrato;
+testes end-to-end;
+testes de regressão;
+testes de segurança;
+testes de desempenho e carga;
+testes de migração e recuperação;
+testes de consistência temporal;
+testes de proveniência e isolamento;
+testes de qualidade e calibração dos modelos.
+Cada teste deve estar ligado a requisito e critério de aceitação.
+
+33. Observabilidade técnica
+A implementação deve ter logs estruturados, métricas, traces, correlation IDs, painéis de estado e alertas. A observabilidade técnica da aplicação não deve ser confundida com a Observabilidade Global do conhecimento e dos acontecimentos acompanhados pelo produto; são capacidades relacionadas, mas com objetivos diferentes.
+
+34. Versionamento e alterações
+versionar requisitos, APIs, dados, modelos e metodologias;
+manter migrações controladas;
+registar decisões arquiteturais;
+exigir testes antes de integrar alterações;
+proteger branches principais;
+rever alterações críticas;
+possuir rollback e plano de recuperação;
+não apagar histórico de previsões, factos ou decisões;
+registar alterações de interpretação e de parâmetros do mapa natal.
+PARTE VIII — DEPENDÊNCIAS E FRONTEIRAS ENTRE MÓDULOS
+35. Matriz preliminar de dependências
+As seguintes ligações foram recuperadas como orientação inicial:
+
+Memória → Raciocínio.
+Observabilidade → Memória.
+Observabilidade → F59.
+F60 → F59.
+F61 → Raciocínio.
+F62 → F59.
+Raciocínio → Planeamento.
+F59 → Planeamento.
+Validação → todos os módulos.
+Inteligência Evolutiva → todos os módulos.
+Orquestração → todos os módulos.
+Comunicação → utilizador.
+Esta matriz não é ainda um grafo definitivo. O Devin deve validá-la contra o código e os documentos originais, identificando dependências circulares, dependências implícitas e acoplamento excessivo.
+
+36. Fronteiras críticas para evitar duplicação
+Capacidade	Responsabilidade principal	Não deve duplicar
+F59	previsão e avaliação de previsões	observação contínua, causalidade especializada
+F60	representação e raciocínio temporal	monitorização global ou previsão completa
+F61	entidades e relações	causalidade automática
+F62	inferência causal e mecanismos	raciocínio geral ou simples correlação
+Observabilidade Global	aquisição, monitorização e deteção	motor preditivo ou motor temporal
+Raciocínio	integração e raciocínio geral	análise causal especializada da F62
+Inteligência Evolutiva	aprendizagem transversal	novo motor independente com as mesmas funções
+Planeamento	objetivos, tarefas e execução	previsão ou análise de decisão sem coordenação
+PARTE IX — PLANO DE DESENVOLVIMENTO DESDE A TRANSIÇÃO
+37. Regra geral de execução
+Não começar por reescrever tudo. Primeiro descobrir o que existe. Depois reconciliar documentação e código. Só então implementar o backlog por incrementos.
+
+A prioridade é construir uma base coerente e funcional, não maximizar o número de módulos ou ficheiros.
+
+38. Fase 0 — Preservação e auditoria
+Objetivo: perceber o estado real antes de alterar.
+
+Tarefas:
+
+confirmar repositório correto;
+inspecionar árvore de ficheiros e histórico Git;
+identificar stack, serviços, bases de dados, APIs e integrações;
+localizar Documento Mestre e especificações originais;
+inventariar funcionalidades e IDs;
+mapear código, testes e endpoints por funcionalidade;
+identificar código morto, duplicações e módulos incompletos;
+verificar segurança, configuração, segredos e permissões;
+executar testes existentes e registar baseline;
+produzir matriz de maturidade e relatório de riscos.
+Entregáveis: inventário técnico, inventário funcional, matriz de dependências, mapa de código, resultados de testes, riscos e backlog.
+
+Regra: sem reestruturação global antes de a auditoria estar documentada.
+
+39. Fase 1 — Consolidação da especificação e governação
+Objetivo: criar uma fonte de verdade de produto e engenharia.
+
+Tarefas:
+
+consolidar o Documento Mestre;
+preservar IDs e origem das decisões;
+criar catálogo de requisitos;
+estabelecer estados oficiais;
+criar registo de decisões arquiteturais;
+definir critérios de aceitação e estratégia de testes;
+criar matriz de rastreabilidade entre requisito, código e teste.
+40. Fase 2 — Núcleo técnico e modelo de dados
+Objetivo: assegurar base reutilizável para os motores.
+
+Prioridades:
+
+identidade, autenticação e autorização;
+contexto de utilizador e isolamento;
+modelos de dados e proveniência;
+memória e recuperação;
+gestão de eventos e tempo;
+contratos de API;
+orquestração básica;
+logs, métricas e auditoria;
+gestão de erros e tarefas.
+Só implementar o que a auditoria mostrar que falta. Evitar substituir componentes funcionais sem justificação.
+
+41. Fase 3 — Consolidação dos motores especializados
+Sequência funcional anteriormente definida, sujeita a dependências reais:
+
+F60 — Inteligência Temporal;
+F61 — Inteligência Relacional;
+F62 — Inteligência Causal e Explicabilidade;
+F59 — Inteligência Preditiva;
+integração da Observabilidade e Monitorização Global;
+consolidação de Raciocínio e Decisão;
+integração de Planeamento e Execução;
+consolidação da Validação e Inteligência Evolutiva.
+A sequência pode ser adaptada se o repositório mostrar dependências concretas, mas qualquer alteração deve ser justificada.
+
+42. Fase 4 — Aplicação astrológica utilizável
+Objetivo: completar o núcleo experiencial que deu origem ao produto.
+
+Possíveis incrementos, subordinados às decisões originais:
+
+perfil e dados de nascimento;
+validação de local, hora e fuso histórico;
+Mapa Natal;
+cálculos e renderização;
+interpretações por componentes;
+síntese integrada;
+histórico de versões do mapa;
+trânsitos e cronologia;
+outras técnicas aprovadas;
+explicações dos parâmetros e incerteza.
+Antes de implementar a regra C da hora de nascimento, recuperar a especificação original.
+
+43. Fase 5 — Inteligência pessoal contextual
+Objetivo: fazer a aplicação funcionar como sistema contínuo.
+
+memória contextual e preferências;
+arquivo de documentos e fontes;
+perguntas sobre o próprio histórico;
+cronologias pessoais;
+relações entre acontecimentos e temas;
+acompanhamento de temas selecionados;
+atualização do conhecimento;
+relatórios e sínteses.
+44. Fase 6 — Monitorização, previsão e planeamento
+Objetivo: avançar da análise reativa para acompanhamento e antecipação qualificados.
+
+alertas configuráveis;
+observação de fontes e indicadores;
+previsão com validação;
+comparação de previsões e resultados;
+cenários;
+objetivos e planos;
+execução supervisionada;
+aprendizagem com resultados.
+45. Fase 7 — Robustez, escala e expansão
+Objetivo: preparar a plataforma para maior utilização e novas capacidades.
+
+otimização de desempenho;
+controlo de custos de modelos e integrações;
+escalabilidade;
+recuperação de desastre;
+auditorias de segurança;
+governação de dados;
+monitorização operacional;
+extensibilidade e portabilidade;
+avaliação contínua da qualidade.
+PARTE X — COMO O DEVIN DEVE TRABALHAR NO PROJETO
+46. Papel do Devin
+O Devin deve atuar como agente de engenharia responsável por transformar as especificações em software funcional, mantendo a visão e as regras do produto. Deve trabalhar com autonomia técnica dentro do âmbito, mas não redefinir unilateralmente o produto.
+
+Deve:
+
+explorar o repositório antes de alterar;
+compreender a arquitetura existente;
+pesquisar a documentação antes de criar componentes;
+preservar IDs e contratos;
+decompor o trabalho em tarefas pequenas;
+identificar dependências e riscos;
+implementar incrementalmente;
+criar e executar testes;
+documentar decisões;
+apresentar resultados comprováveis;
+propor melhorias quando encontrar problemas reais.
+47. Processo de trabalho por tarefa
+Ler requisito e contexto.
+Verificar se a capacidade já existe.
+Identificar ficheiros e componentes afetados.
+Definir plano de alteração.
+Explicitar pressupostos e riscos.
+Implementar a alteração mínima coerente.
+Executar testes unitários e relevantes.
+Executar testes de integração/regressão necessários.
+Rever segurança, desempenho e compatibilidade.
+Atualizar documentação.
+Registar estado e limitações.
+Entregar resumo com evidências.
+Cada entrega deve indicar:
+
+o que mudou;
+por que mudou;
+ficheiros/componentes afetados;
+testes executados e resultados;
+o que não foi testado;
+riscos ou limitações;
+passos seguintes.
+48. Regras contra loops e trabalho repetido
+Antes de começar qualquer nova funcionalidade:
+
+pesquisar ID e nome;
+pesquisar sinónimos;
+verificar funcionalidades equivalentes;
+verificar tarefas e commits anteriores;
+procurar especificação original;
+declarar se o trabalho é novo, consolidação, extensão, correção ou validação.
+Não repetir etapas já concluídas. Não voltar a pedir confirmação de decisões já tomadas. Se a decisão estiver ausente, registar a lacuna e avançar apenas até ao limite seguro.
+
+49. Gestão de alterações
+utilizar branches de trabalho;
+manter commits pequenos e descritivos;
+evitar alterações simultâneas não coordenadas;
+preservar compatibilidade quando possível;
+acompanhar migrations;
+não expor segredos;
+não usar dados pessoais reais em testes sem autorização;
+exigir revisão para mudanças de segurança, dados ou arquitetura;
+manter rollback para mudanças com risco.
+PARTE XI — CRITÉRIOS DE ACEITAÇÃO DO PRODUTO
+50. Critérios globais
+O produto só pode ser considerado funcionalmente maduro quando:
+
+a visão e os requisitos estão documentados;
+as decisões são rastreáveis;
+os módulos têm fronteiras claras;
+os contratos estão versionados;
+os dados têm proveniência e contexto temporal;
+a classificação epistemológica é aplicada;
+a segurança e o isolamento são testados;
+os motores não duplicam responsabilidades;
+os testes relevantes passam;
+as previsões são avaliadas após os horizontes;
+a documentação corresponde ao código;
+as limitações são comunicadas;
+existe processo de correção e rollback.
+51. Critérios específicos de qualidade
+Memória
+recuperação contextual correta;
+separação entre facto, relato e inferência;
+histórico e proveniência preservados;
+eliminação propagada;
+isolamento entre utilizadores.
+Astrologia
+parâmetros de cálculo explicitados;
+hora/local/fuso tratados segundo regras aprovadas;
+resultados reproduzíveis com a mesma versão e dados;
+interpretações identificadas como simbólicas;
+histórico de alterações preservado.
+Temporal
+conversões de fuso e horário de verão testadas;
+precisão e incerteza declaradas;
+cronologias coerentes;
+datas incompletas não inventadas;
+validade e tempo de registo distinguidos.
+Relacional
+entidades identificáveis e desambiguadas;
+relações tipificadas e com proveniência;
+relações não causais não apresentadas como causais;
+mudanças temporais preservadas.
+Causal
+pressupostos e grafo explícitos;
+métodos adequados ao desenho;
+análise de confundimento e sensibilidade;
+conclusões qualificadas;
+associação não confundida com causalidade.
+Preditivo
+baseline comparável;
+validação temporal apropriada;
+ausência de leakage;
+calibração e incerteza avaliadas;
+previsões históricas imutáveis;
+resultados observados associados à previsão.
+Observabilidade
+deteção e alertas com proveniência;
+agrupamento de alertas;
+controlo de frequência;
+ausência de atualização não interpretada como estabilidade.
+Autonomia
+permissões verificadas;
+ações sensíveis sujeitas a aprovação;
+trilho de auditoria;
+cancelamento e rollback possíveis.
+PARTE XII — DECISÕES CONHECIDAS, LACUNAS E QUESTÕES A RECUPERAR
+52. Decisões consolidadas que devem ser preservadas
+O produto chama-se Arquivo do Universo — Inteligência Pessoal.
+A origem foi uma aplicação astrológica personalizada, posteriormente ampliada para uma plataforma de inteligência pessoal.
+A arquitetura e o modo de funcionamento seguem por defeito a opção C: integrada, híbrida, adaptativa e autónoma dentro de limites, com transparência e intervenção humana.
+O Documento Mestre deve ser completo, explicativo e preservar o intuito e as regras, não ser uma síntese excessivamente curta.
+A astrologia deve permanecer epistemologicamente separada da ciência e da previsão empírica.
+F59 é o Motor de Inteligência Preditiva.
+F60 é a Inteligência Temporal.
+F61 é a Inteligência Relacional.
+F62 é a Inteligência Causal, Mecanismos e Explicabilidade.
+Não criar motores duplicados para capacidades que já pertencem a estes módulos ou a núcleos transversais existentes.
+A monitorização recente deve integrar Observabilidade e Monitorização Global.
+A inteligência evolutiva é transversal e não deve tornar-se outro motor redundante.
+Distinguir sempre especificação, desenvolvimento, implementação, testes e validação.
+Não declarar implementada ou validada uma funcionalidade sem evidência.
+Preservar histórico, proveniência, incerteza, versões e contradições.
+53. Lacunas concretas a recuperar antes de implementar
+texto integral das primeiras conversas de conceção da aplicação astrológica;
+definição exata da opção C do Mapa Natal;
+definição exata da opção C para a hora de nascimento;
+lista integral de funcionalidades e identificadores anteriores a F59;
+especificação original completa de F60 e F61;
+Documento Mestre do Produto eventualmente existente;
+decisões de interface, navegação e experiência de utilizador;
+técnicas astrológicas aprovadas para a primeira versão;
+fontes/efemérides e regras de cálculo selecionadas;
+arquitetura e stack efetivamente existentes;
+nome, URL e estado do repositório correto;
+estado real de cada funcionalidade;
+testes, deployments e ambiente de execução.
+54. Decisões que não devem ser inventadas
+Não assumir stack, fornecedores, modelos de IA, base de dados, cloud, arquitetura de microserviços, política de custos, regras astrológicas específicas ou funcionalidades adicionais sem evidência documental ou decisão explícita.
+
+Quando necessário, o Devin deve apresentar opções técnicas com recomendação fundamentada, escolhendo a solução de menor complexidade que satisfaça os requisitos e permita evolução futura.
+
+PARTE XIII — PRIMEIRA MISSÃO PARA O DEVIN
+55. Auditoria obrigatória antes de desenvolvimento estrutural
+Executa uma auditoria não destrutiva e entrega:
+
+A. Inventário técnico
+árvore de diretórios;
+linguagens e frameworks;
+serviços;
+frontend/backend;
+bases de dados e migrations;
+APIs e integrações;
+infraestrutura e deployment;
+pipelines;
+testes;
+documentação;
+dependências externas.
+B. Inventário funcional
+Para cada funcionalidade:
+
+ID e nome;
+origem documental;
+objetivo;
+código relacionado;
+dependências;
+estado comprovado;
+testes disponíveis;
+lacunas;
+duplicações.
+C. Matriz de maturidade
+Usar estados separados: não especificada, especificada, em desenvolvimento, implementada, em validação, validada e em produção. Fundamentar cada classificação.
+
+D. Auditoria arquitetural
+Verificar:
+
+redundância;
+dependências circulares;
+acoplamento;
+fronteiras de responsabilidade;
+segurança e privacidade;
+proveniência;
+coerência temporal;
+observabilidade;
+qualidade de testes;
+divergência entre código e especificação.
+E. Plano de execução
+Backlog priorizado com tarefa, razão, dependências, esforço relativo, risco, critérios de aceitação, testes, entregável e rollback.
+
+Não iniciar reestruturação global antes de apresentar este diagnóstico. Correções pequenas e inequivocamente seguras podem ser feitas se forem testadas e documentadas.
+
+PARTE XIV — PROMPT DE ARRANQUE PARA O DEVIN
+Assume o papel de engenheiro principal e responsável pela continuidade técnica do projeto Arquivo do Universo — Inteligência Pessoal. Lê este dossiê integralmente antes de propor alterações.
+
+O produto nasceu como uma aplicação astrológica personalizada e evoluiu para uma plataforma integrada de inteligência pessoal, com memória, conhecimento, astronomia, astrologia, ciência, raciocínio, análise temporal, relacional, causal e preditiva, observabilidade, planeamento, aprendizagem e orquestração.
+
+Respeita a arquitetura conceptual integrada, híbrida, adaptativa e autónoma dentro de objetivos e limites explícitos, com transparência, rastreabilidade, segurança e intervenção humana. Aplica os princípios epistemológicos: distingue factos, evidência, hipóteses, inferências, interpretações e previsões. Mantém astrologia separada da ciência e da previsão empírica.
+
+Preserva os identificadores F59, F60, F61 e F62 e não cries motores duplicados. A F59 é preditiva; a F60 temporal; a F61 relacional; a F62 causal e explicativa. A observabilidade e a aprendizagem evolutiva são capacidades transversais existentes, não justificações para criar novos motores redundantes.
+
+A tua primeira missão é auditar o repositório e a documentação existentes. Não assumas que especificações equivalem a código, nem que código existente está validado. Produz inventário técnico, inventário funcional, matriz de dependências, relatório de divergências, análise de risco e backlog priorizado. Executa os testes existentes e regista a baseline. Não faças alterações estruturais ou destrutivas antes de apresentar o diagnóstico.
+
+Depois da auditoria, consolida a documentação do produto e prossegue pela sequência funcional definida, começando pela F60 — Inteligência Temporal, salvo dependências concretas comprovadas que justifiquem outra ordem. Recupera as decisões originais da opção C do Mapa Natal e da hora de nascimento antes de tocar nessa lógica.
+
+Trabalha por incrementos pequenos e reversíveis. Para cada tarefa, apresenta plano, dependências, alteração, testes executados, resultados, limitações e estado real. Mantém código, documentação, requisitos e testes rastreáveis. Não declares implementação ou validação sem evidência.
+
+56. Instruções de utilização deste dossiê
+Anexar este documento ao projeto correto no Devin.
+Ligar o Devin ao repositório do Arquivo do Universo — confirmar cuidadosamente que não é o repositório de outro projeto.
+Colar o prompt da Parte XIV.
+Pedir primeiro a auditoria não destrutiva.
+Guardar a auditoria como baseline de engenharia.
+Reconciliar este dossiê com as especificações originais que forem encontradas.
+Atualizar o Documento Mestre com as decisões recuperadas e as lacunas resolvidas.
+Executar o desenvolvimento por incrementos verificáveis.
+Princípio final: este dossiê preserva a visão e o planeamento recuperáveis. O código e os documentos originais determinam o estado real. O objetivo da transição é continuar o projeto com fidelidade, sem perder decisões, sem repetir trabalho e sem confundir aquilo que planeámos com aquilo que já foi construído.
