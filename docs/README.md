@@ -2,6 +2,8 @@
 
 | Documento | Finalidade |
 |---|---|
+| [Visão do produto](produto/visao.md) | O que é a aplicação e para que serve (D-022). Prevalece sobre o dossiê em matéria de foco |
+| [Conversa original](dossie/conversa-original-chatgpt.txt) | Conceção inicial com o ChatGPT, guardada sem alterações |
 | [Dossiê mestre v2.0](dossie/dossie-mestre-v2.0.txt) | Visão, princípios e plano. Guardado **sem alterações**, tal como foi entregue |
 | [Decisões consolidadas](governanca/decisoes.md) | Registo de decisões de produto, com a origem de cada uma |
 | [Estados oficiais](governanca/estados.md) | Ciclo de vida dos requisitos e das tarefas |
@@ -13,5 +15,5 @@
 | [Auditorias](auditoria/) | Baselines de engenharia |
 
 O Documento Mestre consolidado (Fase 1) vai ser construído a partir do dossiê e das conversas originais,
-à medida que as lacunas forem resolvidas. Quando houver divergência, o dossiê prevalece até haver uma
+à medida que as lacunas forem resolvidas. Quando houver divergência, prevalece a visão do produto (D-022) e, a seguir, o dossiê, até haver uma
 decisão registada.

@@ -4,8 +4,9 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
+from arquivo.config import default_ephemeris_path
 from arquivo.main import create_app
-from arquivo.natal.chart import ChartError, calculate_chart, house_of
+from arquivo.natal.chart import BodyPosition, ChartError, calculate_chart, find_aspects, house_of
 from arquivo.natal.ephemeris import EphemerisBackend, available_files, default_ephemeris_dir
 from arquivo.natal.settings import (
     AspectKind,
@@ -106,6 +107,59 @@ def test_missing_files_fall_back_to_moshier_with_warning(tmp_path: Path) -> None
     chart = calculate_chart(INSTANT, *LISBON, settings, ephemeris_dir=tmp_path)
     assert chart.calculation.backend is EphemerisBackend.MOSHIER
     assert any("Moshier" in w for w in chart.calculation.warnings)
+
+
+def _position(body: Body, longitude: float, speed: float) -> BodyPosition:
+    return BodyPosition(
+        body=body,
+        longitude=longitude,
+        latitude=0,
+        distance_au=1,
+        speed=speed,
+        retrograde=speed < 0,
+        sign=Sign.of(longitude),
+        degree_in_sign=longitude % 30,
+        house=1,
+    )
+
+
+@pytest.mark.parametrize(
+    ("moon", "speed", "applying"),
+    [
+        (99.99, 13.0, True),  # exato daqui a ~1 minuto: ainda aplicativo
+        (100.01, 13.0, False),
+        (100.01, -13.0, True),
+        (99.99, -13.0, False),
+    ],
+)
+def test_applying_is_decided_at_the_instant(moon: float, speed: float, applying: bool) -> None:
+    sun = _position(Body.SUN, 10.0, 1.0)
+    square = find_aspects([sun, _position(Body.MOON, moon, speed)], ChartSettings())
+    assert [a.kind for a in square] == [AspectKind.SQUARE]
+    assert square[0].applying is applying
+
+
+def test_applying_conjunction_across_zero_aries() -> None:
+    sun = _position(Body.SUN, 0.005, 1.0)
+    moon = _position(Body.MOON, 359.99, 13.0)
+    (conjunction,) = find_aspects([sun, moon], ChartSettings())
+    assert conjunction.kind is AspectKind.CONJUNCTION
+    assert conjunction.applying
+
+
+@pytest.mark.skipif(not HAS_FILES, reason="efemérides da Swiss Ephemeris não descarregadas")
+def test_dates_outside_file_range_do_not_claim_swiss_files() -> None:
+    chart = calculate_chart(datetime(1700, 3, 1, 12, tzinfo=UTC), *LISBON)
+    assert chart.calculation.backend is EphemerisBackend.MOSHIER
+    assert chart.calculation.ephemeris_files == []
+    assert any("Moshier" in w for w in chart.calculation.warnings)
+
+
+def test_default_ephemeris_path(tmp_path: Path) -> None:
+    repo_root = Path(__file__).resolve().parents[2]
+    assert default_ephemeris_path() == repo_root / "data" / "ephe"
+    installed = tmp_path / "venv" / "lib" / "python3.12" / "site-packages" / "arquivo" / "config.py"
+    assert default_ephemeris_path(installed, cwd=tmp_path) == tmp_path / "data" / "ephe"
 
 
 def test_rejects_naive_instant() -> None:
