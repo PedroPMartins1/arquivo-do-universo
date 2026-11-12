@@ -26,9 +26,9 @@ docker compose up -d db
 # Backend: http://localhost:8000/docs
 cd backend
 ./scripts/fetch_ephemerides.sh   # Swiss Ephemeris + JPL DE421 em data/ephe (não versionado)
-./scripts/fetch_places.sh        # localidades do GeoNames em data/geonames e na base de dados (depois de alembic upgrade)
 uv sync
 uv run alembic upgrade head
+./scripts/fetch_places.sh        # localidades do GeoNames em data/geonames e na base de dados
 uv run uvicorn arquivo.main:app --reload
 
 # Frontend: http://localhost:5173 (encaminha /api para o backend)
