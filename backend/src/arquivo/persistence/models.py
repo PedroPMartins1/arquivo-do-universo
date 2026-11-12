@@ -1,18 +1,21 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime, time
 from typing import Any
 
 from sqlalchemy import (
     BigInteger,
     CheckConstraint,
+    Date,
     DateTime,
     Enum,
+    Float,
     ForeignKey,
     Identity,
     Integer,
     MetaData,
     String,
     Text,
+    Time,
     UniqueConstraint,
     func,
 )
@@ -53,7 +56,49 @@ class User(Base):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     email: Mapped[str] = mapped_column(String(320), unique=True)
     display_name: Mapped[str] = mapped_column(String(200))
+    password_hash: Mapped[str | None] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class AuthSession(Base):
+    """Sessão de autenticação. Só se guarda o hash SHA-256 do token, nunca o token."""
+
+    __tablename__ = "auth_sessions"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class BirthProfile(Base):
+    """Dados de nascimento exatos (D-020). Um perfil por utilizador."""
+
+    __tablename__ = "birth_profiles"
+    __table_args__ = (
+        CheckConstraint("latitude BETWEEN -90 AND 90", name="latitude_range"),
+        CheckConstraint("longitude BETWEEN -180 AND 180", name="longitude_range"),
+        CheckConstraint("occurrence IS NULL OR occurrence IN (0, 1)", name="occurrence_values"),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    birth_date: Mapped[date] = mapped_column(Date)
+    birth_time: Mapped[time] = mapped_column(Time)
+    place_name: Mapped[str] = mapped_column(String(200))
+    latitude: Mapped[float] = mapped_column(Float)
+    longitude: Mapped[float] = mapped_column(Float)
+    zone: Mapped[str] = mapped_column(String(64))
+    occurrence: Mapped[int | None] = mapped_column(Integer)
+    birth_utc: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    tzdata_version: Mapped[str | None] = mapped_column(String(32))
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
 
 class Source(Base):

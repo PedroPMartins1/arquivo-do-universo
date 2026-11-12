@@ -1,26 +1,138 @@
 :root {
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  color: #1d1d29;
-  background: #f7f6f2;
+  color: #ece8f5;
+  background: radial-gradient(ellipse at top, #2a2050 0%, #0d0b1a 60%) fixed;
   line-height: 1.5;
 }
 
 body {
   margin: 0;
+  min-height: 100vh;
 }
 
 main {
-  max-width: 48rem;
+  max-width: 40rem;
   margin: 0 auto;
   padding: 3rem 1.5rem;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
 }
 
 h1 {
   margin: 0;
   font-size: 2rem;
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  color: #e9d8a6;
 }
 
-.subtitle {
-  margin-top: 0.25rem;
-  color: #5b5b6e;
+h2 {
+  margin-top: 0;
+  font-weight: 400;
+}
+
+.subtitle,
+.hint {
+  color: #b3abc9;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin-top: 2rem;
+  padding: 1.75rem;
+  border: 1px solid rgb(233 216 166 / 0.25);
+  border-radius: 1rem;
+  background: rgb(20 16 40 / 0.75);
+  box-shadow: 0 0 40px rgb(120 90 220 / 0.15);
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+}
+
+label.inline {
+  flex-direction: row;
+  align-items: center;
+}
+
+input {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #4a4170;
+  border-radius: 0.5rem;
+  background: #171330;
+  color: inherit;
+  font: inherit;
+}
+
+fieldset {
+  border: 1px solid #4a4170;
+  border-radius: 0.5rem;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+button {
+  padding: 0.7rem 1rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: linear-gradient(90deg, #c9a74e, #e9d8a6);
+  color: #1a1530;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button.link {
+  background: none;
+  color: #e9d8a6;
+  font-weight: 400;
+  padding: 0;
+}
+
+[role='alert'] {
+  color: #ff9e9e;
+}
+
+.big-three {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin: 0;
+  text-align: center;
+}
+
+.big-three dt {
+  color: #b3abc9;
+  font-size: 0.85rem;
+}
+
+.big-three dd {
+  margin: 0;
+  font-size: 1.3rem;
+  color: #e9d8a6;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid rgb(233 216 166 / 0.12);
+  text-align: left;
 }
