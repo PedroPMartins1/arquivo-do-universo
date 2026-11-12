@@ -104,7 +104,7 @@ function BirthForm({ onDone, problem }: { onDone: () => unknown; problem?: strin
           zone: null,
         }
       : {
-          place_name: describePlace(place as Place),
+          place_name: describePlace(place as Place).slice(0, 200),
           latitude: (place as Place).latitude,
           longitude: (place as Place).longitude,
           zone: (place as Place).zone,
