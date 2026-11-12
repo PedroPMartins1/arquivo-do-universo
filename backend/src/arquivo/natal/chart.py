@@ -144,6 +144,22 @@ def _separation(a: float, b: float) -> float:
     return 360.0 - diff if diff > 180 else diff
 
 
+def _signed_difference(a: float, b: float) -> float:
+    """Diferença b − a no intervalo (−180, 180]."""
+    diff = _norm(b - a)
+    return diff - 360.0 if diff > 180 else diff
+
+
+def _is_applying(a: BodyPosition, b: BodyPosition, angle: float) -> bool:
+    """Aplicativo se a orbe está a diminuir no próprio instante (derivada, não projeção)."""
+    diff = _signed_difference(a.longitude, b.longitude)
+    separation_rate = math.copysign(1.0, diff) * (b.speed - a.speed) if diff else 0.0
+    offset = abs(diff) - angle
+    if offset == 0:
+        return False
+    return math.copysign(1.0, offset) * separation_rate < 0
+
+
 def house_of(longitude: float, cusps: list[float]) -> int:
     for index, start in enumerate(cusps):
         end = cusps[(index + 1) % 12]
@@ -154,10 +170,8 @@ def house_of(longitude: float, cusps: list[float]) -> int:
 
 def find_aspects(bodies: list[BodyPosition], settings: ChartSettings) -> list[Aspect]:
     found: list[Aspect] = []
-    step = 1 / 24  # uma hora, em dias
     for a, b in combinations(bodies, 2):
         separation = _separation(a.longitude, b.longitude)
-        later = _separation(a.longitude + a.speed * step, b.longitude + b.speed * step)
         bonus = settings.luminary_orb_bonus if {a.body, b.body} & LUMINARIES else 0.0
         best: Aspect | None = None
         for kind in settings.aspects:
@@ -171,7 +185,7 @@ def find_aspects(bodies: list[BodyPosition], settings: ChartSettings) -> list[As
                     separation=separation,
                     orb=orb,
                     allowed_orb=allowed,
-                    applying=abs(later - kind.angle) < orb,
+                    applying=_is_applying(a, b, kind.angle),
                 )
         if best is not None:
             found.append(best)
@@ -218,7 +232,8 @@ def calculate_chart(
             )
 
         warnings: list[str] = []
-        used_moshier = False
+        moshier_bodies: list[Body] = []
+        used_swiss_files = False
         raw: list[tuple[Body, tuple[float, ...]]] = []
         for body in settings.bodies:
             body_id = _NODE_IDS[settings.node] if body is Body.NORTH_NODE else _BODY_IDS[body]
@@ -227,7 +242,10 @@ def calculate_chart(
             except swe.Error as error:
                 warnings.append(f"{body.value} não calculado: {error}")
                 continue
-            used_moshier |= bool(returned & swe.FLG_MOSEPH)
+            if returned & swe.FLG_SWIEPH:
+                used_swiss_files = True
+            else:
+                moshier_bodies.append(body)
             raw.append((body, tuple(float(v) for v in values)))
 
         cusps_raw, ascmc = swe.houses_ex(
@@ -263,12 +281,13 @@ def calculate_chart(
         armc=_norm(float(ascmc[2])),
     )
 
-    files = available_files(directory)
-    backend = EphemerisBackend.MOSHIER if used_moshier else EphemerisBackend.SWISS_FILES
-    if used_moshier:
+    files = available_files(directory) if used_swiss_files else []
+    backend = EphemerisBackend.MOSHIER if moshier_bodies else EphemerisBackend.SWISS_FILES
+    if moshier_bodies:
+        names = ", ".join(body.value for body in moshier_bodies)
         warnings.append(
             "ficheiros da Swiss Ephemeris indisponíveis para esta data: usado o modelo de "
-            "Moshier (precisão inferior)"
+            f"Moshier (precisão inferior) para {names}"
         )
     if not math.isclose(cusps[0], asc, abs_tol=1e-6) and settings.house_system.value not in {
         "whole_sign",
