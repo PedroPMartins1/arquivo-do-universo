@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Cookie, HTTPException, Response, status
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, StringConstraints
 
 from arquivo.api.deps import SESSION_COOKIE, CurrentUser, Db
 from arquivo.config import get_settings
@@ -14,7 +14,9 @@ router = APIRouter(tags=["Contas"])
 class RegisterRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=10, max_length=200)
-    display_name: str = Field(min_length=1, max_length=200)
+    display_name: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)
+    ]
 
 
 class LoginRequest(BaseModel):

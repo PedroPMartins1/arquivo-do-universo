@@ -60,6 +60,8 @@ def test_duplicate_email_and_short_password(client: TestClient) -> None:
     _register(client)
     again = {"email": "ana@example.org", "password": "palavra-passe-longa", "display_name": "A"}
     assert client.post("/api/v1/auth/register", json=again).status_code == 409
+    blank = {"email": "c@example.org", "password": "palavra-passe-longa", "display_name": "  "}
+    assert client.post("/api/v1/auth/register", json=blank).status_code == 422
     short = {"email": "b@example.org", "password": "curta", "display_name": "B"}
     assert client.post("/api/v1/auth/register", json=short).status_code == 422
 
@@ -88,6 +90,7 @@ def test_birth_profile_and_chart(client: TestClient) -> None:
 
 def test_birth_profile_requires_exact_time(client: TestClient) -> None:
     _register(client)
+    assert client.put("/api/v1/me/birth", json=BIRTH | {"place_name": "   "}).status_code == 422
     ambiguous = BIRTH | {"birth_date": "2024-10-27", "birth_time": "01:30"}
     response = client.put("/api/v1/me/birth", json=ambiguous)
     assert response.status_code == 422

@@ -1,8 +1,8 @@
 from datetime import date, datetime, time
-from typing import Literal
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StringConstraints
 
 from arquivo.api.deps import CurrentUser, Db
 from arquivo.natal.birth import InexactBirthDataError, resolve_birth_instant
@@ -17,7 +17,9 @@ router = APIRouter(prefix="/me", tags=["Perfil"])
 class BirthData(BaseModel):
     birth_date: date
     birth_time: time
-    place_name: str = Field(min_length=1, max_length=200)
+    place_name: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)
+    ]
     latitude: float = Field(ge=-90, le=90)
     longitude: float = Field(ge=-180, le=180)
     zone: str | None = None
