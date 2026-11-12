@@ -1,0 +1,88 @@
+[project]
+name = "arquivo"
+version = "0.1.0"
+description = "Arquivo do Universo — Inteligência Pessoal (backend)"
+license = "AGPL-3.0-or-later"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "sqlalchemy>=2.0.36",
+    "psycopg[binary]>=3.2",
+    "alembic>=1.14",
+    "tzdata>=2024.2",
+    "timezonefinder>=6.5",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "hypothesis>=6.118",
+    "httpx>=0.27",
+    "ruff>=0.8",
+    "mypy>=1.13",
+    "import-linter>=2.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/arquivo"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "DTZ", "RUF"]
+# Texto em português usa travessões e aspas tipográficas legitimamente.
+ignore = ["RUF001", "RUF002", "RUF003"]
+
+[tool.ruff.lint.per-file-ignores]
+# Horas locais "de parede" (sem fuso) são precisamente o que se testa.
+"tests/**" = ["DTZ001"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+mypy_path = "src"
+
+[[tool.mypy.overrides]]
+module = ["timezonefinder.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["db: requires a PostgreSQL database (DATABASE_URL)"]
+
+[tool.importlinter]
+root_package = "arquivo"
+
+[[tool.importlinter.contracts]]
+name = "Core is independent of engines, persistence and API"
+type = "forbidden"
+source_modules = ["arquivo.core"]
+forbidden_modules = ["arquivo.temporal", "arquivo.persistence", "arquivo.api"]
+
+[[tool.importlinter.contracts]]
+name = "F60 (temporal) does not depend on persistence or API"
+type = "forbidden"
+source_modules = ["arquivo.temporal"]
+forbidden_modules = ["arquivo.persistence", "arquivo.api", "arquivo.core"]
+
+[[tool.importlinter.contracts]]
+name = "Persistence does not depend on the API layer"
+type = "forbidden"
+source_modules = ["arquivo.persistence"]
+forbidden_modules = ["arquivo.api"]
+
+[[tool.importlinter.contracts]]
+name = "Natal chart does not depend on persistence or API"
+type = "forbidden"
+source_modules = ["arquivo.natal"]
+forbidden_modules = ["arquivo.persistence", "arquivo.api"]
