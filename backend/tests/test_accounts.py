@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from arquivo.api.deps import get_db
 from arquivo.main import create_app
+from arquivo.persistence import accounts
 from arquivo.persistence.models import AuditEvent, AuthSession, BirthProfile, User
 
 BIRTH = {
@@ -61,6 +62,15 @@ def test_duplicate_email_and_short_password(client: TestClient) -> None:
     assert client.post("/api/v1/auth/register", json=again).status_code == 409
     short = {"email": "b@example.org", "password": "curta", "display_name": "B"}
     assert client.post("/api/v1/auth/register", json=short).status_code == 422
+
+
+def test_concurrent_registration_maps_unique_violation(
+    session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    accounts.register(session, "ana@example.org", "palavra-passe-longa", "Ana")
+    monkeypatch.setattr(Session, "scalar", lambda *args, **kwargs: None)
+    with pytest.raises(accounts.EmailInUseError):
+        accounts.register(session, "ana@example.org", "palavra-passe-longa", "Ana")
 
 
 def test_birth_profile_and_chart(client: TestClient) -> None:

@@ -9,6 +9,7 @@ from typing import Any
 from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHashError, VerificationError
 from sqlalchemy import delete, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from arquivo.persistence.models import AuditEvent, AuthSession, User
@@ -55,8 +56,11 @@ def register(session: Session, email: str, password: str, display_name: str) -> 
     user = User(
         email=email, display_name=display_name.strip(), password_hash=_hasher.hash(password)
     )
-    session.add(user)
-    session.flush()
+    try:
+        with session.begin_nested():
+            session.add(user)
+    except IntegrityError as error:
+        raise EmailInUseError("já existe uma conta com este email") from error
     audit(session, user.id, "account.registered")
     return user
 
