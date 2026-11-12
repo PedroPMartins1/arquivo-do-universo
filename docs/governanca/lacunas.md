@@ -4,9 +4,9 @@ Lacunas recuperadas do dossiê §53. Uma lacuna só fecha com uma fonte (convers
 
 | ID | Lacuna | Bloqueia | Estado | Notas |
 |---|---|---|---|---|
-| L-001 | Texto integral das primeiras conversas de conceção da app astrológica | Fase 4 | **aguarda material**: o Pedro vai fornecer o histórico | — |
-| L-002 | Definição exata da opção C do Mapa Natal | Fase 4 (Mapa Natal) | aberta | Princípio conhecido: C = a alternativa mais completa ([D-010](decisoes.md)). O conteúdo das opções tem de vir do histórico |
-| L-003 | Definição exata da opção C para a hora de nascimento | Fase 4 (Mapa Natal) | aberta | Igual a L-002. O F60 já representa a hora exata, aproximada (± minutos) e desconhecida, sem escolher uma política |
+| L-001 | Texto integral das primeiras conversas de conceção da app astrológica | Fase 4 | aberta (já não bloqueia o Mapa Natal: L-002 e L-003 resolvidas diretamente pelo Pedro) | — |
+| L-002 | Definição exata da opção C do Mapa Natal | — | **resolvida** ([D-019](decisoes.md)) | Era sobre o aspeto visual do mapa; fica por definir mais tarde, sem impacto no cálculo |
+| L-003 | Definição exata da opção C para a hora de nascimento | — | **resolvida** ([D-020](decisoes.md)) | Data e hora de nascimento têm de ser exatas |
 | L-004 | Lista integral de funcionalidades e IDs anteriores a F59 | Fase 1 (catálogo final) | aberta | O catálogo usa IDs provisórios `AU-*` até à recuperação |
 | L-005 | Especificação original completa de F60 e F61 | F60/F61 «especificada» | aberta | O F60 avança com o dossiê §18 como base mínima |
 | L-006 | Documento Mestre do Produto, se existir | Fase 1 | aberta | — |

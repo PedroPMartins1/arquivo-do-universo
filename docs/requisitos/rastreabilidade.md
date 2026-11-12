@@ -19,3 +19,4 @@ Requisito → critério de aceitação → código → testes. Atualizada em cad
 | F60 | Validação cronológica (ordem impossível, previsão retrospetiva) | `temporal/stamps.py` | `test_temporal.py::TestChronology`, `test_statements.py::test_rejects_chronology_errors` |
 | F60 | Bitemporalidade: válido em T, conforme conhecido em T' | `persistence/statements.py` (`valid_at`, `as_known_at`) | `test_statements.py::test_valid_at_is_bitemporal` |
 | F60 | API de resolução de hora local | `backend/src/arquivo/api/temporal.py` | `backend/tests/test_api.py` |
+| AU-AST | Data e hora de nascimento exatas (D-020): um único instante UTC, sem incerteza nem ambiguidade silenciosa | `backend/src/arquivo/natal/birth.py` | `backend/tests/test_birth.py` |

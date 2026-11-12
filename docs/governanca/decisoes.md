@@ -22,3 +22,5 @@ Cada decisão tem ID, origem e data. As decisões não se reabrem sem um novo re
 | D-016 | Entrega por fatia vertical: núcleo → F60 → Mapa Natal básico, antes dos restantes motores | [ADR-0003](../adr/0003-fatia-vertical.md) | 2026-11-12 |
 | D-017 | A aplicação vai correr num servidor (não só localmente). Fornecedor ainda por decidir | Pedro, sessão Devin | 2026-11-12 |
 | D-018 | O fornecedor de IA é escolhido pelo Devin com base técnica. Até lá, fica atrás de uma interface própria | Pedro, sessão Devin | 2026-11-12 |
+| D-019 | A opção C do Mapa Natal dizia respeito ao aspeto visual; fica por definir e não bloqueia o cálculo | Pedro, sessão Devin | 2026-11-12 |
+| D-020 | Data e hora de nascimento têm de ser exatas: data completa, hora ao minuto, local conhecido, sem margem de incerteza; uma hora repetida na mudança de hora exige indicação explícita da ocorrência e uma hora inexistente é rejeitada | Pedro, sessão Devin (regras operacionais: Devin) | 2026-11-12 |

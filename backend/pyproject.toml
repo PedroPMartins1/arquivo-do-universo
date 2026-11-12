@@ -80,3 +80,9 @@ name = "Persistence does not depend on the API layer"
 type = "forbidden"
 source_modules = ["arquivo.persistence"]
 forbidden_modules = ["arquivo.api"]
+
+[[tool.importlinter.contracts]]
+name = "Natal chart does not depend on persistence or API"
+type = "forbidden"
+source_modules = ["arquivo.natal"]
+forbidden_modules = ["arquivo.persistence", "arquivo.api"]

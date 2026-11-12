@@ -16,7 +16,7 @@ Estados conforme [estados oficiais](../governanca/estados.md). Baseline: [audito
 | AU-MEM | Memória e conhecimento | §13 | 2, 5 | em desenvolvimento | Afirmações versionadas e proveniência |
 | AU-INV | Investigação e aquisição de fontes | §16 | 5 | em especificação | — |
 | AU-RAC | Raciocínio e decisão | §22 | 3 | em especificação | — |
-| AU-AST | Motor astrológico (inclui Mapa Natal) | §14 | 4 | em especificação | Bloqueado parcialmente por L-002, L-003, L-008 |
+| AU-AST | Motor astrológico (inclui Mapa Natal) | §14 | 4 | em especificação | Bloqueado parcialmente por L-008 (técnicas/casas/orbes); hora de nascimento exata (D-020) implementada |
 | AU-ASN | Motor astronómico | §15 | 4 | em especificação | — |
 | AU-CIE | Motor científico / análise de evidência | §16 | 5 | em especificação | — |
 | F59 | Inteligência Preditiva | §17 | 3 | em especificação | — |
