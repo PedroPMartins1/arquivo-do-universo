@@ -52,7 +52,10 @@ export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
 
   useEffect(() => {
     fetchToday()
-      .then(setSky)
+      .then((s) => {
+        setError(null)
+        setSky(s)
+      })
       .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)))
   }, [me.residence_zone, me.residence_name])
 
@@ -75,11 +78,14 @@ export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
         <PlaceSearch
           onSelect={(place) => {
             if (!place) return
-            void saveResidence(describePlace(place).slice(0, 200), place.zone).then(() => {
-              setMoving(false)
-              setSky(null)
-              onMoved()
-            })
+            void saveResidence(describePlace(place).slice(0, 200), place.zone)
+              .then(() => {
+                setMoving(false)
+                onMoved()
+              })
+              .catch((err: unknown) =>
+                setError(err instanceof Error ? err.message : String(err)),
+              )
           }}
         />
       )}
