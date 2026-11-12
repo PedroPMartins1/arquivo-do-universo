@@ -73,6 +73,21 @@ describe('App', () => {
     expect(screen.getByText(/Primeira vez/)).toBeInTheDocument()
   })
 
+  it('permite corrigir os dados quando o mapa não se pode calcular', async () => {
+    vi.stubGlobal(
+      'fetch',
+      route({
+        'GET /api/v1/me': () => json(ME),
+        'GET /api/v1/me/birth': () => json({}),
+        'GET /api/v1/me/chart': () => json({ detail: 'Placidus não está definido' }, 422),
+      }),
+    )
+    render(<App />)
+    expect(await screen.findByRole('form', { name: 'Dados de nascimento' })).toBeInTheDocument()
+    expect(screen.getByRole('alert')).toHaveTextContent('Placidus')
+    expect(screen.getByText('Sair')).toBeInTheDocument()
+  })
+
   it('mostra erro quando o servidor falha', async () => {
     vi.stubGlobal('fetch', route({ 'GET /api/v1/me': () => new Response('', { status: 503 }) }))
     render(<App />)

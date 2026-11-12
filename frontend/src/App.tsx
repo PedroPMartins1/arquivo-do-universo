@@ -17,7 +17,7 @@ import { BODIES, degrees, signName, signOfLongitude } from './labels'
 type State =
   | { kind: 'loading' }
   | { kind: 'anonymous' }
-  | { kind: 'needs-birth'; me: Me }
+  | { kind: 'needs-birth'; me: Me; problem?: string }
   | { kind: 'ready'; me: Me; chart: NatalChart }
   | { kind: 'error'; message: string }
 
@@ -80,8 +80,8 @@ function AuthForm({ onDone }: { onDone: () => unknown }) {
   )
 }
 
-function BirthForm({ onDone }: { onDone: () => unknown }) {
-  const [error, setError] = useState<string | null>(null)
+function BirthForm({ onDone, problem }: { onDone: () => unknown; problem?: string }) {
+  const [error, setError] = useState<string | null>(problem ?? null)
   const [ambiguous, setAmbiguous] = useState(false)
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -212,7 +212,13 @@ async function loadState(): Promise<State> {
       if (err instanceof ApiError && err.status === 404) return { kind: 'needs-birth', me }
       throw err
     }
-    return { kind: 'ready', me, chart: await fetchChart() }
+    try {
+      return { kind: 'ready', me, chart: await fetchChart() }
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 422)
+        return { kind: 'needs-birth', me, problem: err.message }
+      throw err
+    }
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) return { kind: 'anonymous' }
     return { kind: 'error', message: messageOf(err) }
@@ -242,7 +248,7 @@ function App() {
       {state.kind === 'loading' && <p>A consultar as estrelas…</p>}
       {state.kind === 'error' && <p role="alert">Servidor indisponível: {state.message}</p>}
       {state.kind === 'anonymous' && <AuthForm onDone={refresh} />}
-      {state.kind === 'needs-birth' && <BirthForm onDone={refresh} />}
+      {state.kind === 'needs-birth' && <BirthForm onDone={refresh} problem={state.problem} />}
       {state.kind === 'ready' && <ChartSummary chart={state.chart} />}
     </main>
   )
