@@ -18,7 +18,7 @@ from pydantic import AwareDatetime, BaseModel, ConfigDict
 
 from arquivo.natal.chart import NatalChart, ecliptic_positions, house_of
 from arquivo.natal.ephemeris import SWISSEPH_VERSION
-from arquivo.natal.settings import MAJOR_ASPECTS, AspectKind, Body, Sign
+from arquivo.natal.settings import MAJOR_ASPECTS, AspectKind, Body, NodeType, Sign, Zodiac
 
 _J2000 = 2451545.0
 _EPOCH = datetime(2000, 1, 1, 12, tzinfo=UTC)
@@ -215,7 +215,10 @@ def find_transits(
     for body in Body:
         orb = transit_orb(body)
         step = _STEP.get(body, 2.0)
-        jds, positions = sky.sampled(body, step, _HORIZON.get(body, 400.0))
+        try:
+            jds, positions = sky.sampled(body, step, _HORIZON.get(body, 400.0))
+        except swe.Error:
+            continue  # efeméride do corpo indisponível (ex.: Quíron sem ficheiro)
         lons = [p[0] for p in positions]
         for point, natal in _natal_points(chart).items():
             for kind in MAJOR_ASPECTS:
@@ -331,6 +334,10 @@ def find_events(
             continue
         step = _STEP.get(body, 2.0)
         weight = BODY_WEIGHT[body]
+        try:
+            sky.at(body, sky.start)
+        except swe.Error:
+            continue  # efeméride do corpo indisponível (ex.: Quíron sem ficheiro)
         for jd, _ in _crossings(sky, body, [30.0 * k for k in range(12)], step):
             lon, _ = sky.at(body, jd + _MINUTE)
             events.append(
@@ -379,8 +386,11 @@ def find_events(
                         weight=3.0 + weight * 0.3,
                     )
                 )
-    events.extend(_lunations(sky, cusps, points))
-    events.extend(_eclipses(start, end, cusps, points, sky))
+    try:
+        events.extend(_lunations(sky, cusps, points))
+        events.extend(_eclipses(start, end, cusps, points, sky))
+    except swe.Error:
+        pass  # sem efeméride de Sol/Lua não há lunações nem eclipses calculáveis
     return sorted(events, key=lambda e: e.at)
 
 
@@ -401,8 +411,9 @@ def _contacts(
 
 def _lunations(sky: _Sky, cusps: list[float], points: dict[Body | Angle, float]) -> list[SkyEvent]:
     step = 0.25
-    count = math.ceil((sky.end - sky.start) / step) + 1
-    jds = [sky.start + i * step for i in range(count)]
+    pad = step  # a amostragem pode ultrapassar o fim; só contam cruzamentos dentro do intervalo
+    count = math.ceil((sky.end - sky.start + 2 * pad) / step) + 1
+    jds = [sky.start - pad + i * step for i in range(count)]
     suns = ecliptic_positions(jds, Body.SUN, ephemeris_dir=sky.ephemeris_dir)
     moons = ecliptic_positions(jds, Body.MOON, ephemeris_dir=sky.ephemeris_dir)
     out: list[SkyEvent] = []
@@ -415,6 +426,8 @@ def _lunations(sky: _Sky, cusps: list[float], points: dict[Body | Angle, float])
         for k in range(len(jds) - 1):
             if (values[k] < 0) != (values[k + 1] < 0) and abs(values[k] - values[k + 1]) < 90:
                 jd = _bisect(elongation, jds[k], jds[k + 1], values[k])
+                if not sky.start <= jd <= sky.end:
+                    continue
                 lon, _ = sky.at(Body.MOON, jd)
                 contacts = _contacts(lon, points)
                 out.append(
@@ -488,6 +501,10 @@ def daily_sky(
     *,
     ephemeris_dir: Path | None = None,
 ) -> DailySky:
+    if chart.settings.zodiac is not Zodiac.TROPICAL or chart.settings.node is not NodeType.TRUE:
+        raise ValueError(
+            "os trânsitos só estão calibrados para o zodíaco tropical e o Nodo verdadeiro"
+        )
     tz = ZoneInfo(zone)
     day_starts = datetime.combine(day, time(), tz)
     day_ends = datetime.combine(day + timedelta(days=1), time(), tz)

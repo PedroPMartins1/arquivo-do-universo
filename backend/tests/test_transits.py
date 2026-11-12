@@ -5,7 +5,7 @@ from datetime import UTC, date, datetime, timedelta
 import pytest
 
 from arquivo.natal.chart import NatalChart, calculate_chart
-from arquivo.natal.settings import AspectKind, Body
+from arquivo.natal.settings import AspectKind, Body, Zodiac
 from arquivo.transits.engine import (
     MAX_REVELATIONS,
     EventKind,
@@ -111,3 +111,31 @@ def test_quiet_day_gives_fewer_revelations_not_invented_ones() -> None:
             "ascendant",
             "midheaven",
         )
+
+
+def test_lunation_just_outside_the_window_is_not_reported() -> None:
+    # Lua Nova de 8/4/2024 às 18:21 UTC; uma janela de 10 min antes não a pode incluir.
+    events = find_events(
+        CHART,
+        to_jd(datetime(2024, 4, 8, 18, 0, tzinfo=UTC)),
+        to_jd(datetime(2024, 4, 8, 18, 10, tzinfo=UTC)),
+    )
+    assert not [e for e in events if e.kind in (EventKind.NEW_MOON, EventKind.FULL_MOON)]
+
+
+def test_missing_body_ephemeris_does_not_break_daily_sky(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    # Sem o ficheiro de Quíron, os restantes corpos continuam a ser calculados (fallback Moshier).
+    sky = daily_sky(CHART, date(2026, 11, 12), "Europe/Lisbon", ephemeris_dir=tmp_path)
+    bodies = {t.body for t in sky.active} | {r.transit.body for r in sky.revelations if r.transit}
+    assert Body.CHIRON not in bodies
+
+
+def test_daily_sky_rejects_sideral_or_mean_node() -> None:
+    from arquivo.natal.settings import Ayanamsa
+
+    settings = CHART.settings.model_copy(
+        update={"zodiac": Zodiac.SIDEREAL, "ayanamsa": Ayanamsa.LAHIRI}
+    )
+    chart = CHART.model_copy(update={"settings": settings})
+    with pytest.raises(ValueError, match="trânsitos"):
+        daily_sky(chart, date(2026, 11, 12), "Europe/Lisbon")

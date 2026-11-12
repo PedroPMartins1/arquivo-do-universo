@@ -134,4 +134,7 @@ def today(
     day = day or datetime.now(ZoneInfo(zone)).date()
     if not 1801 <= day.year <= 2398:
         raise HTTPException(422, "data fora do intervalo das efemérides (1801–2398)")
-    return daily_sky(_chart(profile), day, zone)
+    try:
+        return daily_sky(_chart(profile), day, zone)
+    except ValueError as error:
+        raise HTTPException(422, str(error)) from error
