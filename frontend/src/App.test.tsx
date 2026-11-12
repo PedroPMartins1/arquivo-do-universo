@@ -6,10 +6,26 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 const ME = { id: '1', email: 'ana@example.org', display_name: 'Ana' }
 const CHART = {
   bodies: [
-    { body: 'sun', sign: 'taurus', degree_in_sign: 29.5, house: 9, retrograde: false },
-    { body: 'moon', sign: 'pisces', degree_in_sign: 3.25, house: 6, retrograde: false },
+    {
+      body: 'sun',
+      longitude: 59.5,
+      sign: 'taurus',
+      degree_in_sign: 29.5,
+      house: 9,
+      retrograde: false,
+    },
+    {
+      body: 'moon',
+      longitude: 333.25,
+      sign: 'pisces',
+      degree_in_sign: 3.25,
+      house: 6,
+      retrograde: false,
+    },
   ],
-  angles: { ascendant: 155.2, midheaven: 60 },
+  houses: Array.from({ length: 12 }, (_, i) => ({ house: i + 1, longitude: i * 30 })),
+  angles: { ascendant: 155.2, midheaven: 60, descendant: 335.2, imum_coeli: 240 },
+  aspects: [{ first: 'sun', second: 'moon', kind: 'trine', orb: 3.75, applying: false }],
   calculation: { warnings: [] },
 }
 
@@ -115,11 +131,12 @@ describe('App', () => {
     fireEvent.change(screen.getByLabelText('Local de nascimento'), { target: { value: 'Lisb' } })
     fireEvent.click(await screen.findByRole('button', { name: 'Lisbon, Lisbon, Portugal' }))
     fireEvent.submit(form)
-    expect(await screen.findAllByText('Touro')).toHaveLength(2)
+    // Cada signo aparece na roda, no resumo e/ou na tabela.
+    expect(await screen.findAllByText('Touro')).toHaveLength(3)
     expect(await screen.findByText('Saturno em quadratura com Júpiter natal')).toBeInTheDocument()
     expect(screen.getByText('Mercúrio retoma o movimento direto em Escorpião, na tua casa 3')).toBeInTheDocument()
-    expect(screen.getAllByText('Peixes')).toHaveLength(2)
-    expect(screen.getByText('Virgem')).toBeInTheDocument()
+    expect(screen.getAllByText('Peixes')).toHaveLength(3)
+    expect(screen.getAllByText('Virgem')).toHaveLength(2)
   })
 
   it('pede a ocorrência quando a hora aconteceu duas vezes', async () => {

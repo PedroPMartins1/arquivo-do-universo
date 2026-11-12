@@ -28,15 +28,31 @@ export interface BirthProfile extends BirthData {
 
 export interface BodyPosition {
   body: string
+  longitude: number
   sign: string
   degree_in_sign: number
   house: number
   retrograde: boolean
 }
 
+export interface HouseCusp {
+  house: number
+  longitude: number
+}
+
+export interface NatalAspect {
+  first: string
+  second: string
+  kind: string
+  orb: number
+  applying: boolean
+}
+
 export interface NatalChart {
   bodies: BodyPosition[]
-  angles: { ascendant: number; midheaven: number }
+  houses: HouseCusp[]
+  angles: { ascendant: number; midheaven: number; descendant: number; imum_coeli: number }
+  aspects: NatalAspect[]
   calculation: { warnings: string[] }
 }
 

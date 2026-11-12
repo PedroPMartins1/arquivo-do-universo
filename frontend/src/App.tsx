@@ -15,6 +15,7 @@ import {
 } from './api'
 import { BODIES, degrees, describePlace, signName, signOfLongitude } from './labels'
 import { PlaceSearch } from './PlaceSearch'
+import { ChartWheel } from './ChartWheel'
 import { Today } from './Today'
 
 type State =
@@ -189,6 +190,7 @@ function ChartSummary({ chart }: { chart: NatalChart }) {
   return (
     <section className="card" aria-label="O teu mapa natal">
       <h2>O teu mapa natal</h2>
+      <ChartWheel chart={chart} />
       <dl className="big-three">
         <div>
           <dt>Sol</dt>
