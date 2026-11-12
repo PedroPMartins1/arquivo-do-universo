@@ -282,7 +282,9 @@ function App() {
       {state.kind === 'loading' && <p>A consultar as estrelas…</p>}
       {state.kind === 'error' && <p role="alert">Servidor indisponível: {state.message}</p>}
       {state.kind === 'anonymous' && <AuthForm onDone={refresh} />}
-      {state.kind === 'needs-birth' && <BirthForm onDone={refresh} problem={state.problem} />}
+      {state.kind === 'needs-birth' && (
+        <BirthForm key={state.problem ?? 'sem-problema'} onDone={refresh} problem={state.problem} />
+      )}
       {state.kind === 'ready' && (
         <>
           <Today me={state.me} onMoved={refresh} />
