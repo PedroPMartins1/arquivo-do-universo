@@ -175,3 +175,82 @@ h3 {
   font-size: 1rem;
   color: #d9b45a;
 }
+
+.chart-wheel {
+  width: 100%;
+  max-width: 34rem;
+  margin: 0 auto;
+  display: block;
+}
+
+.wheel-outer {
+  fill: none;
+  stroke: #c9a74e;
+  stroke-width: 1.5;
+  opacity: 0.8;
+}
+
+.wheel-sign-band {
+  fill: rgb(233 216 166 / 0.04);
+  stroke: rgb(233 216 166 / 0.25);
+  stroke-width: 0.5;
+}
+
+.wheel-tick {
+  stroke: rgb(233 216 166 / 0.3);
+  stroke-width: 0.75;
+}
+
+.wheel-house-ring {
+  fill: none;
+  stroke: rgb(233 216 166 / 0.3);
+  stroke-width: 0.75;
+}
+
+.wheel-cusp {
+  stroke: rgb(233 216 166 / 0.45);
+  stroke-width: 0.75;
+}
+
+.wheel-planet-ring {
+  fill: none;
+  stroke: rgb(233 216 166 / 0.2);
+  stroke-width: 0.5;
+}
+
+.wheel-glyph {
+  fill: #e9d8a6;
+  font-size: 22px;
+}
+
+.wheel-sign {
+  fill: #8a83a3;
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.wheel-house {
+  fill: #b3abc9;
+  font-size: 12px;
+}
+
+.wheel-planet {
+  fill: #f0e6d2;
+  font-size: 24px;
+}
+
+.wheel-planet.retrograde {
+  fill: #d9b45a;
+}
+
+.wheel-angle {
+  fill: #e9d8a6;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+.wheel-aspect {
+  stroke-width: 1;
+}
