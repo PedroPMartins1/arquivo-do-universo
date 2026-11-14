@@ -15,7 +15,7 @@ from arquivo.api.reading import _store
 from arquivo.interpretation.prompts import NATAL_SECTIONS
 from arquivo.main import create_app
 from arquivo.natal.settings import Body, Sign
-from arquivo.persistence.models import Interpretation, User
+from arquivo.persistence.models import AuditEvent, Interpretation, User
 from arquivo.transits.engine import DailySky, EventKind, Revelation, SkyEvent, TransitCalculation
 
 pytestmark = pytest.mark.db
@@ -170,6 +170,7 @@ def test_store_returns_existing_row_after_unique_conflict(
         FakeModel(),
         {"sections": [{"id": "new"}]},
         generated=True,
+        trigger="request",
     )
     assert returned.id == existing.id
     assert session.scalars(select(Interpretation)).all() == [existing]
@@ -194,7 +195,7 @@ def test_today_reading_rejects_dates_outside_ephemeris_range(client: TestClient)
 
 
 def test_today_and_reading_redact_revelations_until_unlock(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch
+    client: TestClient, session: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     _register_and_save_birth(client)
     now = datetime(2026, 11, 16, 11, tzinfo=ZoneInfo("Europe/Lisbon"))
@@ -243,6 +244,15 @@ def test_today_and_reading_redact_revelations_until_unlock(
         assert f"marcador_texto_{index}" not in reading.text
         assert f"marcador_pergunta_{index}" not in reading.text
     assert model.calls == 1
+    user = session.scalar(select(User))
+    assert user is not None
+    audit = session.scalar(
+        select(AuditEvent).where(
+            AuditEvent.owner_id == user.id,
+            AuditEvent.action == "interpretation.generated",
+        )
+    )
+    assert audit is not None and audit.details["trigger"] == "request"
 
 
 def test_today_past_is_open_and_future_is_locked(

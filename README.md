@@ -37,6 +37,13 @@ pnpm install
 pnpm dev
 ```
 
+Noutro terminal, execute o worker de pré-geração diária:
+
+```bash
+cd backend
+uv run python -m arquivo.pregeneration
+```
+
 ### Verificações (as mesmas da CI)
 
 ```bash

@@ -37,6 +37,10 @@ class Settings(BaseSettings):
             time(17),
         ]
     )
+    pregeneration_start: time = time(3)
+    pregeneration_interval_seconds: int = Field(default=900, ge=60)
+    pregeneration_workers: int = Field(default=4, ge=1)
+    pregeneration_max_failures: int = Field(default=3, ge=1)
     anthropic_api_key: SecretStr | None = Field(
         default=None,
         validation_alias=AliasChoices("ARQUIVO_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY"),
