@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { type Me, type Place, type TodaySky } from './api'
 import { describeEvent } from './labels'
@@ -132,7 +132,13 @@ const TODAY_READING = {
 }
 
 const responseFor = (url: string) =>
-  Promise.resolve(url.includes('/me/reading/today') ? json(TODAY_READING) : json(SKY))
+  Promise.resolve(
+    url.includes('/me/reading/today')
+      ? json(TODAY_READING)
+      : url.includes('/me/reflections/')
+        ? json([])
+        : json(SKY),
+  )
 
 const todayCalls = (fetchMock: ReturnType<typeof vi.fn>) =>
   fetchMock.mock.calls.filter(([url]) => String(url).includes('/me/today')).length
@@ -152,6 +158,63 @@ describe('Hoje', () => {
     expect(screen.getByText('Que espaço podes criar para ti hoje?')).toBeInTheDocument()
     expect(screen.getByText('Ritmo e estrutura')).toBeInTheDocument()
     expect(screen.getByText('+ Marte em trígono com Meio do Céu natal')).toBeInTheDocument()
+  })
+
+  it('mostra a reflexão só na revelação aberta e guarda a resposta e a nota', async () => {
+    const fetchMock = vi.fn((url: string, init?: RequestInit) => {
+      if (url.includes('/me/reflections/') && init?.method === 'PUT') {
+        const slot = url.includes('/note') ? null : 0
+        return Promise.resolve(
+          json({
+            day: SKY.date,
+            slot,
+            question: slot === null ? null : TODAY_READING.revelations[0]?.question,
+            body: JSON.parse(String(init.body)).body,
+            created_at: '2026-11-16T12:00:00Z',
+            updated_at: '2026-11-16T12:00:00Z',
+            provenance: 'user_reported',
+          }),
+        )
+      }
+      return responseFor(url)
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    render(<Today me={ME} onMoved={() => undefined} />)
+    const openArticle = (await screen.findByText('Um convite à pausa')).closest('article')
+    expect(openArticle).not.toBeNull()
+    const reflection = within(openArticle as HTMLElement)
+    const textarea = await reflection.findByLabelText('A tua reflexão')
+    fireEvent.change(textarea, {
+      target: { value: 'Quero reservar tempo para esta ideia.' },
+    })
+    fireEvent.click(reflection.getByRole('button', { name: 'Guardar' }))
+    expect(await reflection.findByText('Guardada')).toBeInTheDocument()
+    expect(reflection.getByText('Quero reservar tempo para esta ideia.')).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledWith(
+      `/api/v1/me/reflections/${SKY.date}/revelations/0`,
+      expect.objectContaining({
+        method: 'PUT',
+        body: JSON.stringify({ body: 'Quero reservar tempo para esta ideia.' }),
+      }),
+    )
+
+    const lockedArticle = document.querySelector('article.revelation.locked')
+    expect(lockedArticle?.querySelector('.reflection-editor')).toBeNull()
+    const noteArticle = document.querySelector('article.note')
+    expect(noteArticle).not.toBeNull()
+    const note = within(noteArticle as HTMLElement)
+    fireEvent.change(note.getByLabelText('Nota do dia'), {
+      target: { value: 'Hoje escolhi avançar com calma.' },
+    })
+    fireEvent.click(note.getByRole('button', { name: 'Guardar' }))
+    expect(await note.findByText('Guardada')).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledWith(
+      `/api/v1/me/reflections/${SKY.date}/note`,
+      expect.objectContaining({
+        method: 'PUT',
+        body: JSON.stringify({ body: 'Hoje escolhi avançar com calma.' }),
+      }),
+    )
   })
 
   it('descreve um aspeto entre planetas no céu', () => {
@@ -224,6 +287,8 @@ describe('Hoje', () => {
         Promise.resolve(
           url.includes('/me/reading/today')
             ? json({ detail: 'a interpretação não está disponível neste momento' }, 503)
+            : url.includes('/me/reflections/')
+              ? json([])
             : json(SKY),
         ),
       ),

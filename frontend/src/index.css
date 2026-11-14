@@ -73,6 +73,19 @@ input {
   font: inherit;
 }
 
+textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 6rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #4a4170;
+  border-radius: 0.5rem;
+  background: #171330;
+  color: inherit;
+  font: inherit;
+  resize: vertical;
+}
+
 fieldset {
   border: 1px solid #4a4170;
   border-radius: 0.5rem;
@@ -455,6 +468,95 @@ button.danger {
   border: 1px solid rgb(255 158 158 / 0.5);
   background: transparent;
   color: #ff9e9e;
+}
+
+.note {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-top: 0.6rem;
+  padding: 1.25rem 1.35rem;
+  border: 1px solid rgb(233 216 166 / 0.25);
+  border-radius: 0.9rem;
+  background: rgb(20 16 40 / 0.55);
+}
+
+.note h3 {
+  margin: 0;
+}
+
+.reflection-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.reflection-editor > p,
+.reflection-body,
+.reflection-status {
+  margin: 0;
+}
+
+.reflection-body {
+  white-space: pre-wrap;
+}
+
+.reflection-status {
+  color: #b3abc9;
+  font-size: 0.8rem;
+}
+
+.reflection-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.archive-month h3 {
+  margin: 0.7rem 0;
+}
+
+.archive-days {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+button.archive-day {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgb(233 216 166 / 0.18);
+  background: rgb(42 32 80 / 0.5);
+  color: #ece8f5;
+  font-weight: 400;
+  text-align: left;
+}
+
+.archive-day strong {
+  color: #f3e9cc;
+  font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  font-size: 1.1rem;
+  font-weight: 400;
+}
+
+.archive-detail > h2 {
+  color: #e9d8a6;
+  font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
 }
 
 section[aria-label='Dados de nascimento'] dl {
