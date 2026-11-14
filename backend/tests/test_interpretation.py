@@ -6,7 +6,7 @@ import pytest
 
 from arquivo.config import Settings
 from arquivo.interpretation import gender, guard
-from arquivo.interpretation.facts import natal_facts
+from arquivo.interpretation.facts import natal_facts, revelation_facts
 from arquivo.interpretation.model import (
     AnthropicModel,
     InterpretationMisconfigured,
@@ -17,8 +17,10 @@ from arquivo.interpretation.service import interpret_day, interpret_natal
 from arquivo.natal.chart import NatalChart, calculate_chart
 from arquivo.natal.settings import AspectKind, Body, Sign
 from arquivo.transits.engine import (
+    Angle,
     DailySky,
     EventKind,
+    Factor,
     Revelation,
     SkyEvent,
     Transit,
@@ -140,6 +142,63 @@ def test_natal_facts_and_prompt_do_not_include_birth_or_account_data(chart: Nata
         assert private_value not in facts
         assert private_value not in prompt
     assert "julian_day" not in prompt
+
+
+def test_revelation_facts_include_focus_and_supporting_sky_aspect() -> None:
+    transit = Transit(
+        body=Body.SATURN,
+        natal_point=Angle.MIDHEAVEN,
+        kind=AspectKind.TRINE,
+        allowed_orb=1,
+        starts=None,
+        ends=None,
+        exact=[datetime(2026, 11, 14, 11, tzinfo=UTC)],
+        orb=0.5,
+        applying=True,
+        natal_house=10,
+        weight=2,
+    )
+    event = SkyEvent(
+        kind=EventKind.SKY_ASPECT,
+        at=datetime(2026, 11, 14, 11, tzinfo=UTC),
+        body=Body.VENUS,
+        other_body=Body.MARS,
+        aspect=AspectKind.TRINE,
+        contacts=[Angle.MIDHEAVEN],
+        weight=1,
+    )
+    revelation = Revelation(
+        weight=2,
+        transit=transit,
+        focus=Angle.MIDHEAVEN,
+        supporting=[Factor(weight=1, event=event)],
+    )
+
+    fact = revelation_facts(revelation, "Europe/Lisbon", date(2026, 11, 14))
+    assert fact.startswith("Foco: Meio do Céu. Saturno em trânsito em Trígono")
+    assert (
+        "; em conjunto com: Vénus em Trígono com Marte no céu, exato a 14/11 às 11:00"
+        "; em contacto com Meio do Céu"
+    ) in fact
+    body_focus = revelation.model_copy(update={"focus": Body.VENUS})
+    assert revelation_facts(body_focus, "Europe/Lisbon", date(2026, 11, 14)).startswith(
+        "Foco: Vénus natal."
+    )
+
+
+def test_moon_sign_ingress_fact_names_sign_house_and_time() -> None:
+    event = SkyEvent(
+        kind=EventKind.MOON_SIGN_INGRESS,
+        at=datetime(2026, 11, 14, 11, tzinfo=UTC),
+        body=Body.MOON,
+        sign=Sign.CAPRICORN,
+        natal_house=3,
+        weight=1.8,
+    )
+    revelation = Revelation(weight=1.8, event=event)
+    assert revelation_facts(revelation, "Europe/Lisbon", date(2026, 11, 14)) == (
+        "Lua entra em Capricórnio, na tua casa natal 3, a 14/11 às 11:00"
+    )
 
 
 def test_guard_accepts_only_present_labels_and_rejects_unknown_points() -> None:

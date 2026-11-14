@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { type Me, type Place, type TodaySky } from './api'
+import { describeEvent } from './labels'
 import { Today } from './Today'
 
 vi.mock('./PlaceSearch', () => ({
@@ -58,6 +59,25 @@ const SKY: TodaySky = {
           weight: 6,
         },
         event: null,
+        focus: 'jupiter',
+        supporting: [
+          {
+            weight: 2.5,
+            transit: {
+              body: 'mars',
+              natal_point: 'midheaven',
+              kind: 'trine',
+              starts: null,
+              ends: null,
+              exact: [],
+              orb: null,
+              applying: null,
+              natal_house: 10,
+              weight: 2.5,
+            },
+            event: null,
+          },
+        ],
       },
     },
     { unlocks_at: '2026-11-16T13:00:00Z', revelation: null },
@@ -72,9 +92,13 @@ const SKY: TodaySky = {
       sign: 'scorpio',
       natal_house: 3,
       eclipse_type: null,
+      other_body: null,
+      aspect: null,
       contacts: [],
       weight: 3.75,
     },
+    focus: null,
+    supporting: [],
   },
   active: [],
   upcoming: [],
@@ -127,6 +151,30 @@ describe('Hoje', () => {
     expect(screen.getByText('Este trânsito convida-te a observar os teus limites.')).toBeInTheDocument()
     expect(screen.getByText('Que espaço podes criar para ti hoje?')).toBeInTheDocument()
     expect(screen.getByText('Ritmo e estrutura')).toBeInTheDocument()
+    expect(screen.getByText('+ Marte em trígono com Meio do Céu natal')).toBeInTheDocument()
+  })
+
+  it('descreve um aspeto entre planetas no céu', () => {
+    expect(
+      describeEvent({
+        kind: 'sky_aspect',
+        body: 'venus',
+        sign: null,
+        natal_house: null,
+        eclipse_type: null,
+        other_body: 'mars',
+        aspect: 'trine',
+      }),
+    ).toBe('Vénus em trígono com Marte no céu')
+    expect(
+      describeEvent({
+        kind: 'moon_sign_ingress',
+        body: 'moon',
+        sign: 'taurus',
+        natal_house: 2,
+        eclipse_type: null,
+      }),
+    ).toBe('Lua entra em Touro')
   })
 
   it('não mostra a origem de uma revelação fechada', async () => {

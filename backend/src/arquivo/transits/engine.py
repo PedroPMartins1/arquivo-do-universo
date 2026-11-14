@@ -10,11 +10,13 @@ import math
 from collections.abc import Callable
 from datetime import UTC, date, datetime, time, timedelta
 from enum import StrEnum
+from itertools import combinations, pairwise
 from pathlib import Path
+from typing import Self
 from zoneinfo import ZoneInfo
 
 import swisseph as swe
-from pydantic import AwareDatetime, BaseModel, ConfigDict
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
 
 from arquivo.natal.chart import NatalChart, ecliptic_positions, house_of
 from arquivo.natal.ephemeris import SWISSEPH_VERSION
@@ -63,6 +65,8 @@ class Angle(StrEnum):
 class EventKind(StrEnum):
     SIGN_INGRESS = "sign_ingress"
     HOUSE_INGRESS = "house_ingress"
+    MOON_SIGN_INGRESS = "moon_sign_ingress"
+    SKY_ASPECT = "sky_aspect"
     STATION_RETROGRADE = "station_retrograde"
     STATION_DIRECT = "station_direct"
     NEW_MOON = "new_moon"
@@ -98,8 +102,18 @@ class SkyEvent(BaseModel):
     sign: Sign | None = None
     natal_house: int | None = None
     eclipse_type: str | None = None
+    other_body: Body | None = None
+    aspect: AspectKind | None = None
     contacts: list[Body | Angle] = []
     weight: float = 0.0
+
+
+class Factor(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    weight: float
+    transit: Transit | None = None
+    event: SkyEvent | None = None
 
 
 class Revelation(BaseModel):
@@ -108,6 +122,14 @@ class Revelation(BaseModel):
     weight: float
     transit: Transit | None = None
     event: SkyEvent | None = None
+    focus: Body | Angle | None = None
+    supporting: list[Factor] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _one_main_factor(self) -> Self:
+        if (self.transit is None) == (self.event is None):
+            raise ValueError("uma revelação tem de conter exatamente um trânsito ou evento")
+        return self
 
 
 class TransitCalculation(BaseModel):
@@ -494,6 +516,152 @@ def _eclipses(
     return out
 
 
+def _exact_roots(
+    jds: list[float], differences: list[float], offset: Callable[[float], float]
+) -> list[float]:
+    roots: list[float] = []
+    for index, (left, right) in enumerate(pairwise(differences)):
+        if abs(left) >= 10 or abs(right) >= 10 or abs(left - right) >= 90:
+            continue
+        if abs(left) < 1e-9:
+            jd = jds[index]
+        elif abs(right) < 1e-9:
+            jd = jds[index + 1]
+        elif (left < 0) != (right < 0):
+            jd = _bisect(offset, jds[index], jds[index + 1], left)
+        else:
+            continue
+        if not roots or abs(jd - roots[-1]) > _MINUTE:
+            roots.append(jd)
+    return roots
+
+
+def _moon_sign_ingresses(sky: _Sky, cusps: list[float]) -> list[SkyEvent]:
+    events = []
+    boundaries = [30.0 * index for index in range(12)]
+    for jd, _ in _crossings(sky, Body.MOON, boundaries, _STEP[Body.MOON]):
+        if not sky.start <= jd < sky.end:
+            continue
+        longitude, _ = sky.at(Body.MOON, jd + _MINUTE)
+        events.append(
+            SkyEvent(
+                kind=EventKind.MOON_SIGN_INGRESS,
+                at=from_jd(jd),
+                body=Body.MOON,
+                sign=Sign.of(longitude),
+                natal_house=house_of(longitude, cusps),
+                weight=1.8,
+            )
+        )
+    return events
+
+
+def _sky_aspects(sky: _Sky, points: dict[Body | Angle, float]) -> list[SkyEvent]:
+    planets = tuple(body for body in Body if body not in {Body.MOON, Body.NORTH_NODE, Body.CHIRON})
+    step = _STEP[Body.SUN]
+    samples: dict[Body, tuple[list[float], list[tuple[float, float]]]] = {}
+    for body in planets:
+        try:
+            samples[body] = sky.sampled(body, step, 0.0)
+        except swe.Error:
+            continue
+
+    events = []
+    for body, other_body in combinations(planets, 2):
+        if body not in samples or other_body not in samples:
+            continue
+        jds, body_positions = samples[body]
+        other_positions = samples[other_body][1]
+        for aspect in MAJOR_ASPECTS:
+            targets = (
+                (aspect.angle,)
+                if aspect in (AspectKind.CONJUNCTION, AspectKind.OPPOSITION)
+                else (aspect.angle, -aspect.angle)
+            )
+            for target in targets:
+                differences = [
+                    _wrap(position[0] - other[0] - target)
+                    for position, other in zip(body_positions, other_positions, strict=True)
+                ]
+
+                def offset(
+                    jd: float,
+                    body: Body = body,
+                    other_body: Body = other_body,
+                    target: float = target,
+                ) -> float:
+                    return _wrap(sky.at(body, jd)[0] - sky.at(other_body, jd)[0] - target)
+
+                for jd in _exact_roots(jds, differences, offset):
+                    if not sky.start <= jd < sky.end:
+                        continue
+                    longitude, _ = sky.at(body, jd)
+                    other_longitude, _ = sky.at(other_body, jd)
+                    contacts = [
+                        point
+                        for point, natal_longitude in points.items()
+                        if abs(_wrap(longitude - natal_longitude)) <= 1.0
+                        or abs(_wrap(other_longitude - natal_longitude)) <= 1.0
+                    ]
+                    weight = (BODY_WEIGHT[body] + BODY_WEIGHT[other_body]) / 2 * ASPECT_WEIGHT[
+                        aspect
+                    ] * 0.5 + (1.0 if contacts else 0.0)
+                    events.append(
+                        SkyEvent(
+                            kind=EventKind.SKY_ASPECT,
+                            at=from_jd(jd),
+                            body=body,
+                            other_body=other_body,
+                            aspect=aspect,
+                            sign=Sign.of(longitude),
+                            contacts=contacts,
+                            weight=weight,
+                        )
+                    )
+    return events
+
+
+def _specificity_multiplier(transit: Transit, lo: datetime, hi: datetime) -> float:
+    if any(lo <= instant < hi for instant in transit.exact):
+        return 1.5
+    if any(
+        instant is not None and lo <= instant < hi for instant in (transit.starts, transit.ends)
+    ):
+        return 1.2
+    if transit.body not in FAST and transit.body is not Body.MOON:
+        return 0.55
+    return 1.0
+
+
+def _group_factors(factors: list[Factor]) -> list[Revelation]:
+    groups: dict[tuple[str, Body | Angle | int], list[Factor]] = {}
+    for index, factor in enumerate(factors):
+        if factor.transit is not None:
+            focus = factor.transit.natal_point
+        elif factor.event is not None and factor.event.contacts:
+            focus = factor.event.contacts[0]
+        else:
+            focus = None
+        key = ("focus", focus) if focus is not None else ("single", index)
+        groups.setdefault(key, []).append(factor)
+
+    conclusions = []
+    for (_, group_focus), group in groups.items():
+        ranked = sorted(group, key=lambda factor: -factor.weight)
+        principal, supporting = ranked[0], ranked[1:]
+        focus = group_focus if isinstance(group_focus, (Body, Angle)) else None
+        conclusions.append(
+            Revelation(
+                weight=round(principal.weight + 0.5 * sum(item.weight for item in supporting), 4),
+                transit=principal.transit,
+                event=principal.event,
+                focus=focus,
+                supporting=supporting[:3],
+            )
+        )
+    return sorted(conclusions, key=lambda revelation: -revelation.weight)
+
+
 def daily_sky(
     chart: NatalChart,
     day: date,
@@ -512,6 +680,7 @@ def daily_sky(
     start, end = to_jd(day_starts), to_jd(day_ends)
     horizon = to_jd(day_ends + timedelta(days=UPCOMING_DAYS))
     points = _natal_points(chart)
+    cusps = [house.longitude for house in chart.houses]
     sky = _Sky(start, end, ephemeris_dir)
     middle = (start + end) / 2
 
@@ -562,16 +731,19 @@ def daily_sky(
         key=lambda t: t.starts or day_ends,
     )
     events = find_events(chart, start, horizon, ephemeris_dir=ephemeris_dir)
+    special_sky = _Sky(start, to_jd(tomorrow_ends), ephemeris_dir)
+    special_events = _moon_sign_ingresses(special_sky, cusps) + _sky_aspects(special_sky, points)
 
     def candidates(lo: datetime, hi: datetime, pool: list[Transit]) -> list[Revelation]:
-        found = [
-            Revelation(
-                weight=round(t.weight * (1.5 if exact_between(t, lo, hi) else 1.0), 4), transit=t
-            )
-            for t in pool
+        factors = [
+            Factor(weight=t.weight * _specificity_multiplier(t, lo, hi), transit=t) for t in pool
         ]
-        found += [Revelation(weight=e.weight, event=e) for e in events if lo <= e.at < hi]
-        return sorted(found, key=lambda r: -r.weight)
+        factors.extend(
+            Factor(weight=event.weight, event=event)
+            for event in (*events, *special_events)
+            if lo <= event.at < hi
+        )
+        return _group_factors(factors)
 
     tomorrow_pool = [t for t in transits if exact_between(t, day_ends, tomorrow_ends)]
     tomorrow = candidates(day_ends, tomorrow_ends, tomorrow_pool)

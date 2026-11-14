@@ -81,16 +81,24 @@ export function describeEvent(e: {
   sign: string | null
   natal_house: number | null
   eclipse_type: string | null
+  other_body?: string | null
+  aspect?: string | null
 }) {
   const body = BODIES[e.body] ?? e.body
   const sign = e.sign ? signName(e.sign) : ''
   const house = e.natal_house ? `, na tua casa ${e.natal_house}` : ''
   const eclipse = ECLIPSES[e.eclipse_type ?? ''] ?? ''
+  const otherBody = e.other_body ? BODIES[e.other_body] ?? e.other_body : ''
+  const aspect = e.aspect ? ASPECTS[e.aspect] ?? e.aspect : ''
   switch (e.kind) {
     case 'sign_ingress':
       return `${body} entra em ${sign}`
     case 'house_ingress':
       return `${body} entra na tua casa ${e.natal_house}`
+    case 'moon_sign_ingress':
+      return `Lua entra em ${sign}`
+    case 'sky_aspect':
+      return `${body} em ${aspect} com ${otherBody} no céu`
     case 'station_retrograde':
       return `${body} fica retrógrado em ${sign}${house}`
     case 'station_direct':
