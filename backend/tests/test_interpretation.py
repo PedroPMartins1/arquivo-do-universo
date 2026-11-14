@@ -7,7 +7,11 @@ import pytest
 from arquivo.config import Settings
 from arquivo.interpretation import guard
 from arquivo.interpretation.facts import natal_facts
-from arquivo.interpretation.model import AnthropicModel, InterpretationUnavailable
+from arquivo.interpretation.model import (
+    AnthropicModel,
+    InterpretationMisconfigured,
+    InterpretationUnavailable,
+)
 from arquivo.interpretation.prompts import NATAL_SECTIONS
 from arquivo.interpretation.service import interpret_day, interpret_natal
 from arquivo.natal.chart import NatalChart, calculate_chart
@@ -37,11 +41,12 @@ class FakeModel:
         return self.responses.pop(0)
 
 
-def test_anthropic_model_passes_temperature_and_concatenates_text(
+def test_anthropic_model_omits_temperature_and_uses_240_second_timeout(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    model = AnthropicModel("test-key", "claude-sonnet-5-5")
+    client_options: dict[str, object] = {}
     request: dict[str, object] = {}
+    fake_client = SimpleNamespace()
 
     def create(**kwargs: object) -> SimpleNamespace:
         request.update(kwargs)
@@ -53,9 +58,18 @@ def test_anthropic_model_passes_temperature_and_concatenates_text(
             ]
         )
 
-    monkeypatch.setattr(model._client.messages, "create", create)
+    fake_client.messages = SimpleNamespace(create=create)
+
+    def make_client(**kwargs: object) -> SimpleNamespace:
+        client_options.update(kwargs)
+        return fake_client
+
+    monkeypatch.setattr("arquivo.interpretation.model.anthropic.Anthropic", make_client)
+    model = AnthropicModel("test-key", "claude-sonnet-5-5")
     assert model.complete("sistema", "prompt", max_tokens=42) == "Leitura simbólica"
-    assert request["extra_body"] == {"temperature": 0.8}
+    assert "temperature" not in request
+    assert "extra_body" not in request
+    assert client_options["timeout"] == 240.0
 
 
 @pytest.fixture(scope="module")
@@ -137,7 +151,7 @@ def test_natal_retries_invalid_json(chart: NatalChart) -> None:
     model = FakeModel("isto não é JSON", natal_json())
     assert len(interpret_natal(chart, model)) == 6
     assert len(model.calls) == 2
-    assert model.calls[0][2] == 4000
+    assert model.calls[0][2] == 12000
 
 
 def test_natal_retries_guard_violations_three_times(chart: NatalChart) -> None:
@@ -145,6 +159,23 @@ def test_natal_retries_guard_violations_three_times(chart: NatalChart) -> None:
     with pytest.raises(InterpretationUnavailable):
         interpret_natal(chart, model)
     assert len(model.calls) == 3
+
+
+def test_natal_does_not_retry_misconfigured_model(chart: NatalChart) -> None:
+    class MisconfiguredFakeModel:
+        name = "fake-claude"
+
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def complete(self, system: str, prompt: str, *, max_tokens: int) -> str:
+            self.calls += 1
+            raise InterpretationMisconfigured("configuração inválida")
+
+    model = MisconfiguredFakeModel()
+    with pytest.raises(InterpretationMisconfigured):
+        interpret_natal(chart, model)
+    assert model.calls == 1
 
 
 def test_natal_retries_sections_in_the_wrong_order(chart: NatalChart) -> None:
@@ -182,7 +213,7 @@ def test_day_retries_when_revelation_count_is_wrong(chart: NatalChart) -> None:
     assert reading.revelations == ["Saturno"]
     assert len(model.calls) == 2
     assert "exato a 14/11 às 14:32" in model.calls[0][1]
-    assert model.calls[0][2] == 2500
+    assert model.calls[0][2] == 6000
 
 
 def test_day_retries_non_null_tomorrow_when_no_tomorrow_exists(chart: NatalChart) -> None:

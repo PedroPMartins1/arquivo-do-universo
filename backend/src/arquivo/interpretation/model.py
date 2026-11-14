@@ -1,9 +1,14 @@
+import logging
 from typing import Protocol
 
 import anthropic
 
 
 class InterpretationUnavailable(RuntimeError):
+    pass
+
+
+class InterpretationMisconfigured(InterpretationUnavailable):
     pass
 
 
@@ -18,7 +23,7 @@ class AnthropicModel:
         self.name = model
         self._client = anthropic.Anthropic(
             api_key=api_key,
-            timeout=60.0,
+            timeout=240.0,
             max_retries=2,
         )
 
@@ -29,8 +34,19 @@ class AnthropicModel:
                 system=system,
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=max_tokens,
-                extra_body={"temperature": 0.8},
             )
+        except (
+            anthropic.BadRequestError,
+            anthropic.AuthenticationError,
+            anthropic.PermissionDeniedError,
+            anthropic.NotFoundError,
+        ) as error:
+            logging.getLogger(__name__).error(
+                "erro de configuração Anthropic (%s)", type(error).__name__
+            )
+            raise InterpretationMisconfigured(
+                "a configuração do serviço de interpretação é inválida"
+            ) from error
         except (anthropic.APIError, TimeoutError) as error:
             raise InterpretationUnavailable(
                 "o serviço de interpretação está indisponível"

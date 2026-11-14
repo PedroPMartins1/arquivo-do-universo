@@ -1,7 +1,28 @@
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { type DailySky, type Me } from './api'
+import { type DailySky, type Me, type Place } from './api'
 import { Today } from './Today'
+
+vi.mock('./PlaceSearch', () => ({
+  PlaceSearch: ({ onSelect }: { onSelect: (place: Place | null) => void }) => (
+    <button
+      type="button"
+      onClick={() =>
+        onSelect({
+          id: 1,
+          name: 'Sintra',
+          region: null,
+          country_code: 'PT',
+          latitude: 38.8029,
+          longitude: -9.3817,
+          zone: 'Europe/Lisbon',
+        })
+      }
+    >
+      Selecionar Sintra
+    </button>
+  ),
+}))
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status })
 
@@ -143,5 +164,34 @@ describe('Today', () => {
       await screen.findByRole('heading', { name: 'Revelações do dia' }),
     ).toBeInTheDocument()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('limpa a interpretação anterior quando a residência muda', async () => {
+    const previousReading = {
+      ...TODAY_READING,
+      revelations: ['Interpretação do local anterior'],
+    }
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) =>
+        Promise.resolve(
+          url.includes('/me/reading/today')
+            ? json(previousReading)
+            : url.includes('/me/residence')
+              ? json(ME)
+              : json(SKY),
+        ),
+      ),
+    )
+    const onMoved = vi.fn()
+    render(<Today me={ME} onMoved={onMoved} />)
+    expect(await screen.findByText('Interpretação do local anterior')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mudar o local onde vives' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Selecionar Sintra' }))
+
+    await waitFor(() => expect(onMoved).toHaveBeenCalledOnce())
+    expect(screen.queryByText('Interpretação do local anterior')).not.toBeInTheDocument()
+    expect(screen.getByText('A interpretar o céu…')).toBeInTheDocument()
   })
 })

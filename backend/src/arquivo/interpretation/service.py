@@ -5,7 +5,11 @@ from pydantic import BaseModel, ConfigDict, ValidationError, field_validator
 
 from arquivo.interpretation import guard
 from arquivo.interpretation.facts import daily_facts, natal_facts, revelation_facts
-from arquivo.interpretation.model import InterpretationUnavailable, TextModel
+from arquivo.interpretation.model import (
+    InterpretationMisconfigured,
+    InterpretationUnavailable,
+    TextModel,
+)
 from arquivo.interpretation.prompts import DAY, NATAL, NATAL_SECTIONS, SYSTEM
 from arquivo.natal.chart import NatalChart
 from arquivo.natal.labels import label
@@ -118,7 +122,7 @@ def interpret_natal(chart: NatalChart, model: TextModel) -> list[Section]:
     for _ in range(3):
         try:
             response = _NatalResponse.model_validate_json(
-                model.complete(SYSTEM, prompt, max_tokens=4000)
+                model.complete(SYSTEM, prompt, max_tokens=12000)
             )
             sections = response.secoes
             if [section.id for section in sections] != expected_ids:
@@ -133,6 +137,8 @@ def interpret_natal(chart: NatalChart, model: TextModel) -> list[Section]:
                 Section(identifier, title, section.texto)
                 for section, (identifier, title, _) in zip(sections, NATAL_SECTIONS, strict=True)
             ]
+        except InterpretationMisconfigured:
+            raise
         except (InterpretationUnavailable, ValidationError, ValueError) as error:
             last_error = error
     raise InterpretationUnavailable(
@@ -148,7 +154,7 @@ def interpret_day(sky: DailySky, chart: NatalChart, model: TextModel) -> DayRead
     for _ in range(3):
         try:
             response = _DayResponse.model_validate_json(
-                model.complete(SYSTEM, prompt, max_tokens=2500)
+                model.complete(SYSTEM, prompt, max_tokens=6000)
             )
             if len(response.revelacoes) != len(sky.revelations):
                 raise ValueError("número de revelações incorreto")
@@ -160,6 +166,8 @@ def interpret_day(sky: DailySky, chart: NatalChart, model: TextModel) -> DayRead
                 if violations:
                     raise ValueError(f"termos astrológicos não permitidos: {violations}")
             return DayReading(response.revelacoes, response.amanha)
+        except InterpretationMisconfigured:
+            raise
         except (InterpretationUnavailable, ValidationError, ValueError) as error:
             last_error = error
     raise InterpretationUnavailable(

@@ -98,6 +98,7 @@ export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
             if (!place) return
             void saveResidence(describePlace(place).slice(0, 200), place.zone)
               .then(() => {
+                setReading(null)
                 setMoving(false)
                 onMoved()
               })
