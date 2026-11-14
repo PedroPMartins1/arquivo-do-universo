@@ -30,11 +30,11 @@ class Settings(BaseSettings):
     ephemeris_path: Path = Field(default_factory=default_ephemeris_path)
     revelation_unlock_times: list[time] = Field(
         default_factory=lambda: [
-            time(7),
-            time(10),
+            time(9),
+            time(11),
             time(13),
-            time(16),
-            time(19),
+            time(15),
+            time(17),
         ]
     )
     anthropic_api_key: SecretStr | None = Field(
