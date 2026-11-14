@@ -10,7 +10,7 @@ from arquivo.api.deps import CurrentUser, Db
 from arquivo.natal.birth import InexactBirthDataError, resolve_birth_instant
 from arquivo.natal.chart import ChartError, NatalChart, calculate_chart
 from arquivo.persistence.accounts import audit
-from arquivo.persistence.models import BirthProfile
+from arquivo.persistence.models import BirthProfile, User
 from arquivo.temporal.zones import UnknownTimeZoneError, zone_for_coordinates
 from arquivo.transits.engine import DailySky, daily_sky
 
@@ -98,6 +98,20 @@ def _chart(profile: BirthProfile) -> NatalChart:
         raise HTTPException(422, str(error)) from error
 
 
+def _daily_sky(
+    user: User, profile: BirthProfile, day: date | None = None
+) -> tuple[NatalChart, DailySky]:
+    zone = user.residence_zone or profile.zone
+    day = day or datetime.now(ZoneInfo(zone)).date()
+    if not 1801 <= day.year <= 2398:
+        raise HTTPException(422, "data fora do intervalo das efemérides (1801–2398)")
+    chart = _chart(profile)
+    try:
+        return chart, daily_sky(chart, day, zone)
+    except ValueError as error:
+        raise HTTPException(422, str(error)) from error
+
+
 @router.get("/chart")
 def my_chart(user: CurrentUser, db: Db) -> NatalChart:
     return _chart(_profile(db, user))
@@ -130,11 +144,5 @@ def today(
 ) -> DailySky:
     """O céu do dia, no fuso onde a pessoa vive (por omissão, o do nascimento)."""
     profile = _profile(db, user)
-    zone = user.residence_zone or profile.zone
-    day = day or datetime.now(ZoneInfo(zone)).date()
-    if not 1801 <= day.year <= 2398:
-        raise HTTPException(422, "data fora do intervalo das efemérides (1801–2398)")
-    try:
-        return daily_sky(_chart(profile), day, zone)
-    except ValueError as error:
-        raise HTTPException(422, str(error)) from error
+    _, sky = _daily_sky(user, profile, day)
+    return sky

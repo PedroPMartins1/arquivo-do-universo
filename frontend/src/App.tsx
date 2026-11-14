@@ -5,10 +5,12 @@ import {
   fetchBirth,
   fetchChart,
   fetchMe,
+  fetchNatalReading,
   login,
   logout,
   type Me,
   type NatalChart,
+  type NatalReading,
   type Place,
   register,
   saveBirth,
@@ -185,8 +187,20 @@ function BirthForm({ onDone, problem }: { onDone: () => unknown; problem?: strin
 }
 
 function ChartSummary({ chart }: { chart: NatalChart }) {
+  const [reading, setReading] = useState<NatalReading | null>(null)
+  const [readingError, setReadingError] = useState<string | null>(null)
   const sun = chart.bodies.find((b) => b.body === 'sun')
   const moon = chart.bodies.find((b) => b.body === 'moon')
+
+  useEffect(() => {
+    fetchNatalReading()
+      .then((result) => {
+        setReadingError(null)
+        setReading(result)
+      })
+      .catch((error: unknown) => setReadingError(messageOf(error)))
+  }, [])
+
   return (
     <section className="card" aria-label="O teu mapa natal">
       <h2>O teu mapa natal</h2>
@@ -233,6 +247,22 @@ function ChartSummary({ chart }: { chart: NatalChart }) {
           {w}
         </p>
       ))}
+      <section aria-label="A tua leitura">
+        <h3>A tua leitura</h3>
+        {readingError && <p className="hint">{readingError}</p>}
+        {!reading && !readingError && <p className="hint">A interpretar o mapa…</p>}
+        {reading?.sections.map((section) => (
+          <article key={section.id}>
+            <h4>{section.title}</h4>
+            {section.text
+              .split(/\n{2,}/)
+              .filter(Boolean)
+              .map((paragraph, index) => (
+                <p key={index}>{paragraph}</p>
+              ))}
+          </article>
+        ))}
+      </section>
     </section>
   )
 }

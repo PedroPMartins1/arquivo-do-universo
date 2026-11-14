@@ -1,5 +1,13 @@
 import { useEffect, useState } from 'react'
-import { type DailySky, fetchToday, type Me, type Revelation, saveResidence } from './api'
+import {
+  type DailySky,
+  fetchToday,
+  fetchTodayReading,
+  type Me,
+  type Revelation,
+  saveResidence,
+  type TodayReading,
+} from './api'
 import { describeEvent, describePlace, describeTransit } from './labels'
 import { PlaceSearch } from './PlaceSearch'
 
@@ -48,6 +56,8 @@ function RevelationText({
 export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
   const [sky, setSky] = useState<DailySky | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [reading, setReading] = useState<TodayReading | null>(null)
+  const [readingError, setReadingError] = useState<string | null>(null)
   const [moving, setMoving] = useState(false)
 
   useEffect(() => {
@@ -57,6 +67,14 @@ export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
         setSky(s)
       })
       .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)))
+    fetchTodayReading()
+      .then((result) => {
+        setReadingError(null)
+        setReading(result)
+      })
+      .catch((err: unknown) =>
+        setReadingError(err instanceof Error ? err.message : String(err)),
+      )
   }, [me.residence_zone, me.residence_name])
 
   if (error) return <p role="alert">{error}</p>
@@ -80,6 +98,7 @@ export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
             if (!place) return
             void saveResidence(describePlace(place).slice(0, 200), place.zone)
               .then(() => {
+                setReading(null)
                 setMoving(false)
                 onMoved()
               })
@@ -96,6 +115,9 @@ export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
           {sky.revelations.map((r, i) => (
             <li key={i}>
               <RevelationText revelation={r} zone={zone} since={sky.day_starts} />
+              {reading?.revelations[i] && (
+                <p className="reading-text">{reading.revelations[i]}</p>
+              )}
             </li>
           ))}
         </ol>
@@ -106,8 +128,12 @@ export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
           <p>
             <RevelationText revelation={sky.tomorrow} zone={zone} since={sky.day_starts} />
           </p>
+          {reading?.tomorrow && <p className="reading-text">{reading.tomorrow}</p>}
         </>
       )}
+      {readingError && <p className="hint">{readingError}</p>}
+      {!reading && !readingError && <p className="hint">A interpretar o céu…</p>}
+      {reading?.note && <p className="hint">{reading.note}</p>}
       {sky.upcoming.length > 0 && (
         <>
           <h3>O que se aproxima</h3>

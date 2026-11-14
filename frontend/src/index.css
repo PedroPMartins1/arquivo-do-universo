@@ -170,6 +170,11 @@ button.option:focus {
   margin-bottom: 0.6rem;
 }
 
+.reading-text {
+  margin: 0.35rem 0 0;
+  color: #b3abc9;
+}
+
 h3 {
   margin: 1.25rem 0 0.5rem;
   font-size: 1rem;

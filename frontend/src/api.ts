@@ -154,5 +154,34 @@ export interface DailySky {
 }
 
 export const fetchToday = () => request<DailySky>('/me/today')
+export interface ReadingSection {
+  id: string
+  title: string
+  text: string
+}
+
+export interface NatalReading {
+  sections: ReadingSection[]
+  model: string
+  prompt_version: string
+  generated_at: string
+  epistemic_class: 'interpretation'
+  note: string
+}
+
+export interface TodayReading {
+  date: string
+  revelations: string[]
+  tomorrow: string | null
+  model: string
+  prompt_version: string
+  generated_at: string
+  epistemic_class: 'interpretation'
+  note: string
+}
+
+export const fetchNatalReading = () => request<NatalReading>('/me/reading/natal')
+export const fetchTodayReading = (day?: string) =>
+  request<TodayReading>(`/me/reading/today${day ? `?date=${encodeURIComponent(day)}` : ''}`)
 export const saveResidence = (place_name: string, zone: string) =>
   post<Me>('/me/residence', { place_name, zone }, 'PUT')
