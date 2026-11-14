@@ -1,4 +1,5 @@
 from collections.abc import Iterator
+from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import Cookie, Depends, HTTPException, status
@@ -39,3 +40,14 @@ def get_text_model() -> TextModel | None:
         settings.anthropic_api_key.get_secret_value(),
         settings.anthropic_model,
     )
+
+
+def get_now() -> datetime:
+    return datetime.now(UTC)
+
+
+Now = Annotated[datetime, Depends(get_now)]
+
+
+def has_immediate_access(user: User) -> bool:
+    return False

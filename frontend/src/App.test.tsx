@@ -4,6 +4,15 @@ import App from './App'
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status })
 const ME = { id: '1', email: 'ana@example.org', display_name: 'Ana' }
+const BIRTH = {
+  birth_date: '1993-05-20',
+  birth_time: '14:35:00',
+  place_name: 'Lisboa',
+  latitude: 38.7223,
+  longitude: -9.1393,
+  zone: 'Europe/Lisbon',
+  birth_utc: '1993-05-20T12:35:00Z',
+}
 const CHART = {
   bodies: [
     {
@@ -27,6 +36,59 @@ const CHART = {
   angles: { ascendant: 155.2, midheaven: 60, descendant: 335.2, imum_coeli: 240 },
   aspects: [{ first: 'sun', second: 'moon', kind: 'trine', orb: 3.75, applying: false }],
   calculation: { warnings: [] },
+}
+
+const SKY = {
+  date: '2026-11-12',
+  zone: 'Europe/Lisbon',
+  day_starts: '2026-11-12T00:00:00Z',
+  day_ends: '2026-11-13T00:00:00Z',
+  now: '2026-11-12T11:00:00Z',
+  revelations: [
+    {
+      unlocks_at: '2026-11-12T07:00:00Z',
+      revelation: {
+        weight: 6,
+        transit: {
+          body: 'saturn',
+          natal_point: 'jupiter',
+          kind: 'square',
+          starts: null,
+          ends: null,
+          exact: ['2026-11-12T21:58:53Z'],
+          orb: 0.02,
+          applying: true,
+          natal_house: 8,
+          weight: 6,
+        },
+        event: null,
+      },
+    },
+  ],
+  tomorrow: {
+    weight: 3.75,
+    transit: null,
+    event: {
+      kind: 'station_direct',
+      at: '2026-11-13T15:53:57Z',
+      body: 'mercury',
+      sign: 'scorpio',
+      natal_house: 3,
+      eclipse_type: null,
+      contacts: [],
+      weight: 3.75,
+    },
+  },
+  active: [],
+  upcoming: [],
+  events: [],
+  calculation: {
+    library: 'Swiss Ephemeris',
+    library_version: 'test',
+    orbs: {},
+    aspects: [],
+    note: 'Convenções registadas.',
+  },
 }
 
 function route(routes: Record<string, () => Response>) {
@@ -54,53 +116,13 @@ describe('App', () => {
       'fetch',
       route({
         'GET /api/v1/me': () => json(ME),
-        'GET /api/v1/me/birth': () => (saved ? json({}) : json({ detail: 'sem dados' }, 404)),
+        'GET /api/v1/me/birth': () => (saved ? json(BIRTH) : json({ detail: 'sem dados' }, 404)),
         'PUT /api/v1/me/birth': () => {
           saved = true
           return json({})
         },
         'GET /api/v1/me/chart': () => json(CHART),
-        'GET /api/v1/me/today': () =>
-          json({
-            date: '2026-11-12',
-            zone: 'Europe/Lisbon',
-            day_starts: '2026-11-12T00:00:00Z',
-            revelations: [
-              {
-                weight: 6,
-                transit: {
-                  body: 'saturn',
-                  natal_point: 'jupiter',
-                  kind: 'square',
-                  starts: null,
-                  ends: null,
-                  exact: ['2026-11-12T21:58:53Z'],
-                  orb: 0.02,
-                  applying: true,
-                  natal_house: 8,
-                  weight: 6,
-                },
-                event: null,
-              },
-            ],
-            tomorrow: {
-              weight: 3.75,
-              transit: null,
-              event: {
-                kind: 'station_direct',
-                at: '2026-11-13T15:53:57Z',
-                body: 'mercury',
-                sign: 'scorpio',
-                natal_house: 3,
-                eclipse_type: null,
-                contacts: [],
-                weight: 3.75,
-              },
-            },
-            active: [],
-            upcoming: [],
-            events: [],
-          }),
+        'GET /api/v1/me/today': () => json(SKY),
         'GET /api/v1/places?q=Lisb': () =>
           json({
             results: [
@@ -131,10 +153,11 @@ describe('App', () => {
     fireEvent.change(screen.getByLabelText('Local de nascimento'), { target: { value: 'Lisb' } })
     fireEvent.click(await screen.findByRole('button', { name: 'Lisbon, Lisbon, Portugal' }))
     fireEvent.submit(form)
-    // Cada signo aparece na roda, no resumo e/ou na tabela.
-    expect(await screen.findAllByText('Touro')).toHaveLength(3)
     expect(await screen.findByText('Saturno em quadratura com Júpiter natal')).toBeInTheDocument()
     expect(screen.getByText('Mercúrio retoma o movimento direto em Escorpião, na tua casa 3')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Perfil' }))
+    // Cada signo aparece na roda, no resumo e/ou na tabela.
+    expect(await screen.findAllByText('Touro')).toHaveLength(3)
     expect(screen.getAllByText('Peixes')).toHaveLength(3)
     expect(screen.getAllByText('Virgem')).toHaveLength(2)
   })
@@ -144,22 +167,13 @@ describe('App', () => {
       'fetch',
       route({
         'GET /api/v1/me': () => json(ME),
-        'GET /api/v1/me/birth': () => json({}),
+        'GET /api/v1/me/birth': () => json(BIRTH),
         'GET /api/v1/me/chart': () => json(CHART),
-        'GET /api/v1/me/today': () =>
-          json({
-            date: '2026-11-12',
-            zone: 'Europe/Lisbon',
-            day_starts: '2026-11-12T00:00:00Z',
-            revelations: [],
-            tomorrow: null,
-            active: [],
-            upcoming: [],
-            events: [],
-          }),
+        'GET /api/v1/me/today': () => json(SKY),
         'GET /api/v1/me/reading/today': () =>
           json({
             date: '2026-11-12',
+            theme: 'Tema do dia',
             revelations: [],
             tomorrow: null,
             model: 'fake-claude',
@@ -180,10 +194,39 @@ describe('App', () => {
       }),
     )
     render(<App />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Perfil' }))
     expect(
       await screen.findByRole('heading', { name: 'A tua leitura' }),
     ).toBeInTheDocument()
     expect(await screen.findByText('Uma secção mockada.')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Roda do mapa natal' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Dados de nascimento' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Apagar conta' })).toBeInTheDocument()
+  })
+
+  it('mostra os cartões Brevemente nos separadores correspondentes', async () => {
+    vi.stubGlobal(
+      'fetch',
+      route({
+        'GET /api/v1/me': () => json(ME),
+        'GET /api/v1/me/birth': () => json(BIRTH),
+        'GET /api/v1/me/chart': () => json(CHART),
+        'GET /api/v1/me/today': () => json(SKY),
+        'GET /api/v1/me/reading/today': () => json({ theme: null, revelations: [], tomorrow: null }),
+      }),
+    )
+    render(<App />)
+    for (const [tab, text] of [
+      ['Explorar', 'Ciclos, eclipses e o calendário do teu céu.'],
+      ['Jornada', 'Percursos de evolução e autodesenvolvimento.'],
+      ['Arquivo', 'A tua história com o universo: leituras e reflexões.'],
+    ]) {
+      fireEvent.click(await screen.findByRole('button', { name: tab }))
+      expect(await screen.findByText(text)).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Brevemente' })).toBeInTheDocument()
+    }
+    expect(screen.getByRole('button', { name: 'Arquivo' })).toHaveAttribute('aria-current', 'page')
   })
 
   it('pede a ocorrência quando a hora aconteceu duas vezes', async () => {
@@ -217,6 +260,32 @@ describe('App', () => {
     expect(await screen.findByRole('form', { name: 'Dados de nascimento' })).toBeInTheDocument()
     expect(screen.getByRole('alert')).toHaveTextContent('Placidus')
     expect(screen.getByText('Sair')).toBeInTheDocument()
+  })
+
+  it('permite apagar a conta sem dados de nascimento', async () => {
+    let deleted = false
+    const fetchMock = route({
+      'GET /api/v1/me': () => (deleted ? json({ detail: 'sessão' }, 401) : json(ME)),
+      'GET /api/v1/me/birth': () => json({ detail: 'sem dados' }, 404),
+      'DELETE /api/v1/me': () => {
+        deleted = true
+        return new Response(null, { status: 204 })
+      },
+    })
+    const confirm = vi.fn(() => true)
+    vi.stubGlobal('fetch', fetchMock)
+    vi.stubGlobal('confirm', confirm)
+    render(<App />)
+    expect(await screen.findByRole('form', { name: 'Dados de nascimento' })).toBeInTheDocument()
+    const deleteButton = screen.getByRole('button', { name: 'Apagar conta' })
+    expect(deleteButton).toHaveClass('danger')
+    fireEvent.click(deleteButton)
+    expect(confirm).toHaveBeenCalledWith('Queres mesmo apagar a conta? Esta ação é irreversível.')
+    expect(await screen.findByRole('form', { name: 'Criar conta' })).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/me',
+      expect.objectContaining({ method: 'DELETE' }),
+    )
   })
 
   it('mostra o erro do mapa depois de guardar os dados de nascimento', async () => {

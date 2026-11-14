@@ -95,6 +95,7 @@ export const register = (email: string, password: string, displayName: string) =
 export const login = (email: string, password: string) =>
   post<Me>('/auth/login', { email, password })
 export const logout = () => post<void>('/auth/logout')
+export const deleteAccount = () => request<void>('/me', { method: 'DELETE' })
 export const fetchBirth = () => request<BirthProfile>('/me/birth')
 export const saveBirth = (data: BirthData) => post<BirthProfile>('/me/birth', data, 'PUT')
 export const fetchChart = () => request<NatalChart>('/me/chart')
@@ -142,18 +143,32 @@ export interface Revelation {
   event: SkyEvent | null
 }
 
-export interface DailySky {
+export interface RevelationSlot {
+  unlocks_at: string
+  revelation: Revelation | null
+}
+
+export interface TodaySky {
   date: string
   zone: string
   day_starts: string
-  revelations: Revelation[]
+  day_ends: string
+  now: string
+  revelations: RevelationSlot[]
   tomorrow: Revelation | null
   active: Transit[]
   upcoming: Transit[]
   events: SkyEvent[]
+  calculation: {
+    library: string
+    library_version: string
+    orbs: Record<string, number>
+    aspects: string[]
+    note: string
+  }
 }
 
-export const fetchToday = () => request<DailySky>('/me/today')
+export const fetchToday = () => request<TodaySky>('/me/today')
 export interface ReadingSection {
   id: string
   title: string
@@ -171,13 +186,20 @@ export interface NatalReading {
 
 export interface TodayReading {
   date: string
-  revelations: string[]
+  theme: string | null
+  revelations: (RevelationReading | null)[]
   tomorrow: string | null
   model: string
   prompt_version: string
   generated_at: string
   epistemic_class: 'interpretation'
   note: string
+}
+
+export interface RevelationReading {
+  title: string
+  text: string
+  question: string
 }
 
 export const fetchNatalReading = () => request<NatalReading>('/me/reading/natal')

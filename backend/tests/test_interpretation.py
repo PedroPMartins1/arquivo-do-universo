@@ -86,7 +86,11 @@ def natal_json(text: str = "Sol") -> str:
     )
 
 
-def daily_sky(*, revelations: list[Revelation] | None = None) -> DailySky:
+def daily_sky(
+    *,
+    revelations: list[Revelation] | None = None,
+    tomorrow: Revelation | None = None,
+) -> DailySky:
     day = date(2026, 11, 14)
     return DailySky(
         date=day,
@@ -94,11 +98,28 @@ def daily_sky(*, revelations: list[Revelation] | None = None) -> DailySky:
         day_starts=datetime(2026, 11, 14, tzinfo=UTC),
         day_ends=datetime(2026, 11, 15, tzinfo=UTC),
         revelations=revelations or [],
-        tomorrow=None,
+        tomorrow=tomorrow,
         active=[],
         upcoming=[],
         events=[],
         calculation=TransitCalculation(orbs={}, aspects=[]),
+    )
+
+
+def daily_json(
+    *,
+    revelations: list[dict[str, str]] | None = None,
+    theme: str | None = "Tema do dia",
+    tomorrow: str | None = None,
+) -> str:
+    return json.dumps(
+        {
+            "tema": theme,
+            "revelacoes": revelations
+            if revelations is not None
+            else [{"titulo": "Convite à pausa", "texto": "Marte", "pergunta": "O que observas?"}],
+            "amanha": tomorrow,
+        }
     )
 
 
@@ -284,14 +305,45 @@ def test_day_retries_when_revelation_count_is_wrong(chart: NatalChart) -> None:
     )
     sky = daily_sky(revelations=[Revelation(weight=1, transit=transit)])
     model = FakeModel(
-        json.dumps({"revelacoes": [], "amanha": None}),
-        json.dumps({"revelacoes": ["Saturno"], "amanha": None}),
+        daily_json(revelations=[], theme=None),
+        daily_json(
+            revelations=[
+                {"titulo": "Ritmo e estrutura", "texto": "Saturno", "pergunta": "O que observas?"}
+            ]
+        ),
     )
     reading = interpret_day(sky, chart, model)
-    assert reading.revelations == ["Saturno"]
+    assert reading.theme == "Tema do dia"
+    assert reading.revelations[0].title == "Ritmo e estrutura"
+    assert reading.revelations[0].text == "Saturno"
     assert len(model.calls) == 2
     assert "exato a 14/11 às 14:32" in model.calls[0][1]
     assert model.calls[0][2] == 6000
+
+
+def test_day_accepts_structured_revelation_and_strips_fields(chart: NatalChart) -> None:
+    event = SkyEvent(
+        kind=EventKind.SIGN_INGRESS,
+        at=datetime(2026, 11, 14, 11, tzinfo=UTC),
+        body=Body.MARS,
+        sign=Sign.SAGITTARIUS,
+    )
+    sky = daily_sky(revelations=[Revelation(weight=1, event=event)])
+    response = daily_json(
+        theme="  Tema do dia  ",
+        revelations=[
+            {
+                "titulo": "  Ritmo e estrutura  ",
+                "texto": "  Marte  ",
+                "pergunta": "  O que observas?  ",
+            }
+        ],
+    )
+    reading = interpret_day(sky, chart, FakeModel(response))
+    assert reading.theme == "Tema do dia"
+    assert reading.revelations[0].title == "Ritmo e estrutura"
+    assert reading.revelations[0].text == "Marte"
+    assert reading.revelations[0].question == "O que observas?"
 
 
 def test_day_retries_gendered_text_with_feedback(chart: NatalChart) -> None:
@@ -303,11 +355,19 @@ def test_day_retries_gendered_text_with_feedback(chart: NatalChart) -> None:
     )
     sky = daily_sky(revelations=[Revelation(weight=1, event=event)])
     model = FakeModel(
-        json.dumps({"revelacoes": ["estás pronto"], "amanha": None}),
-        json.dumps({"revelacoes": ["Marte"], "amanha": None}),
+        daily_json(
+            revelations=[
+                {
+                    "titulo": "Convite à pausa",
+                    "texto": "estás pronto",
+                    "pergunta": "O que observas?",
+                }
+            ]
+        ),
+        daily_json(),
     )
     reading = interpret_day(sky, chart, model)
-    assert reading.revelations == ["Marte"]
+    assert reading.revelations[0].text == "Marte"
     assert len(model.calls) == 2
     assert "A tua resposta anterior foi rejeitada" in model.calls[1][1]
     assert "estás pronto" in model.calls[1][1]
@@ -323,7 +383,7 @@ def test_day_retries_transient_error_with_original_prompt(chart: NatalChart) -> 
     sky = daily_sky(revelations=[Revelation(weight=1, event=event)])
     model = FakeModel(
         InterpretationUnavailable("indisponibilidade temporária"),
-        json.dumps({"revelacoes": ["Marte"], "amanha": None}),
+        daily_json(),
     )
     interpret_day(sky, chart, model)
     assert len(model.calls) == 2
@@ -339,17 +399,77 @@ def test_day_retries_non_null_tomorrow_when_no_tomorrow_exists(chart: NatalChart
     )
     sky = daily_sky(revelations=[Revelation(weight=1, event=event)])
     model = FakeModel(
-        json.dumps({"revelacoes": ["Marte"], "amanha": "Sol"}),
-        json.dumps({"revelacoes": ["Marte"], "amanha": None}),
+        daily_json(tomorrow="Sol"),
+        daily_json(),
     )
     assert interpret_day(sky, chart, model).tomorrow is None
     assert len(model.calls) == 2
     assert "Marte entra em Sagitário" in model.calls[0][1]
 
 
+@pytest.mark.parametrize("field", ["tema", "titulo", "pergunta"])
+def test_day_retries_gendered_field_with_feedback(chart: NatalChart, field: str) -> None:
+    event = SkyEvent(
+        kind=EventKind.SIGN_INGRESS,
+        at=datetime(2026, 11, 14, 11, tzinfo=UTC),
+        body=Body.MARS,
+        sign=Sign.SAGITTARIUS,
+    )
+    sky = daily_sky(revelations=[Revelation(weight=1, event=event)])
+    invalid = {"titulo": "Convite à pausa", "texto": "Saturno", "pergunta": "O que observas?"}
+    if field != "tema":
+        invalid[field] = "estás pronto"
+    model = FakeModel(
+        daily_json(
+            revelations=[invalid], theme="estás pronto" if field == "tema" else "Tema do dia"
+        ),
+        daily_json(),
+    )
+    result = interpret_day(sky, chart, model)
+    assert result.revelations[0].title == "Convite à pausa"
+    assert len(model.calls) == 2
+    assert "A tua resposta anterior foi rejeitada" in model.calls[1][1]
+    assert "estás pronto" in model.calls[1][1]
+
+
+def test_day_rejects_extra_fields_with_retry(chart: NatalChart) -> None:
+    event = SkyEvent(
+        kind=EventKind.SIGN_INGRESS,
+        at=datetime(2026, 11, 14, 11, tzinfo=UTC),
+        body=Body.MARS,
+        sign=Sign.SAGITTARIUS,
+    )
+    sky = daily_sky(revelations=[Revelation(weight=1, event=event)])
+    invalid = json.loads(daily_json())
+    invalid["surpresa"] = "campo extra"
+    model = FakeModel(json.dumps(invalid), daily_json())
+    result = interpret_day(sky, chart, model)
+    assert result.theme == "Tema do dia"
+    assert len(model.calls) == 2
+
+
+def test_day_rejects_non_null_theme_without_revelations(chart: NatalChart) -> None:
+    event = SkyEvent(
+        kind=EventKind.SIGN_INGRESS,
+        at=datetime(2026, 11, 15, 11, tzinfo=UTC),
+        body=Body.MARS,
+        sign=Sign.SAGITTARIUS,
+    )
+    sky = daily_sky(tomorrow=Revelation(weight=1, event=event))
+    model = FakeModel(
+        daily_json(revelations=[], theme="Tema do dia", tomorrow="Uma pista."),
+        daily_json(revelations=[], theme=None, tomorrow="Uma pista."),
+    )
+    result = interpret_day(sky, chart, model)
+    assert result.theme is None
+    assert result.revelations == []
+    assert len(model.calls) == 2
+
+
 def test_day_with_no_revelations_and_no_tomorrow_does_not_call_model(
     chart: NatalChart,
 ) -> None:
     model = FakeModel()
+    assert interpret_day(daily_sky(), chart, model).theme is None
     assert interpret_day(daily_sky(), chart, model).revelations == []
     assert model.calls == []

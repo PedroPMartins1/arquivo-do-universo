@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { type DailySky, type Me, type Place } from './api'
+import { type Me, type Place, type TodaySky } from './api'
 import { Today } from './Today'
 
 vi.mock('./PlaceSearch', () => ({
@@ -34,41 +34,75 @@ const ME: Me = {
   residence_zone: 'Europe/Lisbon',
 }
 
-const SKY: DailySky = {
-  date: '2026-11-12',
+const SKY: TodaySky = {
+  date: '2026-11-16',
   zone: 'Europe/Lisbon',
-  day_starts: '2026-11-11T23:00:00Z',
+  day_starts: '2026-11-16T00:00:00Z',
+  day_ends: '2026-11-17T00:00:00Z',
+  now: '2026-11-16T11:00:00Z',
   revelations: [
     {
-      weight: 6,
-      transit: {
-        body: 'saturn',
-        natal_point: 'jupiter',
-        kind: 'square',
-        starts: null,
-        ends: null,
-        exact: ['2026-11-12T21:58:53Z'],
-        orb: 0.02,
-        applying: true,
-        natal_house: 8,
+      unlocks_at: '2026-11-16T07:00:00Z',
+      revelation: {
         weight: 6,
+        transit: {
+          body: 'saturn',
+          natal_point: 'jupiter',
+          kind: 'square',
+          starts: null,
+          ends: null,
+          exact: ['2026-11-16T21:58:53Z'],
+          orb: 0.02,
+          applying: true,
+          natal_house: 8,
+          weight: 6,
+        },
+        event: null,
       },
-      event: null,
     },
+    { unlocks_at: '2026-11-16T13:00:00Z', revelation: null },
   ],
-  tomorrow: null,
+  tomorrow: {
+    weight: 3.75,
+    transit: null,
+    event: {
+      kind: 'station_direct',
+      at: '2026-11-17T15:53:57Z',
+      body: 'mercury',
+      sign: 'scorpio',
+      natal_house: 3,
+      eclipse_type: null,
+      contacts: [],
+      weight: 3.75,
+    },
+  },
   active: [],
   upcoming: [],
   events: [],
+  calculation: {
+    library: 'Swiss Ephemeris',
+    library_version: 'test',
+    orbs: {},
+    aspects: [],
+    note: 'Convenções registadas.',
+  },
 }
 
 const TODAY_READING = {
   date: SKY.date,
-  revelations: [],
-  tomorrow: null,
+  theme: 'Ritmo e estrutura',
+  revelations: [
+    {
+      title: 'Um convite à pausa',
+      text: 'Este trânsito convida-te a observar os teus limites.',
+      question: 'Que espaço podes criar para ti hoje?',
+    },
+    null,
+  ],
+  tomorrow: 'Uma mudança subtil aproxima-se.',
   model: 'fake-claude',
   prompt_version: 'test',
-  generated_at: '2026-11-12T00:00:00Z',
+  generated_at: '2026-11-16T00:00:00Z',
   epistemic_class: 'interpretation' as const,
   note: 'Interpretação simbólica gerada por IA.',
 }
@@ -84,42 +118,58 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-describe('Today', () => {
-  it('mostra as revelações do dia', async () => {
+describe('Hoje', () => {
+  it('mostra o conteúdo aberto, a pergunta e o tema do dia', async () => {
     vi.stubGlobal('fetch', vi.fn((url: string) => responseFor(url)))
     render(<Today me={ME} onMoved={() => undefined} />)
-    expect(await screen.findByRole('heading', { name: 'Revelações do dia' })).toBeInTheDocument()
-    expect(screen.getByText(/Saturno em quadratura com Júpiter natal/)).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'A energia do dia' })).toBeInTheDocument()
+    expect(await screen.findByText('Um convite à pausa')).toBeInTheDocument()
+    expect(screen.getByText('Este trânsito convida-te a observar os teus limites.')).toBeInTheDocument()
+    expect(screen.getByText('Que espaço podes criar para ti hoje?')).toBeInTheDocument()
+    expect(screen.getByText('Ritmo e estrutura')).toBeInTheDocument()
   })
 
-  it('mostra a interpretação por baixo da revelação calculada', async () => {
+  it('não mostra a origem de uma revelação fechada', async () => {
+    vi.stubGlobal('fetch', vi.fn((url: string) => responseFor(url)))
+    render(<Today me={ME} onMoved={() => undefined} />)
+    expect(await screen.findByText('Abre às 13:00')).toBeInTheDocument()
+    const locked = document.querySelector('article.revelation.locked')
+    expect(locked).toHaveAttribute('class', 'revelation locked')
+    expect(locked?.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
+    expect(screen.queryByText(/Vénus entra/)).not.toBeInTheDocument()
+  })
+
+  it('mostra esqueletos nas revelações abertas enquanto a leitura carrega', async () => {
+    let finishReading: ((response: Response) => void) | undefined
     vi.stubGlobal(
       'fetch',
       vi.fn((url: string) =>
-        Promise.resolve(
-          url.includes('/me/reading/today')
-            ? json({
-                date: SKY.date,
-                revelations: ['Este trânsito convida-te a observar os teus limites.'],
-                tomorrow: null,
-                model: 'fake-claude',
-                prompt_version: 'test',
-                generated_at: '2026-11-12T00:00:00Z',
-                epistemic_class: 'interpretation',
-                note: 'Interpretação simbólica gerada por IA.',
-              })
-            : json(SKY),
-        ),
+        url.includes('/me/reading/today')
+          ? new Promise<Response>((resolve) => {
+              finishReading = resolve
+            })
+          : responseFor(url),
       ),
     )
     render(<Today me={ME} onMoved={() => undefined} />)
-    expect(
-      await screen.findByText('Este trânsito convida-te a observar os teus limites.'),
-    ).toBeInTheDocument()
-    expect(screen.getByText('Interpretação simbólica gerada por IA.')).toBeInTheDocument()
+    await screen.findByText(/Saturno em quadratura com Júpiter natal/)
+    const skeleton = document.querySelector('.reading-skeleton[aria-busy="true"]')
+    expect(skeleton).not.toBeNull()
+    expect(skeleton?.querySelectorAll('.skeleton')).toHaveLength(3)
+    finishReading?.(json(TODAY_READING))
+    expect(await screen.findByText('Um convite à pausa')).toBeInTheDocument()
   })
 
-  it('mantém o céu calculado e mostra o erro quando a leitura falha', async () => {
+  it('mostra o cartão do segredo de amanhã', async () => {
+    vi.stubGlobal('fetch', vi.fn((url: string) => responseFor(url)))
+    render(<Today me={ME} onMoved={() => undefined} />)
+    expect(await screen.findByRole('heading', { name: 'O segredo de amanhã' })).toBeInTheDocument()
+    expect(screen.getByText('Uma descoberta está a aproximar-se')).toBeInTheDocument()
+    expect(screen.getByText('Uma mudança subtil aproxima-se.')).toBeInTheDocument()
+    expect(document.querySelector('article.secret')).toBeInTheDocument()
+  })
+
+  it('mantém a origem calculada e mostra uma única mensagem se a leitura falhar', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn((url: string) =>
@@ -131,67 +181,44 @@ describe('Today', () => {
       ),
     )
     render(<Today me={ME} onMoved={() => undefined} />)
-    expect(
-      await screen.findByText(/Saturno em quadratura com Júpiter natal/),
-    ).toBeInTheDocument()
-    expect(
-      await screen.findByText('a interpretação não está disponível neste momento'),
-    ).toBeInTheDocument()
+    expect(await screen.findByText(/Saturno em quadratura com Júpiter natal/)).toBeInTheDocument()
+    expect(await screen.findByText('a interpretação não está disponível neste momento')).toBeInTheDocument()
+    expect(screen.getAllByText('a interpretação não está disponível neste momento')).toHaveLength(1)
   })
 
-  it('volta a pedir o céu quando a residência muda, mesmo dentro do mesmo fuso', async () => {
+  it('volta a pedir ambas as rotas quando a residência muda', async () => {
     const fetchMock = vi.fn((url: string) => responseFor(url))
     vi.stubGlobal('fetch', fetchMock)
     const { rerender } = render(<Today me={ME} onMoved={() => undefined} />)
-    await screen.findByRole('heading', { name: 'Revelações do dia' })
+    await screen.findByRole('heading', { name: 'A energia do dia' })
     expect(todayCalls(fetchMock)).toBe(1)
     rerender(<Today me={{ ...ME, residence_name: 'Sintra' }} onMoved={() => undefined} />)
     await waitFor(() => expect(todayCalls(fetchMock)).toBe(2))
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('/reading/today'))).toHaveLength(2)
   })
 
-  it('limpa o erro quando uma leitura posterior tem sucesso', async () => {
-    let skyCalls = 0
+  it('limpa a interpretação antiga e não fica presa ao escolher a mesma residência', async () => {
+    let readingCalls = 0
+    const previous = {
+      ...TODAY_READING,
+      revelations: [{ ...TODAY_READING.revelations[0], text: 'Leitura anterior.' }, null],
+    }
     const fetchMock = vi.fn((url: string) => {
-      if (url.includes('/me/reading/today')) return Promise.resolve(json(TODAY_READING))
-      skyCalls += 1
-      return Promise.resolve(skyCalls === 1 ? json({ detail: 'falhou' }, 500) : json(SKY))
+      if (url.includes('/me/reading/today')) {
+        readingCalls += 1
+        return Promise.resolve(json(readingCalls === 1 ? previous : TODAY_READING))
+      }
+      if (url.includes('/me/residence')) return Promise.resolve(json(ME))
+      return responseFor(url)
     })
     vi.stubGlobal('fetch', fetchMock)
-    const { rerender } = render(<Today me={ME} onMoved={() => undefined} />)
-    expect(await screen.findByRole('alert')).toHaveTextContent('falhou')
-    rerender(<Today me={{ ...ME, residence_zone: 'Atlantic/Azores' }} onMoved={() => undefined} />)
-    expect(
-      await screen.findByRole('heading', { name: 'Revelações do dia' }),
-    ).toBeInTheDocument()
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
-  })
-
-  it('limpa a interpretação anterior quando a residência muda', async () => {
-    const previousReading = {
-      ...TODAY_READING,
-      revelations: ['Interpretação do local anterior'],
-    }
-    vi.stubGlobal(
-      'fetch',
-      vi.fn((url: string) =>
-        Promise.resolve(
-          url.includes('/me/reading/today')
-            ? json(previousReading)
-            : url.includes('/me/residence')
-              ? json(ME)
-              : json(SKY),
-        ),
-      ),
-    )
     const onMoved = vi.fn()
-    render(<Today me={ME} onMoved={onMoved} />)
-    expect(await screen.findByText('Interpretação do local anterior')).toBeInTheDocument()
-
+    render(<Today me={{ ...ME, residence_name: 'Sintra, Portugal' }} onMoved={onMoved} />)
+    expect(await screen.findByText('Leitura anterior.')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Mudar o local onde vives' }))
     fireEvent.click(screen.getByRole('button', { name: 'Selecionar Sintra' }))
-
     await waitFor(() => expect(onMoved).toHaveBeenCalledOnce())
-    expect(screen.queryByText('Interpretação do local anterior')).not.toBeInTheDocument()
-    expect(screen.getByText('A interpretar o céu…')).toBeInTheDocument()
+    expect(await screen.findByText('Este trânsito convida-te a observar os teus limites.')).toBeInTheDocument()
+    expect(screen.queryByText('Leitura anterior.')).not.toBeInTheDocument()
   })
 })

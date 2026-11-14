@@ -1,6 +1,8 @@
 import json
 from collections.abc import Iterator
+from datetime import date, datetime, time, timedelta
 from typing import cast
+from zoneinfo import ZoneInfo
 
 import pytest
 from fastapi import FastAPI
@@ -8,11 +10,13 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from arquivo.api.deps import get_db, get_text_model
+from arquivo.api.deps import get_db, get_now, get_text_model
 from arquivo.api.reading import _store
 from arquivo.interpretation.prompts import NATAL_SECTIONS
 from arquivo.main import create_app
+from arquivo.natal.settings import Body, Sign
 from arquivo.persistence.models import Interpretation, User
+from arquivo.transits.engine import DailySky, EventKind, Revelation, SkyEvent, TransitCalculation
 
 pytestmark = pytest.mark.db
 
@@ -40,6 +44,45 @@ class FakeModel:
 def natal_response() -> str:
     return json.dumps(
         {"secoes": [{"id": identifier, "texto": "Sol"} for identifier, _, _ in NATAL_SECTIONS]}
+    )
+
+
+def today_response() -> str:
+    return json.dumps(
+        {
+            "tema": "Ritmo do dia",
+            "revelacoes": [
+                {
+                    "titulo": f"marcador_titulo_{index}",
+                    "texto": f"marcador_texto_{index}",
+                    "pergunta": f"marcador_pergunta_{index}",
+                }
+                for index in range(5)
+            ],
+            "amanha": None,
+        }
+    )
+
+
+def five_revelations(day: date, zone: str) -> DailySky:
+    local_zone = ZoneInfo(zone)
+    event = SkyEvent(
+        kind=EventKind.SIGN_INGRESS,
+        at=datetime.combine(day, time(9), tzinfo=local_zone),
+        body=Body.MARS,
+        sign=Sign.SAGITTARIUS,
+    )
+    return DailySky(
+        date=day,
+        zone=zone,
+        day_starts=datetime.combine(day, time.min, tzinfo=local_zone),
+        day_ends=datetime.combine(day + timedelta(days=1), time.min, tzinfo=local_zone),
+        revelations=[Revelation(weight=1, event=event) for _ in range(5)],
+        tomorrow=None,
+        active=[],
+        upcoming=[],
+        events=[],
+        calculation=TransitCalculation(orbs={}, aspects=[]),
     )
 
 
@@ -148,3 +191,66 @@ def test_today_reading_rejects_dates_outside_ephemeris_range(client: TestClient)
     cast(FastAPI, client.app).dependency_overrides[get_text_model] = lambda: FakeModel()
     response = client.get("/api/v1/me/reading/today", params={"date": "1800-12-31"})
     assert response.status_code == 422
+
+
+def test_today_and_reading_redact_revelations_until_unlock(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _register_and_save_birth(client)
+    now = datetime(2026, 11, 16, 11, tzinfo=ZoneInfo("Europe/Lisbon"))
+    cast(FastAPI, client.app).dependency_overrides[get_now] = lambda: now
+    monkeypatch.setattr(
+        "arquivo.api.profile.daily_sky",
+        lambda chart, day, zone: five_revelations(day, zone),
+    )
+    model = FakeModel(today_response())
+    cast(FastAPI, client.app).dependency_overrides[get_text_model] = lambda: model
+
+    sky = client.get("/api/v1/me/today", params={"date": "2026-11-16"})
+    assert sky.status_code == 200
+    sky_json = sky.json()
+    assert datetime.fromisoformat(sky_json["now"].replace("Z", "+00:00")).hour == 11
+    unlock_hours = [
+        datetime.fromisoformat(slot["unlocks_at"].replace("Z", "+00:00")).hour
+        for slot in sky_json["revelations"]
+    ]
+    assert unlock_hours == [7, 10, 13, 16, 19]
+    assert [slot["revelation"] is not None for slot in sky_json["revelations"]] == [
+        True,
+        True,
+        False,
+        False,
+        False,
+    ]
+
+    reading = client.get("/api/v1/me/reading/today", params={"date": "2026-11-16"})
+    assert reading.status_code == 200, reading.text
+    reading_json = reading.json()
+    assert [revelation is not None for revelation in reading_json["revelations"]] == [
+        True,
+        True,
+        False,
+        False,
+        False,
+    ]
+    for index in range(2, 5):
+        assert f"marcador_titulo_{index}" not in reading.text
+        assert f"marcador_texto_{index}" not in reading.text
+        assert f"marcador_pergunta_{index}" not in reading.text
+    assert model.calls == 1
+
+
+def test_today_past_is_open_and_future_is_locked(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _register_and_save_birth(client)
+    now = datetime(2026, 11, 16, 11, tzinfo=ZoneInfo("Europe/Lisbon"))
+    cast(FastAPI, client.app).dependency_overrides[get_now] = lambda: now
+    monkeypatch.setattr(
+        "arquivo.api.profile.daily_sky",
+        lambda chart, day, zone: five_revelations(day, zone),
+    )
+    past = client.get("/api/v1/me/today", params={"date": "2026-11-15"}).json()
+    future = client.get("/api/v1/me/today", params={"date": "2026-11-17"}).json()
+    assert all(slot["revelation"] is not None for slot in past["revelations"])
+    assert all(slot["revelation"] is None for slot in future["revelations"])
