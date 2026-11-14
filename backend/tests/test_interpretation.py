@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import pytest
 
 from arquivo.config import Settings
-from arquivo.interpretation import guard
+from arquivo.interpretation import gender, guard
 from arquivo.interpretation.facts import natal_facts
 from arquivo.interpretation.model import (
     AnthropicModel,
@@ -32,13 +32,16 @@ LISBON = (38.7223, -9.1393)
 class FakeModel:
     name = "fake-claude"
 
-    def __init__(self, *responses: str) -> None:
+    def __init__(self, *responses: str | Exception) -> None:
         self.responses = list(responses)
         self.calls: list[tuple[str, str, int]] = []
 
     def complete(self, system: str, prompt: str, *, max_tokens: int) -> str:
         self.calls.append((system, prompt, max_tokens))
-        return self.responses.pop(0)
+        response = self.responses.pop(0)
+        if isinstance(response, Exception):
+            raise response
+        return response
 
 
 def test_anthropic_model_omits_temperature_and_uses_240_second_timeout(
@@ -127,6 +130,62 @@ def test_guard_accepts_only_present_labels_and_rejects_unknown_points() -> None:
     assert guard.check("Nodo Sul", {"Nodo Norte"}) == []
 
 
+@pytest.mark.parametrize(
+    "text",
+    [
+        "O teu Vénus em Carneiro",
+        "estás pronto",
+        "estás pronta",
+        "Podes parecer observador, atento",
+        "Podes sentir-te atraído",
+        "merecer ser amado",
+        "seres autêntico",
+        "seres transformado",
+        "sentes-te expandido",
+        "tua(o)",
+        "estás cada vez mais ligada",
+        "a tua Marte",
+        "és único",
+        "sem pedires justificação a ti mesmo",
+        "tu própria",
+    ],
+)
+def test_gendered_forms_detects_gendered_references(text: str) -> None:
+    assert gender.gendered_forms(text)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "sentes-te em expansão",
+        "tens tendência a",
+        "a tua Vénus em Carneiro",
+        "o teu Sol",
+        "estás cada vez mais perto",
+        "és capaz",
+        "estás em casa",
+        "ficas a saber",
+        "isto pode ser cansativo",
+        "tens um olhar observador",
+        "como te sentes hoje",
+        "a Lua em Escorpião",
+        "és tu quem",
+        "estás ainda mais livre",
+        "és fonte de luz",
+        "dá forma a Saturno",
+        "mereces amor",
+        "és alguém sensível",
+        "sentes-te inteiramente presente",
+        "estás demasiado perto",
+        "és sobretudo alguém sensível",
+        "Cultiva o afeto pelos teus seres queridos",
+        "os seres vivos à tua volta",
+    ],
+)
+def test_gendered_forms_ignores_neutral_references(text: str) -> None:
+    assert gender.gendered_forms(text) == []
+
+
 def test_anthropic_key_aliases_and_default_model(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("ARQUIVO_ANTHROPIC_API_KEY", "local-test-key")
     settings = Settings(_env_file=None)
@@ -152,6 +211,25 @@ def test_natal_retries_invalid_json(chart: NatalChart) -> None:
     assert len(interpret_natal(chart, model)) == 6
     assert len(model.calls) == 2
     assert model.calls[0][2] == 12000
+
+
+def test_natal_retries_gendered_text_with_feedback(chart: NatalChart) -> None:
+    model = FakeModel(natal_json("estás pronto"), natal_json("Sol"))
+    sections = interpret_natal(chart, model)
+    assert len(model.calls) == 2
+    assert all(section.text == "Sol" for section in sections)
+    assert "A tua resposta anterior foi rejeitada" in model.calls[1][1]
+    assert "estás pronto" in model.calls[1][1]
+
+
+def test_natal_retries_transient_error_with_original_prompt(chart: NatalChart) -> None:
+    model = FakeModel(
+        InterpretationUnavailable("indisponibilidade temporária"),
+        natal_json(),
+    )
+    interpret_natal(chart, model)
+    assert len(model.calls) == 2
+    assert model.calls[1][1] == model.calls[0][1]
 
 
 def test_natal_retries_guard_violations_three_times(chart: NatalChart) -> None:
@@ -214,6 +292,42 @@ def test_day_retries_when_revelation_count_is_wrong(chart: NatalChart) -> None:
     assert len(model.calls) == 2
     assert "exato a 14/11 às 14:32" in model.calls[0][1]
     assert model.calls[0][2] == 6000
+
+
+def test_day_retries_gendered_text_with_feedback(chart: NatalChart) -> None:
+    event = SkyEvent(
+        kind=EventKind.SIGN_INGRESS,
+        at=datetime(2026, 11, 14, 11, tzinfo=UTC),
+        body=Body.MARS,
+        sign=Sign.SAGITTARIUS,
+    )
+    sky = daily_sky(revelations=[Revelation(weight=1, event=event)])
+    model = FakeModel(
+        json.dumps({"revelacoes": ["estás pronto"], "amanha": None}),
+        json.dumps({"revelacoes": ["Marte"], "amanha": None}),
+    )
+    reading = interpret_day(sky, chart, model)
+    assert reading.revelations == ["Marte"]
+    assert len(model.calls) == 2
+    assert "A tua resposta anterior foi rejeitada" in model.calls[1][1]
+    assert "estás pronto" in model.calls[1][1]
+
+
+def test_day_retries_transient_error_with_original_prompt(chart: NatalChart) -> None:
+    event = SkyEvent(
+        kind=EventKind.SIGN_INGRESS,
+        at=datetime(2026, 11, 14, 11, tzinfo=UTC),
+        body=Body.MARS,
+        sign=Sign.SAGITTARIUS,
+    )
+    sky = daily_sky(revelations=[Revelation(weight=1, event=event)])
+    model = FakeModel(
+        InterpretationUnavailable("indisponibilidade temporária"),
+        json.dumps({"revelacoes": ["Marte"], "amanha": None}),
+    )
+    interpret_day(sky, chart, model)
+    assert len(model.calls) == 2
+    assert model.calls[1][1] == model.calls[0][1]
 
 
 def test_day_retries_non_null_tomorrow_when_no_tomorrow_exists(chart: NatalChart) -> None:
