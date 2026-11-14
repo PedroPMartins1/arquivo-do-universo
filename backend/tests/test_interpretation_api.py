@@ -219,7 +219,7 @@ def test_today_and_reading_redact_revelations_until_unlock(
         datetime.fromisoformat(slot["unlocks_at"].replace("Z", "+00:00")).hour
         for slot in sky_json["revelations"]
     ]
-    assert unlock_hours == [7, 10, 13, 16, 19]
+    assert unlock_hours == [9, 11, 13, 15, 17]
     assert [slot["revelation"] is not None for slot in sky_json["revelations"]] == [
         True,
         True,
