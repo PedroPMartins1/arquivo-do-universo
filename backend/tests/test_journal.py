@@ -204,6 +204,19 @@ def test_reflection_body_must_be_nonempty_and_at_most_5000_characters(
     assert response.status_code == 422
 
 
+def test_reflection_body_rejects_nul_without_storing(
+    client: TestClient, session: Session
+) -> None:
+    _register(client)
+    _set_now(client, NOW)
+
+    response = client.put(
+        f"/api/v1/me/reflections/{TODAY}/note", json={"body": "a\x00b"}
+    )
+    assert response.status_code == 422
+    assert session.scalars(select(Reflection)).all() == []
+
+
 def test_future_day_cannot_be_saved(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
     _register(client)
     _set_now(client, NOW)

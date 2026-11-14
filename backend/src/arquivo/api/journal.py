@@ -3,7 +3,7 @@ from typing import Annotated, Literal
 from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, HTTPException, Path, Query, Response, status
-from pydantic import BaseModel, StringConstraints
+from pydantic import BaseModel, StringConstraints, field_validator
 from sqlalchemy import case, func, select, union
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
@@ -25,6 +25,13 @@ router = APIRouter(prefix="/me", tags=["Diário e Arquivo"])
 
 class ReflectionBody(BaseModel):
     body: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=5000)]
+
+    @field_validator("body")
+    @classmethod
+    def reject_nul(cls, value: str) -> str:
+        if "\x00" in value:
+            raise ValueError("o texto não pode conter caracteres NUL")
+        return value
 
 
 class ReflectionOut(BaseModel):
