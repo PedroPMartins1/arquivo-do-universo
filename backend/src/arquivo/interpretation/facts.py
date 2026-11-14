@@ -1,3 +1,4 @@
+import math
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
 
@@ -8,7 +9,7 @@ from arquivo.transits.engine import Angle, DailySky, EventKind, Revelation
 
 
 def _degree(value: float) -> str:
-    return str(round(value))
+    return str(math.floor(value))
 
 
 def _decimal(value: float) -> str:
@@ -40,7 +41,10 @@ def natal_facts(chart: NatalChart) -> str:
         sign = Sign.of(longitude)
         degree = longitude % 30
         lines.append(f"{name} em {label(sign)} {_degree(degree)}°")
-    lines.extend(f"Cúspide da casa {house.house} em {label(house.sign)}" for house in chart.houses)
+    lines.extend(
+        f"Cúspide da casa {house.house} em {label(house.sign)} {_degree(house.degree_in_sign)}°"
+        for house in chart.houses
+    )
     lines.extend(
         f"{label(aspect.first)} {label(aspect.kind)} {label(aspect.second)}, "
         f"orbe {_decimal(aspect.orb)}°"
