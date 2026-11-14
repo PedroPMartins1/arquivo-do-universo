@@ -345,3 +345,53 @@ def test_failure_cap_skips_user_after_max_attempts(
     final = capped.run_pass(NOW, failing_model)
     assert final == pregeneration.PassReport(0, 0, 1)
     assert failing_model.calls == 9
+
+
+def test_main_continues_after_pass_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class StopLoop(Exception):
+        pass
+
+    model = FakeModel()
+    monkeypatch.setattr(pregeneration, "get_text_model", lambda: model)
+    pass_count = 0
+
+    def run_pass(
+        self: pregeneration.Pregenerator, now: datetime, model: FakeModel
+    ) -> pregeneration.PassReport:
+        nonlocal pass_count
+        pass_count += 1
+        if pass_count == 1:
+            raise RuntimeError("pass failed")
+        return pregeneration.PassReport(generated=1, failed=0, skipped_after_failures=0)
+
+    sleep_count = 0
+
+    def stop_after_second_sleep(seconds: int) -> None:
+        nonlocal sleep_count
+        sleep_count += 1
+        if sleep_count == 2:
+            raise StopLoop
+
+    monkeypatch.setattr(pregeneration.Pregenerator, "run_pass", run_pass)
+    monkeypatch.setattr("arquivo.pregeneration.time_module.sleep", stop_after_second_sleep)
+    with pytest.raises(StopLoop):
+        pregeneration.main([])
+    assert pass_count == 2
+    assert sleep_count == 2
+
+
+def test_main_once_returns_one_when_pass_fails(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    model = FakeModel()
+    monkeypatch.setattr(pregeneration, "get_text_model", lambda: model)
+
+    def fail_pass(
+        self: pregeneration.Pregenerator, now: datetime, model: FakeModel
+    ) -> pregeneration.PassReport:
+        raise RuntimeError("pass failed")
+
+    monkeypatch.setattr(pregeneration.Pregenerator, "run_pass", fail_pass)
+    assert pregeneration.main(["--once"]) == 1

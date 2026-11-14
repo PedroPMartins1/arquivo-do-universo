@@ -125,7 +125,14 @@ def main(argv: list[str] | None = None) -> int:
 
     pregenerator = Pregenerator(settings)
     while True:
-        report = pregenerator.run_pass(datetime.now(UTC), model)
+        try:
+            report = pregenerator.run_pass(datetime.now(UTC), model)
+        except Exception:
+            logger.exception("passagem de pré-geração falhou")
+            if args.once:
+                return 1
+            time_module.sleep(settings.pregeneration_interval_seconds)
+            continue
         logger.info(
             "pré-geração: geradas=%d falhadas=%d ignoradas após falhas=%d",
             report.generated,
