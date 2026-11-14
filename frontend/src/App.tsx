@@ -307,6 +307,7 @@ function ProfileActions({ onDone }: { onDone: () => unknown }) {
       </button>
       <button
         type="button"
+        className="danger"
         onClick={() => {
           if (!window.confirm('Queres mesmo apagar a conta? Esta ação é irreversível.')) return
           void deleteAccount().then(onDone).catch((err: unknown) => setError(messageOf(err)))
@@ -402,7 +403,10 @@ function App() {
                 key={id}
                 type="button"
                 aria-current={tab === id ? 'page' : undefined}
-                onClick={() => setTab(id)}
+                onClick={() => {
+                  setTab(id)
+                  window.scrollTo({ top: 0 })
+                }}
               >
                 {label}
               </button>
