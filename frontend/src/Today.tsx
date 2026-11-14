@@ -221,7 +221,7 @@ export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
                       .split(/\n{2,}/)
                       .filter(Boolean)
                       .map((paragraph, paragraphIndex) => (
-                    <p key={paragraphIndex}>{paragraph}</p>
+                        <p key={paragraphIndex}>{paragraph}</p>
                       ))}
                     <p className="question">{text.question}</p>
                     {reflections && (

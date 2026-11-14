@@ -10,7 +10,7 @@ Estados conforme [estados oficiais](../governanca/estados.md). Baseline: [audito
 |---|---|---|---|---|---|
 | AU-NUC | Inteligência Pessoal / núcleo central | §12 | 2 | em especificação | — |
 | AU-ORQ | Orquestração global e gestão de tarefas | §12, §29 | 2–3 | em especificação | — |
-| AU-COM | Comunicação, síntese e personalização | §25 | 5 | em desenvolvimento | Leituras natal e diárias estruturadas, validadas e guardadas em cache; revelações diárias com abertura progressiva e pré-geração noturna (D-029, D-030, D-031) |
+| AU-COM | Comunicação, síntese e personalização | §25 | 5 | em desenvolvimento | Leituras natal e diárias estruturadas, validadas e guardadas em cache; revelações diárias com abertura progressiva, conteúdo fechado redigido e pré-geração noturna com fallback imediato (D-029, D-030, D-031) |
 | AU-ARC | Diário e Arquivo pessoais | D-032 | 5 | em desenvolvimento | Reflexões privadas por Revelação e dia; cronologia de leituras já guardadas, sem geração no Arquivo |
 | AU-CTX | Gestão de contexto, identidade e permissões | §26, §28 | 2 | em desenvolvimento | Contas e sessões (D-026). Isolamento por utilizador na persistência |
 | AU-EPI | Classificação epistemológica transversal | §10–11 | 2 | em desenvolvimento | Classes, metadados e regra da astrologia implementados |
