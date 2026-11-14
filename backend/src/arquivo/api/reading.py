@@ -4,6 +4,7 @@ from typing import Annotated, Any, Literal
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
 from arquivo.api.deps import CurrentUser, Db, get_text_model
 from arquivo.api.profile import _chart, _daily_sky, _profile
@@ -92,8 +93,15 @@ def _store(
         model=model.name,
         content=content,
     )
-    db.add(row)
-    db.flush()
+    try:
+        with db.begin_nested():
+            db.add(row)
+            db.flush()
+    except IntegrityError:
+        cached = _cached(db, user, kind, day, facts_hash)
+        if cached is None:
+            raise
+        return cached
     if generated:
         audit(db, user.id, "interpretation.generated", kind=kind, model=model.name)
     return row

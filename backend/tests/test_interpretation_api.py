@@ -9,9 +9,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from arquivo.api.deps import get_db, get_text_model
+from arquivo.api.reading import _store
 from arquivo.interpretation.prompts import NATAL_SECTIONS
 from arquivo.main import create_app
-from arquivo.persistence.models import Interpretation
+from arquivo.persistence.models import Interpretation, User
 
 pytestmark = pytest.mark.db
 
@@ -96,6 +97,39 @@ def test_natal_reading_is_cached_and_birth_change_generates_again(
     assert model.calls == 2
     rows = session.scalars(select(Interpretation)).all()
     assert len(rows) == 2
+
+
+def test_store_returns_existing_row_after_unique_conflict(
+    client: TestClient, session: Session
+) -> None:
+    _register_and_save_birth(client)
+    user = session.scalar(select(User))
+    assert user is not None
+    facts_hash = "a" * 64
+    existing = Interpretation(
+        user_id=user.id,
+        kind="natal",
+        day=None,
+        facts_hash=facts_hash,
+        prompt_version="2026-11-14.2",
+        model="fake-claude",
+        content={"sections": []},
+    )
+    session.add(existing)
+    session.flush()
+
+    returned = _store(
+        session,
+        user,
+        "natal",
+        None,
+        facts_hash,
+        FakeModel(),
+        {"sections": [{"id": "new"}]},
+        generated=True,
+    )
+    assert returned.id == existing.id
+    assert session.scalars(select(Interpretation)).all() == [existing]
 
 
 def test_deleting_account_cascades_interpretations(client: TestClient, session: Session) -> None:
