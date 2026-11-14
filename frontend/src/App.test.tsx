@@ -262,6 +262,32 @@ describe('App', () => {
     expect(screen.getByText('Sair')).toBeInTheDocument()
   })
 
+  it('permite apagar a conta sem dados de nascimento', async () => {
+    let deleted = false
+    const fetchMock = route({
+      'GET /api/v1/me': () => (deleted ? json({ detail: 'sessão' }, 401) : json(ME)),
+      'GET /api/v1/me/birth': () => json({ detail: 'sem dados' }, 404),
+      'DELETE /api/v1/me': () => {
+        deleted = true
+        return new Response(null, { status: 204 })
+      },
+    })
+    const confirm = vi.fn(() => true)
+    vi.stubGlobal('fetch', fetchMock)
+    vi.stubGlobal('confirm', confirm)
+    render(<App />)
+    expect(await screen.findByRole('form', { name: 'Dados de nascimento' })).toBeInTheDocument()
+    const deleteButton = screen.getByRole('button', { name: 'Apagar conta' })
+    expect(deleteButton).toHaveClass('danger')
+    fireEvent.click(deleteButton)
+    expect(confirm).toHaveBeenCalledWith('Queres mesmo apagar a conta? Esta ação é irreversível.')
+    expect(await screen.findByRole('form', { name: 'Criar conta' })).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/me',
+      expect.objectContaining({ method: 'DELETE' }),
+    )
+  })
+
   it('mostra o erro do mapa depois de guardar os dados de nascimento', async () => {
     let saved = false
     vi.stubGlobal(

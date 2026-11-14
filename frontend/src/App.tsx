@@ -356,18 +356,16 @@ function App() {
     <main className={state.kind === 'ready' ? 'with-bottom-nav' : undefined}>
       <header>
         <h1>Arquivo do Universo</h1>
-        {state.kind === 'needs-birth' && (
-          <button type="button" className="link" onClick={() => void logout().then(refresh)}>
-            Sair
-          </button>
-        )}
       </header>
       {signedIn && <p className="subtitle">Olá, {state.me.display_name}.</p>}
       {state.kind === 'loading' && <p>A consultar as estrelas…</p>}
       {state.kind === 'error' && <p role="alert">Servidor indisponível: {state.message}</p>}
       {state.kind === 'anonymous' && <AuthForm onDone={refresh} />}
       {state.kind === 'needs-birth' && (
-        <BirthForm key={state.problem ?? 'sem-problema'} onDone={refresh} problem={state.problem} />
+        <>
+          <BirthForm key={state.problem ?? 'sem-problema'} onDone={refresh} problem={state.problem} />
+          <ProfileActions onDone={refresh} />
+        </>
       )}
       {state.kind === 'ready' && (
         <>
