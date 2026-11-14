@@ -176,6 +176,10 @@ def test_gendered_forms_detects_gendered_references(text: str) -> None:
         "mereces amor",
         "és alguém sensível",
         "sentes-te inteiramente presente",
+        "estás demasiado perto",
+        "és sobretudo alguém sensível",
+        "Cultiva o afeto pelos teus seres queridos",
+        "os seres vivos à tua volta",
     ],
 )
 def test_gendered_forms_ignores_neutral_references(text: str) -> None:

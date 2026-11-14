@@ -11,7 +11,7 @@ _COPULA = (
     r"merecer|poder|precisar\s+de|deixar\s+de)\s+(?:ser|estar|ficar|parecer))"
 )
 _ADVERBS = (
-    r"(?:(?:mais|muito|tão|bem|demasiado|ainda|já|sempre|realmente|profundamente|"
+    r"(?:(?:mais|muito|tão|bem|demasiado|sobretudo|ainda|já|sempre|realmente|profundamente|"
     r"verdadeiramente|cada\s+vez\s+mais|um\s+pouco|menos)\s+)*"
 )
 _GENDERED_SUFFIX = (
@@ -58,7 +58,7 @@ _GENDERED_STEMS = (
     "sábi",
 )
 _GENDERED_WORD = rf"(?:{_GENDERED_SUFFIX}|(?:{'|'.join(sorted(set(_GENDERED_STEMS)))})[oa]s?)"
-_NOT_ADJECTIVE = r"(?!(?:cada|nada|vida|ainda|tudo|fonte)\b)"
+_NOT_ADJECTIVE = r"(?!(?:cada|nada|vida|ainda|tudo|fonte|demasiado|sobretudo)\b)"
 
 _ADDRESSED = re.compile(rf"(?i)(?<!\w){_COPULA}\s+{_ADVERBS}{_NOT_ADJECTIVE}{_GENDERED_WORD}(?!\w)")
 _SPLIT_FORM = re.compile(r"(?i)\w\((?:a|o|as|os)\)|\((?:a|o)\)|\w/(?:a|o)(?!\w)|\w@(?!\w)")
@@ -80,5 +80,23 @@ _PATTERNS = (
 )
 
 
+_NOUN_SERES = re.compile(
+    r"(?i)(?<!\w)(?:os|dos|aos|pelos|nos|teus|seus|outros|uns|estes|esses|aqueles|todos)\s+$"
+)
+
+
+def _is_noun_seres(text: str, match: re.Match[str]) -> bool:
+    return match.group(0).lower().startswith("seres") and bool(
+        _NOUN_SERES.search(text, 0, match.start())
+    )
+
+
 def gendered_forms(text: str) -> list[str]:
-    return sorted({match.group(0) for pattern in _PATTERNS for match in pattern.finditer(text)})
+    return sorted(
+        {
+            match.group(0)
+            for pattern in _PATTERNS
+            for match in pattern.finditer(text)
+            if not (pattern is _ADDRESSED and _is_noun_seres(text, match))
+        }
+    )
