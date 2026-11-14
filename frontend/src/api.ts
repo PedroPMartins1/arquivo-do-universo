@@ -133,14 +133,24 @@ export interface SkyEvent {
   sign: string | null
   natal_house: number | null
   eclipse_type: string | null
+  other_body: string | null
+  aspect: string | null
   contacts: string[]
   weight: number
+}
+
+export interface Factor {
+  weight: number
+  transit: Transit | null
+  event: SkyEvent | null
 }
 
 export interface Revelation {
   weight: number
   transit: Transit | null
   event: SkyEvent | null
+  focus: string | null
+  supporting: Factor[]
 }
 
 export interface RevelationSlot {

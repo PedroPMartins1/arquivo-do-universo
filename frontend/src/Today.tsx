@@ -3,6 +3,7 @@ import {
   type Me,
   fetchToday,
   fetchTodayReading,
+  type Factor,
   type Revelation,
   saveResidence,
   type TodayReading,
@@ -36,25 +37,37 @@ function RevelationOrigin({
   zone: string
   since: string
 }) {
-  if (revelation.event) {
-    const event = revelation.event
-    return (
-      <>
-        {describeEvent(event)} <span className="hint">— {when(event.at, zone)}</span>
-      </>
-    )
-  }
+  const event = revelation.event
   const transit = revelation.transit
-  if (!transit) return null
-  const next = transit.exact.find((instant) => new Date(instant) >= new Date(since))
+  const next = transit?.exact.find((instant) => new Date(instant) >= new Date(since))
   return (
     <>
-      {describeTransit(transit)}
-      <span className="hint">
-        {' '}
-        — {transit.applying ? 'a aproximar-se' : 'a afastar-se'}
-        {next ? `, exato a ${when(next, zone)}` : ''}
-      </span>
+      {event ? (
+        <>
+          {describeEvent(event)} <span className="hint">— {when(event.at, zone)}</span>
+        </>
+      ) : transit ? (
+        <>
+          {describeTransit(transit)}
+          <span className="hint">
+            {' '}
+            — {transit.applying ? 'a aproximar-se' : 'a afastar-se'}
+            {next ? `, exato a ${when(next, zone)}` : ''}
+          </span>
+        </>
+      ) : null}
+      {revelation.supporting.map((factor: Factor, index: number) => {
+        const description = factor.event
+          ? describeEvent(factor.event)
+          : factor.transit
+            ? describeTransit(factor.transit)
+            : null
+        return description ? (
+          <span className="supporting" key={index}>
+            + {description}
+          </span>
+        ) : null
+      })}
     </>
   )
 }

@@ -210,6 +210,11 @@ def test_today_and_reading_redact_revelations_until_unlock(
     assert sky.status_code == 200
     sky_json = sky.json()
     assert datetime.fromisoformat(sky_json["now"].replace("Z", "+00:00")).hour == 11
+    revelation = sky_json["revelations"][0]["revelation"]
+    assert revelation["focus"] is None
+    assert revelation["supporting"] == []
+    assert revelation["event"]["other_body"] is None
+    assert revelation["event"]["aspect"] is None
     unlock_hours = [
         datetime.fromisoformat(slot["unlocks_at"].replace("Z", "+00:00")).hour
         for slot in sky_json["revelations"]

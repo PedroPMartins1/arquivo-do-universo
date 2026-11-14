@@ -313,6 +313,13 @@ h2,
   color: #8a83a3;
 }
 
+.origin .supporting {
+  display: block;
+  color: #8a83a3;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
 .question {
   margin-top: 0.3rem;
   padding: 0.7rem 0 0.1rem 0.9rem;
