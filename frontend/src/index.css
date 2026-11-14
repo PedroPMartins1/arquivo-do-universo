@@ -552,7 +552,11 @@ button.archive-day {
 
 .archive-detail > h2 {
   color: #e9d8a6;
+  font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
   font-size: 1.5rem;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
 }
 
 section[aria-label='Dados de nascimento'] dl {

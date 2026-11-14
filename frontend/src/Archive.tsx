@@ -76,7 +76,7 @@ export function Archive({ zone }: { zone: string }) {
 
   if (selectedDay) {
     return (
-      <section className="card archive-detail" aria-label="Detalhe do Arquivo">
+      <section className="card today archive-detail" aria-label="Detalhe do Arquivo">
         <button
           type="button"
           className="link"
