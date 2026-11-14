@@ -94,11 +94,7 @@ def _day_row(
         )
         if matching is not None:
             return matching
-    return db.scalar(
-        statement
-        .order_by(Interpretation.created_at.desc())
-        .limit(1)
-    )
+    return db.scalar(statement.order_by(Interpretation.created_at.desc()).limit(1))
 
 
 def _current_day_facts(
@@ -341,9 +337,7 @@ def get_archive_day(day: date, user: CurrentUser, db: Db, now: Now) -> ArchiveDa
     profile = _profile(db, user)
     _reject_future_day(user, profile, day, now)
     row = _day_row(db, user, day)
-    current_facts = (
-        _current_day_facts(user, profile, day, now) if row is not None else None
-    )
+    current_facts = _current_day_facts(user, profile, day, now) if row is not None else None
     if current_facts is not None:
         row = _day_row(db, user, day, current_facts[1]) or row
     reflection_rows = db.scalars(
