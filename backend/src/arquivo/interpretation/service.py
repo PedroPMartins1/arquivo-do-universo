@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from pydantic import BaseModel, ConfigDict, ValidationError, field_validator
 
-from arquivo.interpretation import guard
+from arquivo.interpretation import gender, guard
 from arquivo.interpretation.facts import daily_facts, natal_facts, revelation_facts
 from arquivo.interpretation.model import (
     InterpretationMisconfigured,
@@ -115,14 +115,22 @@ def prompt_hash(system: str, prompt: str) -> str:
     return hashlib.sha256(f"{system}\n\n{prompt}".encode()).hexdigest()
 
 
+def _retry_prompt(prompt: str, error: Exception) -> str:
+    return (
+        f"{prompt}\n\nA tua resposta anterior foi rejeitada: {str(error)[:500]}. "
+        "Escreve uma resposta nova e completa, no mesmo formato, que corrija isto."
+    )
+
+
 def interpret_natal(chart: NatalChart, model: TextModel) -> list[Section]:
     prompt, allowed = natal_prompt(chart)
     expected_ids = [identifier for identifier, _, _ in NATAL_SECTIONS]
     last_error: Exception | None = None
+    retry_prompt = prompt
     for _ in range(3):
         try:
             response = _NatalResponse.model_validate_json(
-                model.complete(SYSTEM, prompt, max_tokens=12000)
+                model.complete(SYSTEM, retry_prompt, max_tokens=12000)
             )
             sections = response.secoes
             if [section.id for section in sections] != expected_ids:
@@ -133,14 +141,21 @@ def interpret_natal(chart: NatalChart, model: TextModel) -> list[Section]:
                 violations = guard.check(section.texto, allowed)
                 if violations:
                     raise ValueError(f"termos astrológicos não permitidos: {violations}")
+                forms = gender.gendered_forms(section.texto)
+                if forms:
+                    raise ValueError(f"formas com género referidas à pessoa ou ao planeta: {forms}")
             return [
                 Section(identifier, title, section.texto)
                 for section, (identifier, title, _) in zip(sections, NATAL_SECTIONS, strict=True)
             ]
         except InterpretationMisconfigured:
             raise
-        except (InterpretationUnavailable, ValidationError, ValueError) as error:
+        except (ValidationError, ValueError) as error:
             last_error = error
+            retry_prompt = _retry_prompt(prompt, error)
+        except InterpretationUnavailable as error:
+            last_error = error
+            retry_prompt = prompt
     raise InterpretationUnavailable(
         "não foi possível validar a interpretação natal"
     ) from last_error
@@ -151,10 +166,11 @@ def interpret_day(sky: DailySky, chart: NatalChart, model: TextModel) -> DayRead
         return DayReading([], None)
     prompt, allowed = day_prompt(sky, chart)
     last_error: Exception | None = None
+    retry_prompt = prompt
     for _ in range(3):
         try:
             response = _DayResponse.model_validate_json(
-                model.complete(SYSTEM, prompt, max_tokens=6000)
+                model.complete(SYSTEM, retry_prompt, max_tokens=6000)
             )
             if len(response.revelacoes) != len(sky.revelations):
                 raise ValueError("número de revelações incorreto")
@@ -165,11 +181,18 @@ def interpret_day(sky: DailySky, chart: NatalChart, model: TextModel) -> DayRead
                 violations = guard.check(text, allowed)
                 if violations:
                     raise ValueError(f"termos astrológicos não permitidos: {violations}")
+                forms = gender.gendered_forms(text)
+                if forms:
+                    raise ValueError(f"formas com género referidas à pessoa ou ao planeta: {forms}")
             return DayReading(response.revelacoes, response.amanha)
         except InterpretationMisconfigured:
             raise
-        except (InterpretationUnavailable, ValidationError, ValueError) as error:
+        except (ValidationError, ValueError) as error:
             last_error = error
+            retry_prompt = _retry_prompt(prompt, error)
+        except InterpretationUnavailable as error:
+            last_error = error
+            retry_prompt = prompt
     raise InterpretationUnavailable(
         "não foi possível validar a interpretação diária"
     ) from last_error
