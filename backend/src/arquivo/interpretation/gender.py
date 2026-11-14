@@ -70,7 +70,14 @@ _MASCULINE_BODY_AS_FEMININE = re.compile(
     r"(?:Sol|Mercúrio|Marte|Júpiter|Saturno|Úrano|Neptuno|Plutão|Quíron|Nodo Norte|Nodo Sul|"
     r"Ascendente|Meio do Céu)(?!\w)"
 )
-_PATTERNS = (_ADDRESSED, _SPLIT_FORM, _FEMININE_BODY_AS_MASCULINE, _MASCULINE_BODY_AS_FEMININE)
+_REFLEXIVE = re.compile(r"(?i)(?<!\w)(?:ti|tu|contigo)\s+(?:mesm|própri)[oa]s?(?!\w)")
+_PATTERNS = (
+    _ADDRESSED,
+    _SPLIT_FORM,
+    _REFLEXIVE,
+    _FEMININE_BODY_AS_MASCULINE,
+    _MASCULINE_BODY_AS_FEMININE,
+)
 
 
 def gendered_forms(text: str) -> list[str]:

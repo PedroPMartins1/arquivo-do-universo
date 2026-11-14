@@ -146,6 +146,8 @@ def test_guard_accepts_only_present_labels_and_rejects_unknown_points() -> None:
         "estás cada vez mais ligada",
         "a tua Marte",
         "és único",
+        "sem pedires justificação a ti mesmo",
+        "tu própria",
     ],
 )
 def test_gendered_forms_detects_gendered_references(text: str) -> None:
