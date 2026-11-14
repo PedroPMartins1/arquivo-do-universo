@@ -181,6 +181,97 @@ h3 {
   color: #d9b45a;
 }
 
+.with-bottom-nav {
+  padding-bottom: 7rem;
+}
+
+.bottom-nav {
+  position: fixed;
+  z-index: 10;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.25rem;
+  padding: 0.65rem max(0.75rem, env(safe-area-inset-left))
+    calc(0.65rem + env(safe-area-inset-bottom));
+  border-top: 1px solid rgb(233 216 166 / 0.25);
+  background: rgb(13 11 26 / 0.96);
+}
+
+.bottom-nav button {
+  padding: 0.55rem 0.2rem;
+  background: transparent;
+  color: #b3abc9;
+  font-size: 0.8rem;
+}
+
+.bottom-nav button[aria-current='page'] {
+  color: #e9d8a6;
+}
+
+.day-theme {
+  font-size: 1.1rem;
+  color: #e9d8a6;
+}
+
+.revelations {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.revelation,
+.secret {
+  padding: 1rem;
+  border: 1px solid rgb(233 216 166 / 0.2);
+  border-radius: 0.75rem;
+  background: rgb(20 16 40 / 0.4);
+}
+
+.revelation.locked {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #b3abc9;
+}
+
+.revelation.locked p,
+.origin,
+.question {
+  margin: 0;
+}
+
+.secret {
+  margin-top: 1rem;
+}
+
+.reading-skeleton {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.skeleton {
+  display: block;
+  width: 100%;
+  height: 0.9rem;
+  border-radius: 0.35rem;
+  background: rgb(179 171 201 / 0.18);
+}
+
+.reading-skeleton .skeleton:last-child {
+  width: 65%;
+}
+
+.day-theme.skeleton {
+  width: 45%;
+  height: 1.2rem;
+}
+
+.coming-soon {
+  min-height: 8rem;
+}
+
 .chart-wheel {
   width: 100%;
   max-width: 34rem;

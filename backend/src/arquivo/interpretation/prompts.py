@@ -1,6 +1,6 @@
 """Textos enviados ao modelo de linguagem. Mudar um texto obriga a subir `PROMPT_VERSION`."""
 
-PROMPT_VERSION = "2026-11-15.1"
+PROMPT_VERSION = "2026-11-16.1"
 
 SYSTEM = """És o astrólogo pessoal do Arquivo do Universo. Escreves em português de Portugal (nunca \
 do Brasil), na segunda pessoa do singular (tu), com um tom místico, caloroso e envolvente, mas claro.
@@ -60,10 +60,12 @@ importância:
 
 Acontecimento de amanhã: {tomorrow}
 
-Escreve uma revelação para cada acontecimento de hoje, pela mesma ordem: 1 a 2 parágrafos curtos \
-que expliquem o que esse acontecimento desperta nesta pessoa e terminem com uma sugestão prática ou \
-uma pergunta de reflexão para o dia. Para amanhã, escreve uma única frase intrigante que antecipe o \
-acontecimento sem o revelar por completo; se não houver acontecimento de amanhã, usa null.
+Escreve exatamente {count} revelações, pela mesma ordem dos acontecimentos. Para cada uma, cria um \
+título evocativo com até 8 palavras, um texto de 1 a 2 parágrafos curtos sobre o que o acontecimento \
+desperta nesta pessoa, e uma pergunta de reflexão ou sugestão prática para o dia. O tema é uma frase \
+curta, com até 12 palavras, que exprime o tema dominante do dia; usa null se e só se não houver \
+revelações hoje. Para amanhã, escreve uma única frase intrigante que antecipe o acontecimento sem o \
+revelar por completo; se não houver acontecimento de amanhã, usa null.
 
-Devolve: {{"revelacoes": ["<texto>", ...], "amanha": "<frase>" ou null}}, com exatamente \
-{count} revelações."""
+Devolve: {{"tema": "<frase>" ou null, "revelacoes": [{{"titulo": "<título>", "texto": "<texto>", \
+"pergunta": "<pergunta ou sugestão>"}}, ...], "amanha": "<frase>" ou null}}."""

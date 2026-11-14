@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
-  type DailySky,
+  type Me,
   fetchToday,
   fetchTodayReading,
-  type Me,
   type Revelation,
   saveResidence,
   type TodayReading,
+  type TodaySky,
 } from './api'
 import { describeEvent, describePlace, describeTransit } from './labels'
 import { PlaceSearch } from './PlaceSearch'
@@ -20,7 +20,14 @@ const when = (iso: string, zone: string) =>
     minute: '2-digit',
   }).format(new Date(iso))
 
-function RevelationText({
+const timeOf = (iso: string, zone: string) =>
+  new Intl.DateTimeFormat('pt-PT', {
+    timeZone: zone,
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(iso))
+
+function RevelationOrigin({
   revelation,
   zone,
   since,
@@ -30,41 +37,50 @@ function RevelationText({
   since: string
 }) {
   if (revelation.event) {
-    const e = revelation.event
+    const event = revelation.event
     return (
       <>
-        <strong>{describeEvent(e)}</strong>
-        <span className="hint"> — {when(e.at, zone)}</span>
+        {describeEvent(event)} <span className="hint">— {when(event.at, zone)}</span>
       </>
     )
   }
-  const t = revelation.transit
-  if (!t) return null
-  const next = t.exact.find((x) => new Date(x) >= new Date(since))
+  const transit = revelation.transit
+  if (!transit) return null
+  const next = transit.exact.find((instant) => new Date(instant) >= new Date(since))
   return (
     <>
-      <strong>{describeTransit(t)}</strong>
+      {describeTransit(transit)}
       <span className="hint">
         {' '}
-        — {t.applying ? 'a aproximar-se' : 'a afastar-se'}
+        — {transit.applying ? 'a aproximar-se' : 'a afastar-se'}
         {next ? `, exato a ${when(next, zone)}` : ''}
       </span>
     </>
   )
 }
 
+function ReadingSkeleton() {
+  return (
+    <div className="reading-skeleton" aria-busy="true">
+      <span className="skeleton" />
+      <span className="skeleton" />
+      <span className="skeleton" />
+    </div>
+  )
+}
+
 export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
-  const [sky, setSky] = useState<DailySky | null>(null)
+  const [sky, setSky] = useState<TodaySky | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [reading, setReading] = useState<TodayReading | null>(null)
   const [readingError, setReadingError] = useState<string | null>(null)
   const [moving, setMoving] = useState(false)
 
-  useEffect(() => {
+  const requestToday = useCallback(() => {
     fetchToday()
-      .then((s) => {
+      .then((result) => {
         setError(null)
-        setSky(s)
+        setSky(result)
       })
       .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)))
     fetchTodayReading()
@@ -72,17 +88,28 @@ export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
         setReadingError(null)
         setReading(result)
       })
-      .catch((err: unknown) =>
-        setReadingError(err instanceof Error ? err.message : String(err)),
-      )
-  }, [me.residence_zone, me.residence_name])
+      .catch((err: unknown) => setReadingError(err instanceof Error ? err.message : String(err)))
+  }, [])
+
+  useEffect(() => {
+    requestToday()
+  }, [me.residence_zone, me.residence_name, requestToday])
+
+  const nextUnlock = sky?.revelations.find((slot) => slot.revelation === null)?.unlocks_at
+  useEffect(() => {
+    if (!sky || !nextUnlock) return
+    const serverOffset = new Date(sky.now).getTime() - Date.now()
+    const delay = new Date(nextUnlock).getTime() - (Date.now() + serverOffset)
+    const timeout = window.setTimeout(requestToday, Math.max(0, delay))
+    return () => window.clearTimeout(timeout)
+  }, [sky, nextUnlock, requestToday])
 
   if (error) return <p role="alert">{error}</p>
   if (!sky) return <p>A ler o céu de hoje…</p>
   const zone = sky.zone
   return (
-    <section className="card" aria-label="Hoje">
-      <h2>Revelações do dia</h2>
+    <section className="card today" aria-label="Hoje">
+      <h2>A energia do dia</h2>
       <p className="hint">
         {new Intl.DateTimeFormat('pt-PT', { dateStyle: 'full', timeZone: 'UTC' }).format(
           new Date(`${sky.date}T12:00:00Z`),
@@ -96,11 +123,14 @@ export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
         <PlaceSearch
           onSelect={(place) => {
             if (!place) return
-            void saveResidence(describePlace(place).slice(0, 200), place.zone)
+            const name = describePlace(place).slice(0, 200)
+            const sameResidence = place.zone === me.residence_zone && name === me.residence_name
+            void saveResidence(name, place.zone)
               .then(() => {
                 setReading(null)
                 setMoving(false)
                 onMoved()
+                if (sameResidence) requestToday()
               })
               .catch((err: unknown) =>
                 setError(err instanceof Error ? err.message : String(err)),
@@ -108,40 +138,81 @@ export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
           }}
         />
       )}
+      {reading?.theme && <p className="day-theme">{reading.theme}</p>}
+      {!reading && !readingError && <p className="day-theme skeleton" aria-busy="true" />}
       {sky.revelations.length === 0 ? (
         <p>Hoje o céu está calmo sobre o teu mapa.</p>
       ) : (
-        <ol className="revelations">
-          {sky.revelations.map((r, i) => (
-            <li key={i}>
-              <RevelationText revelation={r} zone={zone} since={sky.day_starts} />
-              {reading?.revelations[i] && (
-                <p className="reading-text">{reading.revelations[i]}</p>
-              )}
-            </li>
-          ))}
-        </ol>
+        <div className="revelations">
+          {sky.revelations.map((slot, index) => {
+            const revelation = slot.revelation
+            if (!revelation) {
+              return (
+                <article className="revelation locked" key={index}>
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="24"
+                    height="24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    aria-hidden="true"
+                  >
+                    <rect x="4" y="10" width="16" height="11" rx="2" />
+                    <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+                  </svg>
+                  <p>Abre às {timeOf(slot.unlocks_at, zone)}</p>
+                </article>
+              )
+            }
+            const text = reading?.revelations[index]
+            return (
+              <article className="revelation" key={index}>
+                <p className="origin">
+                  <RevelationOrigin revelation={revelation} zone={zone} since={sky.day_starts} />
+                </p>
+                {text ? (
+                  <>
+                    <h3>{text.title}</h3>
+                    {text.text
+                      .split(/\n{2,}/)
+                      .filter(Boolean)
+                      .map((paragraph, paragraphIndex) => (
+                        <p key={paragraphIndex}>{paragraph}</p>
+                      ))}
+                    <p className="question">{text.question}</p>
+                  </>
+                ) : readingError ? null : (
+                  <ReadingSkeleton />
+                )}
+              </article>
+            )
+          })}
+        </div>
       )}
       {sky.tomorrow && (
-        <>
+        <article className="secret">
           <h3>O segredo de amanhã</h3>
-          <p>
-            <RevelationText revelation={sky.tomorrow} zone={zone} since={sky.day_starts} />
+          <p className="hint">Uma descoberta está a aproximar-se</p>
+          <p className="origin">
+            <RevelationOrigin revelation={sky.tomorrow} zone={zone} since={sky.day_starts} />
           </p>
-          {reading?.tomorrow && <p className="reading-text">{reading.tomorrow}</p>}
-        </>
+          {reading?.tomorrow && <p>{reading.tomorrow}</p>}
+          {!reading && !readingError && <ReadingSkeleton />}
+        </article>
       )}
       {readingError && <p className="hint">{readingError}</p>}
-      {!reading && !readingError && <p className="hint">A interpretar o céu…</p>}
-      {reading?.note && <p className="hint">{reading.note}</p>}
       {sky.upcoming.length > 0 && (
         <>
           <h3>O que se aproxima</h3>
           <ul>
-            {sky.upcoming.slice(0, 5).map((t, i) => (
-              <li key={i}>
-                {describeTransit(t)}
-                <span className="hint"> — a partir de {t.starts && when(t.starts, zone)}</span>
+            {sky.upcoming.slice(0, 5).map((transit, index) => (
+              <li key={index}>
+                {describeTransit(transit)}
+                <span className="hint">
+                  {' '}
+                  — a partir de {transit.starts && when(transit.starts, zone)}
+                </span>
               </li>
             ))}
           </ul>
@@ -152,17 +223,18 @@ export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
           <h3>O céu nos próximos dias</h3>
           <ul>
             {sky.events
-              .filter((e) => e.kind !== 'house_ingress')
+              .filter((event) => event.kind !== 'house_ingress')
               .slice(0, 8)
-              .map((e, i) => (
-                <li key={i}>
-                  {describeEvent(e)}
-                  <span className="hint"> — {when(e.at, zone)}</span>
+              .map((event, index) => (
+                <li key={index}>
+                  {describeEvent(event)}
+                  <span className="hint"> — {when(event.at, zone)}</span>
                 </li>
               ))}
           </ul>
         </>
       )}
+      {reading?.note && <p className="hint">{reading.note}</p>}
     </section>
   )
 }

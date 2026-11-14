@@ -24,8 +24,16 @@ class Section:
 
 
 @dataclass(frozen=True)
+class RevelationReading:
+    title: str
+    text: str
+    question: str
+
+
+@dataclass(frozen=True)
 class DayReading:
-    revelations: list[str]
+    theme: str | None
+    revelations: list[RevelationReading]
     tomorrow: str | None
 
 
@@ -50,19 +58,38 @@ class _NatalResponse(BaseModel):
     secoes: list[_NatalSection]
 
 
+class _DayRevelation(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    titulo: str
+    texto: str
+    pergunta: str
+
+    @field_validator("titulo", "texto", "pergunta")
+    @classmethod
+    def _nonempty_revelation_fields(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("os campos da revelação não podem estar vazios")
+        return value
+
+
 class _DayResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    revelacoes: list[str]
+    tema: str | None
+    revelacoes: list[_DayRevelation]
     amanha: str | None
 
-    @field_validator("revelacoes")
+    @field_validator("tema")
     @classmethod
-    def _nonempty_revelations(cls, values: list[str]) -> list[str]:
-        stripped = [value.strip() for value in values]
-        if any(not value for value in stripped):
-            raise ValueError("as revelações não podem estar vazias")
-        return stripped
+    def _nonempty_theme(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        if not value:
+            raise ValueError("o tema não pode estar vazio")
+        return value
 
     @field_validator("amanha")
     @classmethod
@@ -122,6 +149,15 @@ def _retry_prompt(prompt: str, error: Exception) -> str:
     )
 
 
+def _validate_interpretation_text(text: str, allowed: set[str]) -> None:
+    violations = guard.check(text, allowed)
+    if violations:
+        raise ValueError(f"termos astrológicos não permitidos: {violations}")
+    forms = gender.gendered_forms(text)
+    if forms:
+        raise ValueError(f"formas com género referidas à pessoa ou ao planeta: {forms}")
+
+
 def interpret_natal(chart: NatalChart, model: TextModel) -> list[Section]:
     prompt, allowed = natal_prompt(chart)
     expected_ids = [identifier for identifier, _, _ in NATAL_SECTIONS]
@@ -138,12 +174,7 @@ def interpret_natal(chart: NatalChart, model: TextModel) -> list[Section]:
             if len(sections) != len(NATAL_SECTIONS):
                 raise ValueError("número de secções incorreto")
             for section in sections:
-                violations = guard.check(section.texto, allowed)
-                if violations:
-                    raise ValueError(f"termos astrológicos não permitidos: {violations}")
-                forms = gender.gendered_forms(section.texto)
-                if forms:
-                    raise ValueError(f"formas com género referidas à pessoa ou ao planeta: {forms}")
+                _validate_interpretation_text(section.texto, allowed)
             return [
                 Section(identifier, title, section.texto)
                 for section, (identifier, title, _) in zip(sections, NATAL_SECTIONS, strict=True)
@@ -163,7 +194,7 @@ def interpret_natal(chart: NatalChart, model: TextModel) -> list[Section]:
 
 def interpret_day(sky: DailySky, chart: NatalChart, model: TextModel) -> DayReading:
     if not sky.revelations and sky.tomorrow is None:
-        return DayReading([], None)
+        return DayReading(None, [], None)
     prompt, allowed = day_prompt(sky, chart)
     last_error: Exception | None = None
     retry_prompt = prompt
@@ -176,15 +207,24 @@ def interpret_day(sky: DailySky, chart: NatalChart, model: TextModel) -> DayRead
                 raise ValueError("número de revelações incorreto")
             if (response.amanha is None) != (sky.tomorrow is None):
                 raise ValueError("presença da revelação de amanhã incorreta")
-            texts = [*response.revelacoes, *([response.amanha] if response.amanha else [])]
+            if (response.tema is None) != (not sky.revelations):
+                raise ValueError("presença do tema incorreta")
+            texts = [
+                *([response.tema] if response.tema is not None else []),
+                *(
+                    text
+                    for revelation in response.revelacoes
+                    for text in (revelation.titulo, revelation.texto, revelation.pergunta)
+                ),
+                *([response.amanha] if response.amanha else []),
+            ]
             for text in texts:
-                violations = guard.check(text, allowed)
-                if violations:
-                    raise ValueError(f"termos astrológicos não permitidos: {violations}")
-                forms = gender.gendered_forms(text)
-                if forms:
-                    raise ValueError(f"formas com género referidas à pessoa ou ao planeta: {forms}")
-            return DayReading(response.revelacoes, response.amanha)
+                _validate_interpretation_text(text, allowed)
+            revelations = [
+                RevelationReading(revelation.titulo, revelation.texto, revelation.pergunta)
+                for revelation in response.revelacoes
+            ]
+            return DayReading(response.tema, revelations, response.amanha)
         except InterpretationMisconfigured:
             raise
         except (ValidationError, ValueError) as error:

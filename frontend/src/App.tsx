@@ -2,6 +2,8 @@ import { type FormEvent, useCallback, useEffect, useState } from 'react'
 import {
   ApiError,
   type BirthData,
+  type BirthProfile,
+  deleteAccount,
   fetchBirth,
   fetchChart,
   fetchMe,
@@ -24,8 +26,18 @@ type State =
   | { kind: 'loading' }
   | { kind: 'anonymous' }
   | { kind: 'needs-birth'; me: Me; problem?: string }
-  | { kind: 'ready'; me: Me; chart: NatalChart }
+  | { kind: 'ready'; me: Me; chart: NatalChart; birth: BirthProfile }
   | { kind: 'error'; message: string }
+
+type Tab = 'today' | 'explore' | 'journey' | 'archive' | 'profile'
+
+const TABS: { id: Tab; label: string }[] = [
+  { id: 'today', label: 'Hoje' },
+  { id: 'explore', label: 'Explorar' },
+  { id: 'journey', label: 'Jornada' },
+  { id: 'archive', label: 'Arquivo' },
+  { id: 'profile', label: 'Perfil' },
+]
 
 const messageOf = (error: unknown) => (error instanceof Error ? error.message : String(error))
 
@@ -267,17 +279,57 @@ function ChartSummary({ chart }: { chart: NatalChart }) {
   )
 }
 
+function BirthSummary({ birth }: { birth: BirthProfile }) {
+  const formattedDate = new Intl.DateTimeFormat('pt-PT', {
+    dateStyle: 'long',
+    timeZone: 'UTC',
+  }).format(new Date(`${birth.birth_date}T12:00:00Z`))
+  return (
+    <section className="card" aria-label="Dados de nascimento">
+      <h2>Dados de nascimento</h2>
+      <dl>
+        <div><dt>Data</dt><dd>{formattedDate}</dd></div>
+        <div><dt>Hora</dt><dd>{birth.birth_time.slice(0, 5)}</dd></div>
+        <div><dt>Local</dt><dd>{birth.place_name}</dd></div>
+        <div><dt>Fuso horário</dt><dd>{birth.zone}</dd></div>
+      </dl>
+    </section>
+  )
+}
+
+function ProfileActions({ onDone }: { onDone: () => unknown }) {
+  const [error, setError] = useState<string | null>(null)
+  return (
+    <section className="card account-actions" aria-label="Conta">
+      {error && <p role="alert">{error}</p>}
+      <button type="button" onClick={() => void logout().then(onDone).catch((err: unknown) => setError(messageOf(err)))}>
+        Sair
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          if (!window.confirm('Queres mesmo apagar a conta? Esta ação é irreversível.')) return
+          void deleteAccount().then(onDone).catch((err: unknown) => setError(messageOf(err)))
+        }}
+      >
+        Apagar conta
+      </button>
+    </section>
+  )
+}
+
 async function loadState(): Promise<State> {
   try {
     const me = await fetchMe()
+    let birth: BirthProfile
     try {
-      await fetchBirth()
+      birth = await fetchBirth()
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) return { kind: 'needs-birth', me }
       throw err
     }
     try {
-      return { kind: 'ready', me, chart: await fetchChart() }
+      return { kind: 'ready', me, chart: await fetchChart(), birth }
     } catch (err) {
       if (err instanceof ApiError && err.status === 422)
         return { kind: 'needs-birth', me, problem: err.message }
@@ -291,6 +343,7 @@ async function loadState(): Promise<State> {
 
 function App() {
   const [state, setState] = useState<State>({ kind: 'loading' })
+  const [tab, setTab] = useState<Tab>('today')
   const refresh = useCallback(() => loadState().then(setState), [])
 
   useEffect(() => {
@@ -299,10 +352,10 @@ function App() {
   const signedIn = state.kind === 'needs-birth' || state.kind === 'ready'
 
   return (
-    <main>
+    <main className={state.kind === 'ready' ? 'with-bottom-nav' : undefined}>
       <header>
         <h1>Arquivo do Universo</h1>
-        {signedIn && (
+        {state.kind === 'needs-birth' && (
           <button type="button" className="link" onClick={() => void logout().then(refresh)}>
             Sair
           </button>
@@ -317,8 +370,44 @@ function App() {
       )}
       {state.kind === 'ready' && (
         <>
-          <Today me={state.me} onMoved={refresh} />
-          <ChartSummary chart={state.chart} />
+          {tab === 'today' && <Today me={state.me} onMoved={refresh} />}
+          {tab === 'explore' && (
+            <section className="card coming-soon">
+              <h2>Brevemente</h2>
+              <p>Ciclos, eclipses e o calendário do teu céu.</p>
+            </section>
+          )}
+          {tab === 'journey' && (
+            <section className="card coming-soon">
+              <h2>Brevemente</h2>
+              <p>Percursos de evolução e autodesenvolvimento.</p>
+            </section>
+          )}
+          {tab === 'archive' && (
+            <section className="card coming-soon">
+              <h2>Brevemente</h2>
+              <p>A tua história com o universo: leituras e reflexões.</p>
+            </section>
+          )}
+          {tab === 'profile' && (
+            <>
+              <ChartSummary chart={state.chart} />
+              <BirthSummary birth={state.birth} />
+              <ProfileActions onDone={refresh} />
+            </>
+          )}
+          <nav className="bottom-nav" aria-label="Navegação principal">
+            {TABS.map(({ id, label }) => (
+              <button
+                key={id}
+                type="button"
+                aria-current={tab === id ? 'page' : undefined}
+                onClick={() => setTab(id)}
+              >
+                {label}
+              </button>
+            ))}
+          </nav>
         </>
       )}
     </main>

@@ -6,11 +6,12 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
-from arquivo.api.deps import CurrentUser, Db, get_text_model
-from arquivo.api.profile import _chart, _daily_sky, _profile
+from arquivo.api.deps import CurrentUser, Db, Now, get_text_model, has_immediate_access
+from arquivo.api.profile import _chart, _daily_sky, _profile, _revelation_unlock_times
 from arquivo.interpretation.model import InterpretationUnavailable, TextModel
 from arquivo.interpretation.prompts import PROMPT_VERSION, SYSTEM
 from arquivo.interpretation.service import (
+    RevelationReading,
     day_prompt,
     interpret_day,
     interpret_natal,
@@ -19,6 +20,7 @@ from arquivo.interpretation.service import (
 )
 from arquivo.persistence.accounts import audit
 from arquivo.persistence.models import Interpretation, User
+from arquivo.transits.engine import DailySky
 
 router = APIRouter(prefix="/me", tags=["Leituras"])
 NOTE = (
@@ -43,7 +45,8 @@ class NatalReading(BaseModel):
 
 class TodayReading(BaseModel):
     date: date
-    revelations: list[str]
+    theme: str | None
+    revelations: list[RevelationReading | None]
     tomorrow: str | None
     model: str
     prompt_version: str
@@ -116,10 +119,17 @@ def _natal_response(row: Interpretation) -> NatalReading:
     )
 
 
-def _today_response(row: Interpretation, day: date) -> TodayReading:
+def _today_response(row: Interpretation, sky: DailySky, now: datetime, user: User) -> TodayReading:
+    unlocks = _revelation_unlock_times(sky)
+    immediate = has_immediate_access(user)
+    stored_revelations = row.content["revelations"]
     return TodayReading(
-        date=day,
-        revelations=row.content["revelations"],
+        date=sky.date,
+        theme=row.content["theme"],
+        revelations=[
+            revelation if immediate or now >= unlocks_at else None
+            for revelation, unlocks_at in zip(stored_revelations, unlocks, strict=True)
+        ],
         tomorrow=row.content["tomorrow"],
         model=row.model,
         prompt_version=row.prompt_version,
@@ -166,16 +176,17 @@ def today_reading(
     user: CurrentUser,
     db: Db,
     model: Annotated[TextModel | None, Depends(get_text_model)],
+    now: Now,
     day: Annotated[date | None, Query(alias="date")] = None,
 ) -> TodayReading:
     profile = _profile(db, user)
     model = _model_or_503(model)
-    chart, sky = _daily_sky(user, profile, day)
+    chart, sky = _daily_sky(user, profile, day, now=now)
     prompt, _ = day_prompt(sky, chart)
     facts_hash = prompt_hash(SYSTEM, prompt)
     cached = _cached(db, user, "day", sky.date, facts_hash)
     if cached is not None:
-        return _today_response(cached, sky.date)
+        return _today_response(cached, sky, now, user)
     try:
         reading = interpret_day(sky, chart, model)
     except InterpretationUnavailable as error:
@@ -191,7 +202,18 @@ def today_reading(
         sky.date,
         facts_hash,
         model,
-        {"revelations": reading.revelations, "tomorrow": reading.tomorrow},
+        {
+            "theme": reading.theme,
+            "revelations": [
+                {
+                    "title": revelation.title,
+                    "text": revelation.text,
+                    "question": revelation.question,
+                }
+                for revelation in reading.revelations
+            ],
+            "tomorrow": reading.tomorrow,
+        },
         generated=generated,
     )
-    return _today_response(row, sky.date)
+    return _today_response(row, sky, now, user)

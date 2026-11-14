@@ -6,13 +6,22 @@ from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel, Field, StringConstraints
 
 from arquivo.api.auth import Me
-from arquivo.api.deps import CurrentUser, Db
+from arquivo.api.deps import CurrentUser, Db, Now, has_immediate_access
+from arquivo.config import get_settings
 from arquivo.natal.birth import InexactBirthDataError, resolve_birth_instant
 from arquivo.natal.chart import ChartError, NatalChart, calculate_chart
 from arquivo.persistence.accounts import audit
 from arquivo.persistence.models import BirthProfile, User
 from arquivo.temporal.zones import UnknownTimeZoneError, zone_for_coordinates
-from arquivo.transits.engine import DailySky, daily_sky
+from arquivo.transits.engine import (
+    DailySky,
+    Revelation,
+    SkyEvent,
+    Transit,
+    TransitCalculation,
+    daily_sky,
+)
+from arquivo.transits.unlock import unlock_times
 
 router = APIRouter(prefix="/me", tags=["Perfil"])
 
@@ -33,6 +42,25 @@ class BirthProfileOut(BirthData):
     zone: str
     birth_utc: datetime
     tzdata_version: str | None
+
+
+class RevelationSlot(BaseModel):
+    unlocks_at: datetime
+    revelation: Revelation | None
+
+
+class TodaySky(BaseModel):
+    date: date
+    zone: str
+    day_starts: datetime
+    day_ends: datetime
+    now: datetime
+    revelations: list[RevelationSlot]
+    tomorrow: Revelation | None
+    active: list[Transit]
+    upcoming: list[Transit]
+    events: list[SkyEvent]
+    calculation: TransitCalculation
 
 
 def _out(profile: BirthProfile) -> BirthProfileOut:
@@ -99,10 +127,16 @@ def _chart(profile: BirthProfile) -> NatalChart:
 
 
 def _daily_sky(
-    user: User, profile: BirthProfile, day: date | None = None
+    user: User,
+    profile: BirthProfile,
+    day: date | None = None,
+    *,
+    now: datetime | None = None,
 ) -> tuple[NatalChart, DailySky]:
     zone = user.residence_zone or profile.zone
-    day = day or datetime.now(ZoneInfo(zone)).date()
+    day = day or (
+        now.astimezone(ZoneInfo(zone)).date() if now else datetime.now(ZoneInfo(zone)).date()
+    )
     if not 1801 <= day.year <= 2398:
         raise HTTPException(422, "data fora do intervalo das efemérides (1801–2398)")
     chart = _chart(profile)
@@ -110,6 +144,15 @@ def _daily_sky(
         return chart, daily_sky(chart, day, zone)
     except ValueError as error:
         raise HTTPException(422, str(error)) from error
+
+
+def _revelation_unlock_times(sky: DailySky) -> list[datetime]:
+    return unlock_times(
+        sky.date,
+        ZoneInfo(sky.zone),
+        len(sky.revelations),
+        get_settings().revelation_unlock_times,
+    )
 
 
 @router.get("/chart")
@@ -140,9 +183,30 @@ def save_residence(data: Residence, user: CurrentUser, db: Db) -> Me:
 def today(
     user: CurrentUser,
     db: Db,
+    now: Now,
     day: Annotated[date | None, Query(alias="date")] = None,
-) -> DailySky:
+) -> TodaySky:
     """O céu do dia, no fuso onde a pessoa vive (por omissão, o do nascimento)."""
     profile = _profile(db, user)
-    _, sky = _daily_sky(user, profile, day)
-    return sky
+    _, sky = _daily_sky(user, profile, day, now=now)
+    unlocks = _revelation_unlock_times(sky)
+    immediate = has_immediate_access(user)
+    return TodaySky(
+        date=sky.date,
+        zone=sky.zone,
+        day_starts=sky.day_starts,
+        day_ends=sky.day_ends,
+        now=now,
+        revelations=[
+            RevelationSlot(
+                unlocks_at=unlocks_at,
+                revelation=revelation if immediate or now >= unlocks_at else None,
+            )
+            for revelation, unlocks_at in zip(sky.revelations, unlocks, strict=True)
+        ],
+        tomorrow=sky.tomorrow,
+        active=sky.active,
+        upcoming=sky.upcoming,
+        events=sky.events,
+        calculation=sky.calculation,
+    )
