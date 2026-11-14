@@ -17,7 +17,7 @@ from arquivo.interpretation.prompts import SYSTEM
 from arquivo.interpretation.service import RevelationReading, day_prompt, prompt_hash
 from arquivo.persistence.accounts import audit
 from arquivo.persistence.models import BirthProfile, Interpretation, Reflection, User
-from arquivo.transits.engine import Revelation
+from arquivo.transits.engine import DailySky, Revelation
 from arquivo.transits.unlock import unlock_times
 
 router = APIRouter(prefix="/me", tags=["Diário e Arquivo"])
@@ -75,17 +75,44 @@ class ArchiveDayDetail(BaseModel):
     note: str | None
 
 
-def _day_row(db: Session, user: User, day: date) -> Interpretation | None:
-    return db.scalar(
-        select(Interpretation)
-        .where(
-            Interpretation.user_id == user.id,
-            Interpretation.kind == "day",
-            Interpretation.day == day,
+def _day_row(
+    db: Session,
+    user: User,
+    day: date,
+    facts_hash: str | None = None,
+) -> Interpretation | None:
+    statement = select(Interpretation).where(
+        Interpretation.user_id == user.id,
+        Interpretation.kind == "day",
+        Interpretation.day == day,
+    )
+    if facts_hash is not None:
+        matching = db.scalar(
+            statement.where(Interpretation.facts_hash == facts_hash)
+            .order_by(Interpretation.created_at.desc())
+            .limit(1)
         )
+        if matching is not None:
+            return matching
+    return db.scalar(
+        statement
         .order_by(Interpretation.created_at.desc())
         .limit(1)
     )
+
+
+def _current_day_facts(
+    user: User,
+    profile: BirthProfile,
+    day: date,
+    now: datetime,
+) -> tuple[DailySky, str] | None:
+    try:
+        chart, sky = _daily_sky(user, profile, day, now=now)
+        prompt, _ = day_prompt(sky, chart)
+    except HTTPException:
+        return None
+    return sky, prompt_hash(SYSTEM, prompt)
 
 
 def _zone(user: User, profile: BirthProfile) -> str:
@@ -196,6 +223,9 @@ def save_revelation_reflection(
     row = _day_row(db, user, day)
     if row is None:
         raise HTTPException(404, "não existe uma leitura guardada para esse dia")
+    current_facts = _current_day_facts(user, profile, day, now)
+    if current_facts is not None:
+        row = _day_row(db, user, day, current_facts[1]) or row
     revelations = row.content.get("revelations", [])
     if slot >= len(revelations):
         raise HTTPException(404, "não existe uma revelação nessa posição")
@@ -311,6 +341,11 @@ def get_archive_day(day: date, user: CurrentUser, db: Db, now: Now) -> ArchiveDa
     profile = _profile(db, user)
     _reject_future_day(user, profile, day, now)
     row = _day_row(db, user, day)
+    current_facts = (
+        _current_day_facts(user, profile, day, now) if row is not None else None
+    )
+    if current_facts is not None:
+        row = _day_row(db, user, day, current_facts[1]) or row
     reflection_rows = db.scalars(
         select(Reflection)
         .where(Reflection.user_id == user.id, Reflection.day == day)
@@ -323,12 +358,9 @@ def get_archive_day(day: date, user: CurrentUser, db: Db, now: Now) -> ArchiveDa
     stored_revelations = row.content.get("revelations", []) if row is not None else []
     unlocks = _stored_unlock_times(day, zone, len(stored_revelations))
     origins: list[Revelation | None] = [None] * len(stored_revelations)
-    if row is not None:
-        chart, sky = _daily_sky(user, profile, day, now=now)
-        prompt, _ = day_prompt(sky, chart)
-        if prompt_hash(SYSTEM, prompt) == row.facts_hash and len(sky.revelations) == len(
-            stored_revelations
-        ):
+    if row is not None and current_facts is not None:
+        sky, current_hash = current_facts
+        if row.facts_hash == current_hash and len(sky.revelations) == len(stored_revelations):
             origins = list(sky.revelations)
 
     immediate = has_immediate_access(user)

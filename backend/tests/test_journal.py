@@ -270,6 +270,67 @@ def test_revelation_reflection_is_404_without_reading_or_slot(
     assert absent.status_code == 404
 
 
+def test_revelation_reflection_and_archive_prefer_current_facts_hash(
+    client: TestClient,
+    session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    user_id = _register(client)
+    prompt = _patch_sky(monkeypatch)
+    matching_hash = prompt_hash(SYSTEM, prompt)
+    matching_content = _content()
+    matching_content["theme"] = "Residência A"
+    matching_content["revelations"] = [
+        {
+            "title": "Leitura da residência A",
+            "text": "Texto da residência A.",
+            "question": "Pergunta da residência A?",
+        }
+        for _ in range(5)
+    ]
+    newer_content = _content()
+    newer_content["theme"] = "Residência B"
+    newer_content["revelations"] = [
+        {
+            "title": "Leitura da residência B",
+            "text": "Texto da residência B.",
+            "question": "Pergunta da residência B?",
+        }
+        for _ in range(5)
+    ]
+    _add_interpretation(
+        session,
+        user_id,
+        TODAY,
+        content=matching_content,
+        facts_hash=matching_hash,
+        created_at=datetime(2026, 11, 16, 9, tzinfo=UTC),
+    )
+    _add_interpretation(
+        session,
+        user_id,
+        TODAY,
+        content=newer_content,
+        facts_hash="a" * 64,
+        created_at=datetime(2026, 11, 16, 12, tzinfo=UTC),
+    )
+    _set_now(client, NOW)
+
+    saved = client.put(
+        f"/api/v1/me/reflections/{TODAY}/revelations/0",
+        json={"body": "A resposta corresponde à residência A."},
+    )
+    assert saved.status_code == 200
+    assert saved.json()["question"] == "Pergunta da residência A?"
+
+    archive = client.get(f"/api/v1/me/archive/{TODAY}")
+    assert archive.status_code == 200
+    assert archive.json()["theme"] == "Residência A"
+    assert archive.json()["revelations"][0]["reading"]["title"] == "Leitura da residência A"
+    assert archive.json()["revelations"][0]["origin"] is not None
+    assert archive.json()["reflections"][0]["question"] == "Pergunta da residência A?"
+
+
 def test_users_cannot_read_or_change_another_users_reflections(
     client: TestClient, session: Session
 ) -> None:
