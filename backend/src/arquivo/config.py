@@ -6,6 +6,8 @@ from pathlib import Path
 from pydantic import AliasChoices, Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from arquivo.transits.constants import MAX_REVELATIONS
+
 
 def default_ephemeris_path(module_file: Path = Path(__file__), cwd: Path | None = None) -> Path:
     """`data/ephe` na raiz do repositório quando se corre a partir do código-fonte.
@@ -46,6 +48,8 @@ class Settings(BaseSettings):
     def _validate_revelation_unlock_times(cls, values: list[time]) -> list[time]:
         if not values:
             raise ValueError("os horários de abertura não podem estar vazios")
+        if len(values) < MAX_REVELATIONS:
+            raise ValueError(f"são precisos pelo menos {MAX_REVELATIONS} horários de abertura")
         if any(first >= second for first, second in pairwise(values)):
             raise ValueError("os horários de abertura têm de ser estritamente crescentes")
         return values

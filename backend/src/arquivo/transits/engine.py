@@ -19,6 +19,7 @@ from pydantic import AwareDatetime, BaseModel, ConfigDict
 from arquivo.natal.chart import NatalChart, ecliptic_positions, house_of
 from arquivo.natal.ephemeris import SWISSEPH_VERSION
 from arquivo.natal.settings import MAJOR_ASPECTS, AspectKind, Body, NodeType, Sign, Zodiac
+from arquivo.transits.constants import MAX_REVELATIONS as MAX_REVELATIONS
 
 _J2000 = 2451545.0
 _EPOCH = datetime(2000, 1, 1, 12, tzinfo=UTC)
@@ -52,7 +53,6 @@ _STEP = {Body.MOON: 0.25, **dict.fromkeys(FAST, 1.0), Body.NORTH_NODE: 1.0}
 _HORIZON = {Body.MOON: 3.0, **dict.fromkeys(FAST, 90.0)}
 LUNATION_CONTACT_ORB = 3.0
 UPCOMING_DAYS = 30
-MAX_REVELATIONS = 5
 
 
 class Angle(StrEnum):

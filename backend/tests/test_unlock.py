@@ -48,6 +48,11 @@ def test_unlock_times_uses_zoneinfo_fold_zero_for_nonexistent_local_time() -> No
 def test_revelation_unlock_times_must_be_nonempty_and_increasing() -> None:
     with pytest.raises(ValidationError):
         Settings(_env_file=None, revelation_unlock_times=[])
+    with pytest.raises(ValidationError, match="são precisos pelo menos 5 horários de abertura"):
+        Settings(
+            _env_file=None,
+            revelation_unlock_times=[time(7), time(10), time(13), time(16)],
+        )
     with pytest.raises(ValidationError):
         Settings(_env_file=None, revelation_unlock_times=[time(7), time(7)])
     with pytest.raises(ValidationError):
