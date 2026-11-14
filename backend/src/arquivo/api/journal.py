@@ -141,6 +141,7 @@ def _upsert_reflection(
             set_={"question": question, "body": body, "updated_at": func.now()},
         )
         .returning(Reflection)
+        .execution_options(populate_existing=True)
     )
     row = db.scalar(statement)
     if row is None:

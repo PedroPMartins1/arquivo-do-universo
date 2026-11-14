@@ -247,6 +247,15 @@ def test_revelation_reflection_waits_for_unlock_and_snapshots_question(
     row = session.scalar(select(Reflection).where(Reflection.user_id == user_id))
     assert row is not None and row.slot == 1 and row.question == "Pergunta guardada 1?"
 
+    updated = client.put(
+        f"/api/v1/me/reflections/{TODAY}/revelations/1", json={"body": "Outra pausa"}
+    )
+    assert updated.status_code == 200
+    assert updated.json()["body"] == "Outra pausa"
+    listed = client.get(f"/api/v1/me/reflections/{TODAY}")
+    assert listed.status_code == 200
+    assert listed.json()[0]["body"] == "Outra pausa"
+
 
 def test_revelation_reflection_is_404_without_reading_or_slot(
     client: TestClient, session: Session
