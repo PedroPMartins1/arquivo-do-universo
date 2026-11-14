@@ -5,7 +5,7 @@ from uuid import UUID
 from zoneinfo import ZoneInfo
 
 import pytest
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -476,6 +476,38 @@ def test_archive_day_returns_reflections_without_a_reading(client: TestClient) -
     assert response.json()["reflections"][0]["body"] == "Só uma nota"
     assert response.json()["model"] is None
     assert response.json()["note"] is None
+
+
+def test_archive_day_preserves_saved_content_when_sky_calculation_fails(
+    client: TestClient,
+    session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    user_id = _register(client)
+    _add_interpretation(session, user_id, TODAY)
+    _add_reflection(session, user_id, TODAY, None, "Nota preservada")
+    _set_now(client, NOW)
+
+    def fail_daily_sky(
+        _user: User,
+        _profile: BirthProfile,
+        _day: date | None = None,
+        *,
+        now: datetime | None = None,
+    ) -> tuple[NatalChart, DailySky]:
+        del now
+        raise HTTPException(422, "não foi possível calcular o céu")
+
+    monkeypatch.setattr("arquivo.api.journal._daily_sky", fail_daily_sky)
+
+    response = client.get(f"/api/v1/me/archive/{TODAY}")
+
+    assert response.status_code == 200
+    items = response.json()["revelations"]
+    assert items[0]["reading"]["title"] == "Título reservado 0"
+    assert items[0]["reading"]["text"] == "Texto reservado 0."
+    assert all(item["origin"] is None for item in items)
+    assert response.json()["reflections"][0]["body"] == "Nota preservada"
 
 
 def test_deleting_account_cascades_reflections(client: TestClient, session: Session) -> None:
