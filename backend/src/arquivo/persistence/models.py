@@ -3,6 +3,7 @@ from datetime import date, datetime, time
 from typing import Any
 
 from sqlalchemy import (
+    CHAR,
     BigInteger,
     CheckConstraint,
     Date,
@@ -126,6 +127,33 @@ class BirthProfile(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+class Interpretation(Base):
+    __tablename__ = "interpretations"
+    __table_args__ = (
+        CheckConstraint("kind IN ('natal', 'day')", name="kind_values"),
+        UniqueConstraint(
+            "user_id",
+            "kind",
+            "day",
+            "facts_hash",
+            name="uq_interpretations_user_kind_day_facts_hash",
+            postgresql_nulls_not_distinct=True,
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    kind: Mapped[str] = mapped_column(String(8))
+    day: Mapped[date | None] = mapped_column(Date)
+    facts_hash: Mapped[str] = mapped_column(CHAR(64))
+    prompt_version: Mapped[str] = mapped_column(String(32))
+    model: Mapped[str] = mapped_column(String(200))
+    content: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class Source(Base):

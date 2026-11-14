@@ -4,6 +4,8 @@ from typing import Annotated
 from fastapi import Cookie, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from arquivo.config import get_settings
+from arquivo.interpretation.model import AnthropicModel, TextModel
 from arquivo.persistence.accounts import user_for_token
 from arquivo.persistence.models import User
 from arquivo.persistence.session import get_sessionmaker
@@ -27,3 +29,13 @@ def current_user(db: Db, token: Annotated[str | None, Cookie(alias=SESSION_COOKI
 
 
 CurrentUser = Annotated[User, Depends(current_user)]
+
+
+def get_text_model() -> TextModel | None:
+    settings = get_settings()
+    if settings.anthropic_api_key is None:
+        return None
+    return AnthropicModel(
+        settings.anthropic_api_key.get_secret_value(),
+        settings.anthropic_model,
+    )

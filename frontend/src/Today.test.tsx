@@ -41,6 +41,20 @@ const SKY: DailySky = {
   events: [],
 }
 
+const TODAY_READING = {
+  date: SKY.date,
+  revelations: [],
+  tomorrow: null,
+  model: 'fake-claude',
+  prompt_version: 'test',
+  generated_at: '2026-11-12T00:00:00Z',
+  epistemic_class: 'interpretation' as const,
+  note: 'Interpretação simbólica gerada por IA.',
+}
+
+const responseFor = (url: string) =>
+  Promise.resolve(url.includes('/me/reading/today') ? json(TODAY_READING) : json(SKY))
+
 const todayCalls = (fetchMock: ReturnType<typeof vi.fn>) =>
   fetchMock.mock.calls.filter(([url]) => String(url).includes('/me/today')).length
 
@@ -51,14 +65,61 @@ afterEach(() => {
 
 describe('Today', () => {
   it('mostra as revelações do dia', async () => {
-    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(json(SKY))))
+    vi.stubGlobal('fetch', vi.fn((url: string) => responseFor(url)))
     render(<Today me={ME} onMoved={() => undefined} />)
     expect(await screen.findByRole('heading', { name: 'Revelações do dia' })).toBeInTheDocument()
     expect(screen.getByText(/Saturno em quadratura com Júpiter natal/)).toBeInTheDocument()
   })
 
+  it('mostra a interpretação por baixo da revelação calculada', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) =>
+        Promise.resolve(
+          url.includes('/me/reading/today')
+            ? json({
+                date: SKY.date,
+                revelations: ['Este trânsito convida-te a observar os teus limites.'],
+                tomorrow: null,
+                model: 'fake-claude',
+                prompt_version: 'test',
+                generated_at: '2026-11-12T00:00:00Z',
+                epistemic_class: 'interpretation',
+                note: 'Interpretação simbólica gerada por IA.',
+              })
+            : json(SKY),
+        ),
+      ),
+    )
+    render(<Today me={ME} onMoved={() => undefined} />)
+    expect(
+      await screen.findByText('Este trânsito convida-te a observar os teus limites.'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Interpretação simbólica gerada por IA.')).toBeInTheDocument()
+  })
+
+  it('mantém o céu calculado e mostra o erro quando a leitura falha', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) =>
+        Promise.resolve(
+          url.includes('/me/reading/today')
+            ? json({ detail: 'a interpretação não está disponível neste momento' }, 503)
+            : json(SKY),
+        ),
+      ),
+    )
+    render(<Today me={ME} onMoved={() => undefined} />)
+    expect(
+      await screen.findByText(/Saturno em quadratura com Júpiter natal/),
+    ).toBeInTheDocument()
+    expect(
+      await screen.findByText('a interpretação não está disponível neste momento'),
+    ).toBeInTheDocument()
+  })
+
   it('volta a pedir o céu quando a residência muda, mesmo dentro do mesmo fuso', async () => {
-    const fetchMock = vi.fn(() => Promise.resolve(json(SKY)))
+    const fetchMock = vi.fn((url: string) => responseFor(url))
     vi.stubGlobal('fetch', fetchMock)
     const { rerender } = render(<Today me={ME} onMoved={() => undefined} />)
     await screen.findByRole('heading', { name: 'Revelações do dia' })
@@ -68,10 +129,11 @@ describe('Today', () => {
   })
 
   it('limpa o erro quando uma leitura posterior tem sucesso', async () => {
-    let calls = 0
-    const fetchMock = vi.fn(() => {
-      calls += 1
-      return Promise.resolve(calls === 1 ? json({ detail: 'falhou' }, 500) : json(SKY))
+    let skyCalls = 0
+    const fetchMock = vi.fn((url: string) => {
+      if (url.includes('/me/reading/today')) return Promise.resolve(json(TODAY_READING))
+      skyCalls += 1
+      return Promise.resolve(skyCalls === 1 ? json({ detail: 'falhou' }, 500) : json(SKY))
     })
     vi.stubGlobal('fetch', fetchMock)
     const { rerender } = render(<Today me={ME} onMoved={() => undefined} />)

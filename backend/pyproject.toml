@@ -1,7 +1,7 @@
 [project]
 name = "arquivo"
 version = "0.1.0"
-description = "Arquivo do Universo — Inteligência Pessoal (backend)"
+description = "Arquivo do Universo (backend)"
 license = "AGPL-3.0-or-later"
 requires-python = ">=3.12,<3.13"
 dependencies = [
@@ -17,6 +17,7 @@ dependencies = [
     "pyswisseph>=2.10.3.2",
     "argon2-cffi>=23.1",
     "email-validator>=2.2",
+    "anthropic>=2.8.0",
 ]
 
 [dependency-groups]
@@ -49,6 +50,7 @@ ignore = ["RUF001", "RUF002", "RUF003"]
 [tool.ruff.lint.per-file-ignores]
 # Horas locais "de parede" (sem fuso) são precisamente o que se testa.
 "tests/**" = ["DTZ001"]
+"src/arquivo/interpretation/prompts.py" = ["E501"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -95,4 +97,10 @@ forbidden_modules = ["arquivo.persistence", "arquivo.api"]
 name = "Transits do not depend on persistence or API"
 type = "forbidden"
 source_modules = ["arquivo.transits"]
+forbidden_modules = ["arquivo.persistence", "arquivo.api"]
+
+[[tool.importlinter.contracts]]
+name = "Interpretation does not depend on persistence or API"
+type = "forbidden"
+source_modules = ["arquivo.interpretation"]
 forbidden_modules = ["arquivo.persistence", "arquivo.api"]

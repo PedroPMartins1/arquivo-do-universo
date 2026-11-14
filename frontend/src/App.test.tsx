@@ -139,6 +139,53 @@ describe('App', () => {
     expect(screen.getAllByText('Virgem')).toHaveLength(2)
   })
 
+  it('mostra uma secção da leitura natal', async () => {
+    vi.stubGlobal(
+      'fetch',
+      route({
+        'GET /api/v1/me': () => json(ME),
+        'GET /api/v1/me/birth': () => json({}),
+        'GET /api/v1/me/chart': () => json(CHART),
+        'GET /api/v1/me/today': () =>
+          json({
+            date: '2026-11-12',
+            zone: 'Europe/Lisbon',
+            day_starts: '2026-11-12T00:00:00Z',
+            revelations: [],
+            tomorrow: null,
+            active: [],
+            upcoming: [],
+            events: [],
+          }),
+        'GET /api/v1/me/reading/today': () =>
+          json({
+            date: '2026-11-12',
+            revelations: [],
+            tomorrow: null,
+            model: 'fake-claude',
+            prompt_version: 'test',
+            generated_at: '2026-11-12T00:00:00Z',
+            epistemic_class: 'interpretation',
+            note: 'Interpretação simbólica gerada por IA.',
+          }),
+        'GET /api/v1/me/reading/natal': () =>
+          json({
+            sections: [{ id: 'essencia', title: 'A tua essência', text: 'Uma secção mockada.' }],
+            model: 'fake-claude',
+            prompt_version: 'test',
+            generated_at: '2026-11-12T00:00:00Z',
+            epistemic_class: 'interpretation',
+            note: 'Interpretação simbólica gerada por IA.',
+          }),
+      }),
+    )
+    render(<App />)
+    expect(
+      await screen.findByRole('heading', { name: 'A tua leitura' }),
+    ).toBeInTheDocument()
+    expect(await screen.findByText('Uma secção mockada.')).toBeInTheDocument()
+  })
+
   it('pede a ocorrência quando a hora aconteceu duas vezes', async () => {
     vi.stubGlobal(
       'fetch',

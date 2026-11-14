@@ -1,7 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import AliasChoices, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg://arquivo:arquivo@localhost:5432/arquivo"
     cors_origins: list[str] = ["http://localhost:5173"]
     ephemeris_path: Path = Field(default_factory=default_ephemeris_path)
+    anthropic_api_key: SecretStr | None = Field(
+        default=None,
+        validation_alias=AliasChoices("ARQUIVO_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY"),
+    )
+    anthropic_model: str = "claude-sonnet-5-5"
 
 
 @lru_cache
