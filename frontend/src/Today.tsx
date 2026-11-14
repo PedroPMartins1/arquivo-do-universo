@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
   type Me,
+  fetchReflections,
   fetchToday,
   fetchTodayReading,
   type Factor,
+  type Reflection,
   type Revelation,
   saveResidence,
   type TodayReading,
@@ -11,6 +13,7 @@ import {
 } from './api'
 import { describeEvent, describePlace, describeTransit } from './labels'
 import { PlaceSearch } from './PlaceSearch'
+import { ReflectionEditor } from './Reflection'
 
 const when = (iso: string, zone: string) =>
   new Intl.DateTimeFormat('pt-PT', {
@@ -28,7 +31,7 @@ const timeOf = (iso: string, zone: string) =>
     minute: '2-digit',
   }).format(new Date(iso))
 
-function RevelationOrigin({
+export function RevelationOrigin({
   revelation,
   zone,
   since,
@@ -87,6 +90,8 @@ export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
   const [error, setError] = useState<string | null>(null)
   const [reading, setReading] = useState<TodayReading | null>(null)
   const [readingError, setReadingError] = useState<string | null>(null)
+  const [reflections, setReflections] = useState<Reflection[] | null>(null)
+  const [reflectionError, setReflectionError] = useState<string | null>(null)
   const [moving, setMoving] = useState(false)
 
   const requestToday = useCallback(() => {
@@ -107,6 +112,31 @@ export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
   useEffect(() => {
     requestToday()
   }, [me.residence_zone, me.residence_name, requestToday])
+
+  useEffect(() => {
+    if (!sky) return
+    let active = true
+    setReflections(null)
+    setReflectionError(null)
+    fetchReflections(sky.date)
+      .then((result) => {
+        if (active) setReflections(result)
+      })
+      .catch((err: unknown) => {
+        if (active) setReflectionError(err instanceof Error ? err.message : String(err))
+      })
+    return () => {
+      active = false
+    }
+  }, [sky?.date])
+
+  const updateReflection = (reflection: Reflection | null, slot: number | null) => {
+    setReflections((current) => {
+      const updated = (current ?? []).filter((item) => item.slot !== slot)
+      if (reflection) updated.push(reflection)
+      return updated.sort((first, second) => (first.slot ?? 5) - (second.slot ?? 5))
+    })
+  }
 
   const nextUnlock = sky?.revelations.find((slot) => slot.revelation === null)?.unlocks_at
   useEffect(() => {
@@ -191,9 +221,18 @@ export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
                       .split(/\n{2,}/)
                       .filter(Boolean)
                       .map((paragraph, paragraphIndex) => (
-                        <p key={paragraphIndex}>{paragraph}</p>
+                    <p key={paragraphIndex}>{paragraph}</p>
                       ))}
                     <p className="question">{text.question}</p>
+                    {reflections && (
+                      <ReflectionEditor
+                        day={sky.date}
+                        slot={index}
+                        initial={reflections.find((reflection) => reflection.slot === index) ?? null}
+                        label="A tua reflexão"
+                        onChange={(reflection) => updateReflection(reflection, index)}
+                      />
+                    )}
                   </>
                 ) : readingError ? null : (
                   <ReadingSkeleton />
@@ -214,6 +253,20 @@ export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
           {!reading && !readingError && <ReadingSkeleton />}
         </article>
       )}
+      <article className="note">
+        <h3>Nota do dia</h3>
+        {reflections && (
+          <ReflectionEditor
+            day={sky.date}
+            slot={null}
+            initial={reflections.find((reflection) => reflection.slot === null) ?? null}
+            label="Nota do dia"
+            hint="O que aconteceu hoje, o que sentiste ou o que decidiste fazer."
+            onChange={(reflection) => updateReflection(reflection, null)}
+          />
+        )}
+      </article>
+      {reflectionError && <p role="alert">{reflectionError}</p>}
       {readingError && <p className="hint">{readingError}</p>}
       {sky.upcoming.length > 0 && (
         <>

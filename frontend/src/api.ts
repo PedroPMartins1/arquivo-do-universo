@@ -212,8 +212,64 @@ export interface RevelationReading {
   question: string
 }
 
+export interface Reflection {
+  day: string
+  slot: number | null
+  question: string | null
+  body: string
+  created_at: string
+  updated_at: string
+  provenance: 'user_reported'
+}
+
+export interface ArchiveDay {
+  date: string
+  theme: string | null
+  revelation_count: number
+  reflection_count: number
+  has_note: boolean
+}
+
+export interface ArchivePage {
+  days: ArchiveDay[]
+  next_before: string | null
+}
+
+export interface ArchiveDayDetail {
+  date: string
+  theme: string | null
+  revelations: {
+    unlocks_at: string
+    reading: RevelationReading | null
+    origin: Revelation | null
+  }[]
+  reflections: Reflection[]
+  model: string | null
+  prompt_version: string | null
+  generated_at: string | null
+  epistemic_class: 'interpretation' | null
+  note: string | null
+}
+
 export const fetchNatalReading = () => request<NatalReading>('/me/reading/natal')
 export const fetchTodayReading = (day?: string) =>
   request<TodayReading>(`/me/reading/today${day ? `?date=${encodeURIComponent(day)}` : ''}`)
 export const saveResidence = (place_name: string, zone: string) =>
   post<Me>('/me/residence', { place_name, zone }, 'PUT')
+
+export const fetchReflections = (day: string) =>
+  request<Reflection[]>(`/me/reflections/${encodeURIComponent(day)}`)
+export const saveRevelationReflection = (day: string, slot: number, body: string) =>
+  post<Reflection>(`/me/reflections/${encodeURIComponent(day)}/revelations/${slot}`, { body }, 'PUT')
+export const deleteRevelationReflection = (day: string, slot: number) =>
+  request<void>(`/me/reflections/${encodeURIComponent(day)}/revelations/${slot}`, {
+    method: 'DELETE',
+  })
+export const saveNote = (day: string, body: string) =>
+  post<Reflection>(`/me/reflections/${encodeURIComponent(day)}/note`, { body }, 'PUT')
+export const deleteNote = (day: string) =>
+  request<void>(`/me/reflections/${encodeURIComponent(day)}/note`, { method: 'DELETE' })
+export const fetchArchive = (before?: string) =>
+  request<ArchivePage>(`/me/archive${before ? `?before=${encodeURIComponent(before)}` : ''}`)
+export const fetchArchiveDay = (day: string) =>
+  request<ArchiveDayDetail>(`/me/archive/${encodeURIComponent(day)}`)

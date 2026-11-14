@@ -220,18 +220,24 @@ describe('App', () => {
         'GET /api/v1/me/chart': () => json(CHART),
         'GET /api/v1/me/today': () => json(SKY),
         'GET /api/v1/me/reading/today': () => json({ theme: null, revelations: [], tomorrow: null }),
+        'GET /api/v1/me/archive': () => json({ days: [], next_before: null }),
       }),
     )
     render(<App />)
     for (const [tab, text] of [
       ['Explorar', 'Ciclos, eclipses e o calendário do teu céu.'],
       ['Jornada', 'Percursos de evolução e autodesenvolvimento.'],
-      ['Arquivo', 'A tua história com o universo: leituras e reflexões.'],
     ]) {
       fireEvent.click(await screen.findByRole('button', { name: tab }))
       expect(await screen.findByText(text)).toBeInTheDocument()
       expect(screen.getByRole('heading', { name: 'Brevemente' })).toBeInTheDocument()
     }
+    fireEvent.click(await screen.findByRole('button', { name: 'Arquivo' }))
+    expect(
+      await screen.findByText(
+        'O teu Arquivo começa hoje: as leituras e reflexões de cada dia vão ficando guardadas aqui.',
+      ),
+    ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Arquivo' })).toHaveAttribute('aria-current', 'page')
   })
 

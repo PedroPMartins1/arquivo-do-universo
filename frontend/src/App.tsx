@@ -20,6 +20,7 @@ import {
 import { BODIES, degrees, describePlace, signName, signOfLongitude } from './labels'
 import { PlaceSearch } from './PlaceSearch'
 import { ChartWheel } from './ChartWheel'
+import { Archive } from './Archive'
 import { Today } from './Today'
 
 type State =
@@ -383,10 +384,7 @@ function App() {
             </section>
           )}
           {tab === 'archive' && (
-            <section className="card coming-soon">
-              <h2>Brevemente</h2>
-              <p>A tua história com o universo: leituras e reflexões.</p>
-            </section>
+            <Archive zone={state.me.residence_zone ?? state.birth.zone} />
           )}
           {tab === 'profile' && (
             <>

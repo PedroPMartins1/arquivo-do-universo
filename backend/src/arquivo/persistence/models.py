@@ -15,6 +15,7 @@ from sqlalchemy import (
     Index,
     Integer,
     MetaData,
+    SmallInteger,
     String,
     Text,
     Time,
@@ -154,6 +155,34 @@ class Interpretation(Base):
     model: Mapped[str] = mapped_column(String(200))
     content: Mapped[dict[str, Any]] = mapped_column(JSONB)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class Reflection(Base):
+    __tablename__ = "reflections"
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id",
+            "day",
+            "slot",
+            name="uq_reflections_user_day_slot",
+            postgresql_nulls_not_distinct=True,
+        ),
+        CheckConstraint("slot IS NULL OR slot BETWEEN 0 AND 4", name="slot_range"),
+        CheckConstraint("char_length(body) BETWEEN 1 AND 5000", name="body_length"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    day: Mapped[date] = mapped_column(Date)
+    slot: Mapped[int | None] = mapped_column(SmallInteger)
+    question: Mapped[str | None] = mapped_column(Text)
+    body: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
 
 class Source(Base):

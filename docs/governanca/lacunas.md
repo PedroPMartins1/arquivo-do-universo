@@ -21,3 +21,5 @@ Lacunas recuperadas do dossiê §53. Uma lacuna só fecha com uma fonte (convers
 | L-015 | Pesquisa do local de nascimento por nome (geocodificação) | Registo para o público | fechada (D-027) | Base offline GeoNames; localidades com menos de 500 habitantes podem faltar e ficam com a alternativa das coordenadas |
 | L-016 | Recuperação de palavra-passe, verificação de email e limite de tentativas de login | Antes de abrir ao público | aberta | Exige escolher fornecedor de email |
 | L-017 | Envio de dados pseudonimizados à Anthropic: rever os termos de tratamento de dados (DPA), listar a Anthropic como subcontratante na política de privacidade e confirmar retenção/região antes de abrir ao público | Abrir ao público | aberta | Claude recebe factos astrológicos calculados, sem dados de identificação ou nascimento |
+| L-018 | Exportação das reflexões do Diário para assegurar a portabilidade dos dados ao abrigo do RGPD | Antes de abrir ao público | aberta | As reflexões são dados íntimos e nunca são enviadas ao modelo |
+| L-019 | Cifragem das reflexões em repouso | Antes de abrir ao público | aberta | As reflexões são os dados mais íntimos da aplicação |
