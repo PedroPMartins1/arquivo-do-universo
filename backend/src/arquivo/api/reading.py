@@ -19,7 +19,7 @@ from arquivo.interpretation.service import (
     prompt_hash,
 )
 from arquivo.persistence.accounts import audit
-from arquivo.persistence.models import Interpretation, User
+from arquivo.persistence.models import BirthProfile, Interpretation, User
 from arquivo.transits.engine import DailySky
 
 router = APIRouter(prefix="/me", tags=["Leituras"])
@@ -86,6 +86,7 @@ def _store(
     content: dict[str, Any],
     *,
     generated: bool,
+    trigger: str,
 ) -> Interpretation:
     row = Interpretation(
         user_id=user.id,
@@ -106,7 +107,14 @@ def _store(
             raise
         return cached
     if generated:
-        audit(db, user.id, "interpretation.generated", kind=kind, model=model.name)
+        audit(
+            db,
+            user.id,
+            "interpretation.generated",
+            kind=kind,
+            model=model.name,
+            trigger=trigger,
+        )
     return row
 
 
@@ -167,6 +175,7 @@ def natal_reading(
         model,
         {"sections": [section.__dict__ for section in sections]},
         generated=True,
+        trigger="request",
     )
     return _natal_response(row)
 
@@ -181,19 +190,33 @@ def today_reading(
 ) -> TodayReading:
     profile = _profile(db, user)
     model = _model_or_503(model)
-    chart, sky = _daily_sky(user, profile, day, now=now)
-    prompt, _ = day_prompt(sky, chart)
-    facts_hash = prompt_hash(SYSTEM, prompt)
-    cached = _cached(db, user, "day", sky.date, facts_hash)
-    if cached is not None:
-        return _today_response(cached, sky, now, user)
     try:
-        reading = interpret_day(sky, chart, model)
+        row, sky = ensure_day_reading(db, user, profile, model, now, day, trigger="request")
     except InterpretationUnavailable as error:
         raise HTTPException(
             status.HTTP_503_SERVICE_UNAVAILABLE,
             "a interpretação não está disponível neste momento; tenta mais tarde",
         ) from error
+    return _today_response(row, sky, now, user)
+
+
+def ensure_day_reading(
+    db: Db,
+    user: User,
+    profile: BirthProfile,
+    model: TextModel,
+    now: datetime,
+    day: date | None = None,
+    *,
+    trigger: str = "request",
+) -> tuple[Interpretation, DailySky]:
+    chart, sky = _daily_sky(user, profile, day, now=now)
+    prompt, _ = day_prompt(sky, chart)
+    facts_hash = prompt_hash(SYSTEM, prompt)
+    cached = _cached(db, user, "day", sky.date, facts_hash)
+    if cached is not None:
+        return cached, sky
+    reading = interpret_day(sky, chart, model)
     generated = bool(sky.revelations or sky.tomorrow)
     row = _store(
         db,
@@ -215,5 +238,6 @@ def today_reading(
             "tomorrow": reading.tomorrow,
         },
         generated=generated,
+        trigger=trigger,
     )
-    return _today_response(row, sky, now, user)
+    return row, sky
