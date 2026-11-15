@@ -42,9 +42,22 @@ Os FC-01–FC-06 são fluxos operacionais transversais, recuperados das especifi
 
 | ID | Nome | Fonte | Estado documental | Evidência técnica |
 |---|---|---|---|---|
-| FC-01 | Recuperação de dados após incidente | Especificação funcional recuperada | especificada; revisão transversal pendente | Sem implementação comprovada nesta auditoria |
-| FC-02 | Eliminação de informação em todos os sistemas | Especificação funcional recuperada | especificada; revisão transversal pendente | Existe eliminação local de afirmações/conta/reflexões; eliminação distribuída não comprovada |
-| FC-03 | Revogação de identidade e credenciais, incluindo operações em curso | Especificação funcional recuperada | especificada; revisão transversal pendente | Existem sessões e fecho de sessão; revogação abrangente não comprovada |
-| FC-04 | Isolamento de serviços comprometidos | Especificação funcional recuperada | especificada; revisão transversal pendente | Sem isolamento automatizado comprovado nesta auditoria |
+| FC-01 | Recuperação de dados após incidente | 08A_Reconciliacao_Historica_e_Especificacao_FC01_FC03_v1.1.docx | princípios/seq. recuperados; contratos/estados normalizados pendentes | Sem implementação comprovada nesta auditoria |
+| FC-02 | Eliminação de informação em todos os sistemas | 08A_Reconciliacao_Historica_e_Especificacao_FC01_FC03_v1.1.docx | finalidade/autoridade F79 recuperadas; contratos/estados normalizados pendentes | Existe eliminação local de afirmações/conta/reflexões; eliminação distribuída não comprovada |
+| FC-03 | Revogação de identidade e credenciais, incluindo operações em curso | 08A_Reconciliacao_Historica_e_Especificacao_FC01_FC03_v1.1.docx | finalidade/regra de operações em curso recuperadas; contratos/estados normalizados pendentes | Existem sessões e fecho de sessão; revogação abrangente não comprovada |
+| FC-04 | Isolamento de serviços comprometidos | Especificação anterior; 08A v1.1 | especificada; harmonização transversal pendente | Sem isolamento automatizado comprovado nesta auditoria |
 | FC-05 | Expansão automática de infraestrutura | Especificação funcional consolidada em 14-11-2026 | especificada; implementação/validação pendentes | Sem controlador de provisionamento comprovado nesta auditoria |
 | FC-06 | Recuperação de desastres e continuidade operacional com infraestrutura alternativa | 05_FC06_Recuperacao_Desastres_Continuidade.docx, v1.0, 14-11-2026 | especificada; implementação/validação operacional pendentes | Especificação de 28 secções e 20 testes conceptuais; implementação DR não comprovada no código consultado |
+
+
+### Reconciliação funcional F78–F82 (fonte 08A v1.1)
+
+| ID | Responsabilidade recuperada | Autoridade / limite |
+|---|---|---|
+| F78 | Backups, preservação e recuperação de dados | Executa mecanismos; não decide legitimidade de recuperação. |
+| F79 | Retenção, preservação, eliminação e ciclo de vida dos dados | Decide estado de retenção/eliminação. |
+| F80 | Identidade, autenticação, credenciais, autorização e permissões | Autoridade funcional de identidade. |
+| F81 | Cibersegurança, defesa ativa e resposta a incidentes | Coordena risco; F81.01–F81.12 por recuperar individualmente. |
+| F82 | Infraestrutura, recursos e execução operacional | Executa dentro de autorizações; não decide autoridade funcional. |
+
+Estado: associação recuperada em síntese histórica v1.1; confirmação contra especificações autónomas originais pendente.
