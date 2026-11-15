@@ -4,8 +4,8 @@ Plataforma de conhecimento pessoal, análise temporal, astronomia/astrologia e a
 A visão completa está no [dossiê mestre](docs/dossie/dossie-mestre-v2.0.txt). A governação do projeto
 (estados, decisões, lacunas, requisitos) está em [`docs/`](docs/README.md).
 
-> Estado: **fundação**. Nenhuma funcionalidade de produto está implementada ou validada.
-> O estado real de cada requisito está no [catálogo](docs/requisitos/catalogo.md).
+> Estado: **fundação + primeira fatia vertical parcial**. O repositório contém implementação e testes para o núcleo, contas/sessões, temporalidade, mapa natal, trânsitos, interpretações, pré-geração diária, diário e arquivo. A CI da branch de auditoria passou em 15-11-2026. Isto não demonstra validação operacional, deploy público ou prontidão para produção.
+> O estado e a evidência por requisito estão no [catálogo](docs/requisitos/catalogo.md) e na [matriz de rastreabilidade](docs/requisitos/rastreabilidade.md).
 
 ## Estrutura
 
