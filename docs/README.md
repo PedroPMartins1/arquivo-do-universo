@@ -17,6 +17,4 @@
 | [Documento Mestre Operacional](documento-mestre-operacional.md) | Governação, segurança, dados, contratos e continuidade FC-01–FC-06 |
 | [Auditoria transversal FC-01–FC-06](auditorias/auditoria-transversal-fc-01-fc-06-v0.2.md) | Diagnóstico preliminar de coerência, contratos, estados, interações e lacunas |
 
-O Documento Mestre consolidado (Fase 1) vai ser construído a partir do dossiê e das conversas originais,
-à medida que as lacunas forem resolvidas. Quando houver divergência, prevalece a visão do produto (D-022) e, a seguir, o dossiê, até haver uma
-decisão registada.
+O [Documento Mestre Operacional](documento-mestre-operacional.md) já tem uma primeira versão, construída a partir das especificações recuperadas dos fluxos FC-01–FC-06 e da governação associada. Não substitui ainda o Documento Mestre completo do produto, nem fecha as lacunas históricas F78–F82. Quando houver divergência de foco do produto, prevalece a visão do produto (D-022); nos restantes temas, prevalecem as decisões registadas e as fontes documentais aprovadas.
