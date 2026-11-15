@@ -13,7 +13,7 @@ Cada decisão tem ID, origem e data. As decisões não se reabrem sem um novo re
 | D-007 | Não criar motores duplicados. A monitorização integra-se na Observabilidade Global; a inteligência evolutiva é transversal | Dossiê §21, §24, §36 | 2026-11-12 |
 | D-008 | Especificação, desenvolvimento, implementação, testes e validação são estados distintos. Nada é declarado sem evidência | Dossiê §31, §52 | 2026-11-12 |
 | D-009 | Preservar histórico, proveniência, incerteza, versões e contradições | Dossiê §13.5, §52 | 2026-11-12 |
-| D-010 | **Significado de "opção C"**: nas conversas originais com o ChatGPT, o utilizador escolhia sempre a alínea C por ser a alternativa mais completa. Nas decisões ainda por recuperar, "opção C" quer dizer *a alternativa mais completa entre as apresentadas*. O conteúdo exato de cada opção continua a ter de ser recuperado do histórico ([L-002](lacunas.md), [L-003](lacunas.md)) | Pedro, sessão Devin | 2026-11-12 |
+| D-010 | **Significado de "opção C"**: nas conversas originais com o ChatGPT, o utilizador escolhia a alínea C por ser a alternativa mais completa. Nas decisões ainda por recuperar, "opção C" quer dizer *a alternativa mais completa entre as apresentadas*. As decisões específicas do Mapa Natal e da hora de nascimento foram entretanto recuperadas e registadas em D-019 e D-020. | Pedro, sessão Devin | 2026-11-12 |
 | D-011 | Não existia código anterior: o projeto começa do zero | Pedro, sessão Devin | 2026-11-12 |
 | D-012 | Stack: monólito modular em Python/FastAPI/PostgreSQL + React/TypeScript | [ADR-0001](../adr/0001-stack.md) | 2026-11-12 |
 | D-013 | Cálculos astrológicos com Swiss Ephemeris, validados com Skyfield/JPL | [ADR-0001](../adr/0001-stack.md) | 2026-11-12 |
