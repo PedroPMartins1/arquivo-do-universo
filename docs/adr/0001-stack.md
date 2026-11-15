@@ -28,3 +28,7 @@ O domínio exige cálculos astronómicos rigorosos, análise temporal, estatíst
 - Um único processo e uma única base simplificam o deploy, os backups e a consistência transacional.
 - O Swiss Ephemeris é AGPL, o que exige publicar o código: aceite em ADR-0002.
 - Se algum motor precisar de escalar à parte, a fronteira de pacote facilita extraí-lo para um serviço.
+
+## Evolução posterior — pré-geração em background
+
+A decisão inicial de não introduzir jobs de fundo na fundação foi posteriormente evoluída pela D-031. A pré-geração das leituras diárias é executada por um worker separado (`python -m arquivo.pregeneration`), com intervalo configurável, limites de falha por utilizador/dia e fallback para geração imediata no pedido. Esta evolução não altera a decisão de manter um monólito modular; o processo de execução, supervisão, reinício e deploy do worker tem de ser definido no plano operacional antes de produção.
