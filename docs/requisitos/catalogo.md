@@ -34,3 +34,17 @@ Estados conforme [estados oficiais](../governanca/estados.md). Baseline: [audito
 
 «em especificação» quer dizer que existe descrição funcional no dossiê, mas ainda não existe o conjunto
 completo do §30 (regras, entradas/saídas, critérios de aceitação, testes associados).
+
+
+## Fluxos críticos de operação e continuidade
+
+Os FC-01–FC-06 são fluxos operacionais transversais, recuperados das especificações e conversas de 14-11-2026. Não foram encontrados implementados no código analisado; a maturidade abaixo refere-se à especificação funcional recuperada, não à implementação.
+
+| ID | Nome | Fonte | Estado documental | Evidência técnica |
+|---|---|---|---|---|
+| FC-01 | Recuperação de dados após incidente | Especificação funcional recuperada | especificada; revisão transversal pendente | Sem implementação comprovada nesta auditoria |
+| FC-02 | Eliminação de informação em todos os sistemas | Especificação funcional recuperada | especificada; revisão transversal pendente | Existe eliminação local de afirmações/conta/reflexões; eliminação distribuída não comprovada |
+| FC-03 | Revogação de identidade e credenciais, incluindo operações em curso | Especificação funcional recuperada | especificada; revisão transversal pendente | Existem sessões e fecho de sessão; revogação abrangente não comprovada |
+| FC-04 | Isolamento de serviços comprometidos | Especificação funcional recuperada | especificada; revisão transversal pendente | Sem isolamento automatizado comprovado nesta auditoria |
+| FC-05 | Expansão automática de infraestrutura | Especificação funcional consolidada em 14-11-2026 | especificada; implementação/validação pendentes | Sem controlador de provisionamento comprovado nesta auditoria |
+| FC-06 | Recuperação de desastres e continuidade operacional com infraestrutura alternativa | Nome/objetivo recuperados; texto integral por recuperar | especificação incompleta / bloqueada por L-020 | Sem failover/DR comprovado nesta auditoria |
