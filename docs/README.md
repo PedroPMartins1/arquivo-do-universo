@@ -13,7 +13,7 @@
 | [Rastreabilidade](requisitos/rastreabilidade.md) | Requisito → código → testes |
 | [ADR](adr/) | Decisões de arquitetura |
 | [Auditorias](auditoria/) | Baselines de engenharia |
-| [Auditoria transversal FC-01–FC-06](auditorias/auditoria-transversal-fc-01-fc-06-v0.1.md) | Diagnóstico preliminar de coerência, contratos, estados, interações e lacunas |
+| [Auditoria transversal FC-01–FC-06](auditorias/auditoria-transversal-fc-01-fc-06-v0.2.md) | Diagnóstico preliminar de coerência, contratos, estados, interações e lacunas |
 
 O Documento Mestre consolidado (Fase 1) vai ser construído a partir do dossiê e das conversas originais,
 à medida que as lacunas forem resolvidas. Quando houver divergência, prevalece a visão do produto (D-022) e, a seguir, o dossiê, até haver uma
