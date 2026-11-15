@@ -1,5 +1,5 @@
 # Auditoria transversal FC-01–FC-06
-## Versão 0.1 — diagnóstico documental e técnico preliminar
+## Versão 0.2 — diagnóstico documental e técnico atualizado
 
 **Projeto:** Arquivo do Universo  
 **Tipo de trabalho:** revisão transversal / consolidação  
@@ -45,11 +45,33 @@ A especificação funcional foi declarada concluída em 14-11-2026. Foram recupe
 
 **Nota de nomenclatura:** referências históricas a F81/F81.01–F81.12, R1–R3 e F78–F82 não estão reconciliadas com um catálogo validado no repositório. Não assumir equivalência automática entre A0–A4 e R1–R3, nem atribuir autoridade definitiva a F81/F82 sem reconciliação documental.
 
-### 2.3 FC-06
+### 2.3 FC-06 — especificação integral recuperada
 
-O nome e objetivo geral estão recuperados: recuperação de desastre com infraestrutura alternativa e continuidade operacional. Não foi recuperado nesta revisão o texto integral da especificação funcional, incluindo estados, RTO/RPO, critérios de declaração de desastre, autoridade de failover/failback, integridade de dados, dependências externas, testes e condições de encerramento.
+Foi localizado no Library do projeto o documento **05_FC06_Recuperacao_Desastres_Continuidade.docx**, versão 1.0, de 14-11-2026, com 28 secções e 11 páginas. O Documento Mestre de Fluxos e Contratos (06) e a Adenda de Reconciliação (08), ambos da mesma data, confirmam que este é o documento detalhado de referência da FC-06.
 
-**Conclusão:** FC-06 não pode ainda ser considerada especificada de forma verificável. Esta lacuna impede fechar a matriz completa de contratos e transições sem inventar requisitos.
+Elementos efetivamente especificados:
+- Âmbito: preparação, continuidade, deteção, análise de impacto, seleção do ponto/estratégia de recuperação, ambiente isolado, validação, reintrodução gradual e retorno ao ambiente normal.
+- Severidade: D0 degradação; D1 incidente localizado; D2 incidente alargado; D3 desastre crítico.
+- Ativação: sinais de monitorização, segurança, fornecedor, corrupção, indisponibilidade regional/infraestrutura, erro de configuração ou decisão autorizada. Deteção automática gera avaliação; não declara automaticamente desastre crítico fora da política.
+- RTO/RPO: definidos e aprovados por serviço/conjunto de dados. **Não existem valores universais aprovados na FC-06.** Serviços sem RTO/RPO aprovados são lacunas de prontidão.
+- Ciclo: deteção/correlação → avaliação → declaração autorizada → contenção → seleção do ponto → preparação de ambiente isolado → validação de identidade, permissões, integridade, consistência e eliminações → recuperação por dependências → testes → reintegração gradual → monitorização → encerramento e relatório.
+- Estratégias: restauro no primário, ambiente alternativo, recuperação por serviço, modo degradado e reconstrução limpa.
+- Dados: origem, data, versão, escopo, integridade criptográfica e retenção dos pontos; segregação de permissões; histórico de pontos rejeitados; reconciliação de alterações posteriores; proibição de disponibilizar dados com origem ou consistência desconhecidas.
+- Identidade: nenhuma identidade, chave, token, sessão ou credencial revogada pela FC-03 pode ser reativada pelo processo de recuperação.
+- Segurança: quarentena até critérios de FC-04; FC-06 não levanta isolamento unilateralmente.
+- Capacidade/custos: FC-05 provisiona; custos extraordinários, região ou fornecedor novo e ultrapassagem de limites exigem aprovação aplicável.
+- Operações em curso: reconciliação com identificadores idempotentes; não repetir automaticamente efeitos externos ou destrutivos sem confirmação.
+- Autonomia específica FC-06: A0 observação; A1 recomendação; A2 execução limitada (inclui failover previamente autorizado); A3 ativação de planos aprovados dentro de severidade, RTO/RPO, custos e escopo predefinidos; A4 exige aprovação humana para declaração crítica, perda potencial de dados, mudança de região, alteração de confiança ou retorno à produção.
+- Estados: NORMAL, SIGNAL_DETECTED, ASSESSING, DECLARATION_PENDING, DECLARED, CONTAINING, RECOVERY_PLANNING, ENVIRONMENT_PREPARATION, RESTORING, VALIDATING, DEGRADED_OPERATION, REINTEGRATION_PENDING, REINTEGRATING, MONITORING, ROLLBACK, BLOCKED, HUMAN_INTERVENTION e CLOSED.
+- Contratos: DisasterSignal, ImpactAssessment, RecoveryReadiness, RecoveryPlan, RecoveryPointSelection, RecoveryEnvironmentRequest, RestoreRequest, DataErasureReconciliation, IdentityRevalidation, ServiceReintegrationRequest, RecoveryValidation e RecoveryClosure.
+- Eventos: DISASTER_SIGNAL_DETECTED, IMPACT_ASSESSMENT_STARTED, RECOVERY_READINESS_GAP_FOUND, DISASTER_DECLARATION_REQUESTED, DISASTER_DECLARED, CONTAINMENT_REQUIRED, RECOVERY_PLAN_PROPOSED, RECOVERY_APPROVAL_REQUIRED, RECOVERY_PLAN_APPROVED, RECOVERY_POINT_SELECTED, RECOVERY_ENVIRONMENT_REQUESTED/READY, RESTORE_STARTED/COMPLETED, DATA_ERASURE_RECONCILIATION_REQUIRED, IDENTITY_REVALIDATION_REQUIRED, RECOVERY_VALIDATION_FAILED/PASSED, SERVICE_REINTEGRATION_REQUESTED/APPROVED/REINTEGRATED, RTO_BREACHED, RPO_BREACHED, ROLLBACK_STARTED e RECOVERY_CLOSED.
+- Falhas: ponto inválido, ambiente alternativo comprometido, fornecedor indisponível/não aprovado, RTO/RPO em risco, conflito de dados, estado FC-02 desconhecido, identidade revogada, isolamento FC-04 ativo, falha parcial e rollback falhado têm respostas de bloqueio, alternativa autorizada ou intervenção humana.
+- Auditoria e métricas: cronologia, decisor, autoridade, versão do plano, pontos, aprovações, recursos, fornecedores, custos, validações, desvios RTO/RPO, ações FC-01–FC-05, rollback; RTO/RPO reais, prontidão, integridade, tempo de deteção/declaração, custo e falhas de reintegração.
+- Testes conceptuais: 20 cenários, incluindo indisponibilidade regional, corrupção, ponto adulterado, RTO/RPO falhados, fornecedor não aprovado, quarentena FC-04, credencial revogada, eliminação pendente, operações repetidas, ambiente inseguro, falhas de restauro/failover, modo degradado não autorizado, ausência de aprovação D3, rollback e exercício de recuperação.
+
+**Limites explícitos da especificação:** não fixa valores de RTO/RPO; não identifica fornecedores/regiões efetivamente disponíveis; não define o detalhe técnico de failover/failback (por exemplo, topologias cold/warm/hot, fencing ou prevenção de split-brain); não fecha quem declara D2/D3; não define frequência universal dos exercícios. Estes pontos permanecem lacunas de decisão/arquitetura, não razões para dizer que a FC-06 não tem especificação.
+
+**Conclusão corrigida:** FC-06 está **especificada funcionalmente, versão 1.0**. Implementação técnica não demonstrada; 20 testes definidos, execução pendente; validação operacional pendente.
 
 ## 3. Diagnóstico transversal preliminar
 
@@ -195,7 +217,7 @@ A revisão foi limitada aos ficheiros efetivamente lidos nesta passagem; não eq
 
 | ID | Lacuna | Consequência |
 |---|---|---|
-| L-01 | Texto integral e versão aprovada de FC-06. | Não é possível validar sequência, RTO/RPO, failover/failback e critérios de sucesso. |
+| L-01 | Parâmetros operacionais finais FC-06: RTO/RPO por serviço, inventário de fornecedores/regiões, topologia e fencing/failback, autoridade D2/D3 e frequência de exercícios. | A especificação existe, mas a prontidão operacional não pode ser aprovada sem estes parâmetros. |
 | L-02 | Especificações completas de contratos/eventos de FC-01–FC-04 nesta base documental. | A matriz de compatibilidade é parcial. |
 | L-03 | Catálogo validado e mapeamento de F78–F82/F81.01–F81.12. | Não atribuir responsabilidades finais por identificador histórico. |
 | L-04 | Taxonomia comum de autonomia e equivalência (ou não) A0–A4/R1–R3. | Evitar escalada de permissões por interpretação. |
@@ -245,6 +267,24 @@ A revisão já identificou conflitos e riscos transversais relevantes:
 - expansão pode contrariar isolamento ou limites de custo;
 - auditoria atual não garante correlação ponta a ponta;
 - eliminação local não equivale a eliminação distribuída;
-- FC-06 não tem especificação integral recuperada nesta passagem.
+- FC-06 tem especificação funcional integral recuperada (05, v1.0); permanecem por aprovar parâmetros operacionais e implementação.
 
 Não foram feitas alterações ao código nem à branch main. Esta versão é apenas documentação de diagnóstico e propostas explicitamente não aprovadas. Não se declara CI ou testes executados nesta auditoria.
+
+
+## 12. Correção e atualização documental — versão 0.2
+
+A versão 0.1 afirmava que a especificação integral FC-06 não tinha sido recuperada. Essa afirmação ficou desatualizada após a pesquisa do Library do projeto. Foram localizados e lidos:
+- 05_FC06_Recuperacao_Desastres_Continuidade.docx (FC-06, v1.0, 28 secções);
+- 06_Documento_Mestre_Fluxos_e_Contratos_FC01_FC06.docx (consolidação transversal, v1.0);
+- 08_Adenda_Fluxos_FC01_FC06_e_Reconciliacao_F78_F82.docx (adenda, v1.0).
+
+A versão 0.2 corrige a classificação: FC-06 está especificada funcionalmente. A lacuna passa a incidir sobre parâmetros de prontidão/execução operacional e decisões técnicas não fixadas, não sobre a existência da especificação.
+
+A fonte 08 confirma expressamente que FC-01, FC-02 e FC-03 têm nomes/objetivos recuperados, mas os contratos apresentados nessa adenda são reconstruções propostas, não especificações históricas integrais. FC-04 tinha especificação funcional anterior estruturada em 26 secções e 20 testes; a harmonização dos nomes dos seus contratos ainda deve ser confirmada. FC-05 e FC-06 têm especificações detalhadas próprias. O Documento Mestre 06 classifica a consolidação transversal como planeamento funcional, não implementação.
+
+**RTO/RPO:** não adotar os valores R1–R4 recuperados em resumos de contexto como valores aprovados para FC-06. O documento FC-06 v1.0 determina aprovação por serviço e não fixa valores globais. A taxonomia A0–A4 da FC-06 também não deve ser mapeada automaticamente para R1–R4 ou R1–R3.
+
+**F78–F82:** a adenda 08 mantém todos estes identificadores por recuperar e proíbe atribuir-lhes nomes/responsabilidades sem fonte primária. A suposta «F82 Parte V» com níveis R1–R4, modos NORMAL/DEGRADADO/CONTINGÊNCIA/RECUPERAÇÃO, failover cold/warm/hot e fencing não foi localizada como documento primário nesta pesquisa; não será incorporada como decisão.
+
+Não foram feitas alterações de código. A atualização é documental e corrige o estado da evidência.
