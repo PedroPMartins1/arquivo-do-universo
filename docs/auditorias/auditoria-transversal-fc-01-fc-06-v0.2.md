@@ -330,3 +330,59 @@ A fonte 08A declara o ponto 3 resolvido ao nível de recuperação e reconcilia�
 - **Pendente tecnicamente:** contratos executáveis, propagação de correlation ID, testes automatizados e implementação dos fluxos.
 
 A «F82 Parte V» com R1–R4, modos NORMAL/DEGRADADO/CONTINGÊNCIA/RECUPERAÇÃO, topologias cold/warm/hot e fencing/split-brain não foi localizada como fonte primária. Não confundir com FC-06 A0–A4 nem usar como decisão aprovada.
+
+## 14. Matriz de testes integrados recuperada — 18 cenários
+
+O Documento Mestre 06, versão 1.0, secção 15, define 18 cenários conceptuais de integração. São critérios de teste, não resultados executados.
+
+| ID | Cenário | Resultado obrigatório |
+|---|---|---|
+| I01 | FC-04 isola serviço e FC-06 tenta recuperar | FC-06 mantém o ambiente isolado até autorização de FC-04. |
+| I02 | FC-03 revoga credencial durante failover | Nenhuma tarefa reativa a credencial revogada. |
+| I03 | FC-02 elimina dado e backup antigo é restaurado | A eliminação é reaplicada antes da exposição dos dados. |
+| I04 | FC-01 recupera dados após incidente | Contenção, restauro e autorização de serviço permanecem separados. |
+| I05 | FC-06 solicita recursos a FC-05 | Provisionamento respeita limites e política de autonomia. |
+| I06 | FC-05 deteta capacidade insuficiente num serviço isolado | Não encaminha tráfego para serviço comprometido. |
+| I07 | FC-02 fica indisponível durante recuperação | Dados potencialmente eliminados não são publicados sem reconciliação. |
+| I08 | Estado de credencial desconhecido | Acesso bloqueado até confirmação de FC-03/F80. |
+| I09 | FC-04 não fornece autorização de reintegração | Serviço continua isolado. |
+| I10 | Custo de recuperação excede limite | FC-05 bloqueia expansão e FC-06 escala decisão. |
+| I11 | Evento duplicado de revogação | Processamento idempotente, sem efeitos duplicados. |
+| I12 | Contrato com versão incompatível | Rejeição controlada e alerta de compatibilidade. |
+| I13 | Falha de fornecedor durante recuperação | Alternativa usada apenas se previamente autorizada. |
+| I14 | Rollback falha | Bloqueio e intervenção humana, sem falsa conclusão. |
+| I15 | Operações em curso após revogação | FC-03 define disposição; consumidores cessam efeitos não autorizados. |
+| I16 | Recuperação parcial com modo degradado não aprovado | Não disponibilizar modo degradado. |
+| I17 | Incidente encerra com lacunas de evidência | Não fechar como validado; manter ações pendentes. |
+| I18 | Auditoria reconstrói cadeia de decisões | Pedidos, eventos, aprovações e resultados são correlacionáveis. |
+
+### 14.1 Testes adicionais recuperados em 08A v1.1
+
+A reconciliação FC-01–FC-03 define ainda 12 cenários específicos:
+- FC01-T01: backup corrompido/não confiável — bloquear promoção e procurar fonte alternativa ou escalar.
+- FC01-T02: dado legitimamente eliminado — não reintroduzir.
+- FC01-T03: serviço continua isolado — restauro pode ocorrer em ambiente isolado, produção não.
+- FC01-T04: F80 indisponível — ações que exigem autorização ficam suspensas.
+- FC02-T01: índice/cache/embedding não confirma eliminação — caso parcial, sem declaração de eliminação integral.
+- FC02-T02: backup imutável contém dado abrangido — inacessibilidade operacional, expiração e pendência documentadas.
+- FC02-T03: fila/evento recria registo apagado — bloquear recriação e registar origem.
+- FC02-T04: pedido duplicado — idempotência sem alargar âmbito.
+- FC03-T01: token antigo após revogação — rejeição nos pontos de entrada abrangidos.
+- FC03-T02: job privilegiado em curso — avaliação individual e suspensão se autorização não for revalidada.
+- FC03-T03: F80 indisponível durante revalidação — suspensão segura.
+- FC03-T04: falha de propagação — caso parcial/aberto e escalado.
+
+**Estado dos testes:** 18 testes de integração + 12 testes específicos FC-01–FC-03 + 20 testes FC-06 + 20 testes FC-04 (referidos em documentação anterior) + 20 testes FC-05 (recuperados na especificação funcional). Todos permanecem conceptuais até execução automatizada ou exercício operacional com evidência registada. Não somar estes conjuntos como cobertura independente sem deduplicação: vários cenários cobrem o mesmo risco com perspetivas diferentes.
+
+## 15. Conclusão atualizada do ponto 3
+
+A revisão transversal está **resolvida ao nível de planeamento e reconciliação funcional disponível**, alinhada com o estado final declarado na reconciliação 08A v1.1 e no Documento Mestre 06 v1.0. Não está tecnicamente validada.
+
+Ficam explicitamente fora de uma declaração de conclusão técnica:
+- execução dos testes conceptuais;
+- implementação de contratos/eventos e correlação distribuída;
+- validação de F81.01–F81.12 e da especificação autónoma F82 Parte V;
+- aprovação dos RTO/RPO por serviço, fornecedores/regiões, orçamento e autoridades D2/D3;
+- demonstração de backup/restore, failover/failback, isolamento e reintegração em ambiente real.
+
+O ponto 3 pode avançar para o ponto 4 — consolidação do Documento Mestre — sem fingir que a implementação ou a validação operacional estão concluídas.
