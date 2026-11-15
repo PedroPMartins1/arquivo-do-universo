@@ -61,3 +61,7 @@ Os FC-01–FC-06 são fluxos operacionais transversais, recuperados das especifi
 | F82 | Infraestrutura, recursos e execução operacional | Executa dentro de autorizações; não decide autoridade funcional. |
 
 Estado: associação recuperada em síntese histórica v1.1; confirmação contra especificações autónomas originais pendente.
+
+### Reconciliação de capacidades F78–F82
+
+Ver [reconciliação F78–F82 v0.1](../auditorias/reconciliacao-f78-f82-v0.1.md). O mapa funcional está recuperado em 08A v1.1; títulos de F81 e estrutura/autonomia de F82 estão recuperados em sínteses históricas, com fontes autónomas ainda pendentes.
