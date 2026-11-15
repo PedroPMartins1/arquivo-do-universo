@@ -288,3 +288,45 @@ A fonte 08 confirma expressamente que FC-01, FC-02 e FC-03 têm nomes/objetivos 
 **F78–F82:** a adenda 08 mantém todos estes identificadores por recuperar e proíbe atribuir-lhes nomes/responsabilidades sem fonte primária. A suposta «F82 Parte V» com níveis R1–R4, modos NORMAL/DEGRADADO/CONTINGÊNCIA/RECUPERAÇÃO, failover cold/warm/hot e fencing não foi localizada como documento primário nesta pesquisa; não será incorporada como decisão.
 
 Não foram feitas alterações de código. A atualização é documental e corrige o estado da evidência.
+
+## 13. Reconciliação histórica adicional — FC-01 a FC-03 e F78–F82
+
+Foi localizado o documento **08A_Reconciliacao_Historica_e_Especificacao_FC01_FC03_v1_1.docx**, versão 1.1, de 14-11-2026. Este documento corrige e aprofunda a adenda 08 e altera a classificação anterior de algumas lacunas.
+
+### 13.1 Responsabilidades F78–F82 recuperadas
+
+A versão 08A recupera a seguinte associação funcional:
+- **F78:** backups, preservação e recuperação de dados. Executa mecanismos de recuperação; não decide se os dados podem ser recuperados.
+- **F79:** retenção, preservação, eliminação e governação do ciclo de vida dos dados. Decide o estado de retenção/eliminação.
+- **F80:** identidade, autenticação, credenciais, autorização e permissões. Autoridade funcional de identidade.
+- **F81:** cibersegurança, defesa ativa e resposta a incidentes. Deteta, classifica, contém e coordena risco; F81.01–F81.12 continuam por recuperar individualmente.
+- **F82:** infraestrutura, recursos e execução operacional. Executa ações de infraestrutura dentro das autorizações recebidas; não decide legitimidade dos dados nem autorização funcional.
+
+Esta associação está **recuperada em síntese histórica/documental v1.1**, mas as especificações autónomas originais de cada F78–F82 ainda devem ser confirmadas. Assim, a lacuna deixa de ser «não existe qualquer correspondência» e passa a ser «validar a correspondência recuperada contra as fontes autónomas originais». A autoridade funcional é separada da capacidade técnica de execução.
+
+### 13.2 FC-01 — princípios e sequência histórica recuperados
+
+A versão 08A recupera gatilhos e sequência de 10 passos: registo/âmbito; contenção e preservação coordenadas por F81; delimitação; seleção de ponto íntegro por F78; validação de retenção/eliminação por F79; identidade/autoridade por F80; ambiente isolado; recuperação/reconciliação; validação independente; autorização explícita para promoção e execução progressiva por F82.
+
+Recupera também os princípios de não restaurar dados legitimamente eliminados, não reativar credenciais revogadas e não reintegrar serviço isolado sem autorização de segurança. Os estados S0–S9/SE têm origem histórica, mas a correspondência textual exata de cada código ainda carece de confirmação. O contrato normalizado está descrito; não deve ser rotulado como schema histórico aprovado.
+
+### 13.3 FC-02 — autoridade F79 e processo distribuído recuperados
+
+A finalidade distribuída e a autoridade F79 estão recuperadas. O âmbito inclui primários, réplicas, versões, snapshots, ficheiros, anexos, exportações, índices, caches, embeddings, vetores, grafos, análises, perfis, modelos derivados, filas, eventos, tarefas e backups. Distingue eliminar, restringir, anonimizar e preservar legalmente.
+
+Os estados D0–D9/DE e o contrato normalizado são explicitamente propostas de normalização. Não reutilizar L0–L9/LE: a fonte 08A afirma que estes códigos pertencem a uma operação de recuperação seletiva/histórica ainda não identificada, e não ao FC-02.
+
+### 13.4 FC-03 — regra central recuperada
+
+F80 é a autoridade funcional de identidade/autenticação/permissões; F81 coordena o contexto de cibersegurança quando a revogação decorre de ameaça. A regra central recuperada é que revogar não significa interromper indiscriminadamente todas as operações em curso: bloquear novas ações não autorizadas e avaliar cada operação existente quanto a risco, integridade, consistência, revalidação e compensação.
+
+Os estados R0–R9/RE e o contrato normalizado são propostas, não códigos históricos confirmados. A reemissão deve usar credencial nova; falha de propagação mantém o caso aberto.
+
+### 13.5 Limites e estado do ponto 3
+
+A fonte 08A declara o ponto 3 resolvido ao nível de recuperação e reconciliação funcional disponível, sem declarar FC-01–FC-03 historicamente completas nem tecnicamente implementadas. Esta auditoria adota a mesma distinção:
+- **Resolvido documentalmente ao nível funcional disponível:** responsabilidades, princípios, precedências e sequências essenciais de FC-01–FC-03; mapa funcional F78–F82 recuperado em síntese.
+- **Pendente de decisão/validação:** schemas/eventos originais FC-01–FC-03, correspondência exata dos códigos de estado, F81.01–F81.12, fonte autónoma F82 Parte V, autorização de emergência e parâmetros operacionais.
+- **Pendente tecnicamente:** contratos executáveis, propagação de correlation ID, testes automatizados e implementação dos fluxos.
+
+A «F82 Parte V» com R1–R4, modos NORMAL/DEGRADADO/CONTINGÊNCIA/RECUPERAÇÃO, topologias cold/warm/hot e fencing/split-brain não foi localizada como fonte primária. Não confundir com FC-06 A0–A4 nem usar como decisão aprovada.
