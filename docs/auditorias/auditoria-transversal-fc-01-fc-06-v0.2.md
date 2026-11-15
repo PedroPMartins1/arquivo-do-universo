@@ -220,7 +220,7 @@ A revisão foi limitada aos ficheiros efetivamente lidos nesta passagem; não eq
 | L-01 | Parâmetros operacionais finais FC-06: RTO/RPO por serviço, inventário de fornecedores/regiões, topologia e fencing/failback, autoridade D2/D3 e frequência de exercícios. | A especificação existe, mas a prontidão operacional não pode ser aprovada sem estes parâmetros. |
 | L-02 | Especificações completas de contratos/eventos de FC-01–FC-04 nesta base documental. | A matriz de compatibilidade é parcial. |
 | L-03 | Confirmar o mapa F78–F82 recuperado em 08A v1.1 contra as especificações autónomas originais; recuperar F81.01–F81.12. | A associação funcional está recuperada em síntese; falta validação das fontes autónomas e subfunções. |
-| L-04 | Confirmar taxonomia de autonomia em cada fluxo e recuperar eventual F82 Parte V; não mapear A0–A4 para R1–R4/R1–R3 sem fonte. | FC-05 e FC-06 têm níveis A0–A4 próprios; equivalência com R1–R4/R1–R3 não demonstrada. |
+| L-04 | Confirmar taxonomia de autonomia em cada fluxo; não mapear A0–A4 para R1–R4/R1–R3 sem fonte primária. | FC-05 e FC-06 têm níveis A0–A4 próprios; equivalência com R1–R4/R1–R3 não demonstrada. |
 | L-05 | RTO, RPO, retenção de backups e critérios de integridade. | Não aprovar recuperação/continuidade. |
 | L-06 | Contratos reais de identidade, revogação e operações em curso. | Não provar cobertura FC-03. |
 | L-07 | Inventário de sistemas de dados derivados e fornecedores. | Não provar cobertura FC-02. |
