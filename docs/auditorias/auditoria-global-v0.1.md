@@ -38,7 +38,7 @@ A auditoria identificou contradições e metadados por reconciliar. Durante esta
 | GA-04 | Resolvido documentalmente | A precedência foi explicitada em D-018: a escolha posterior de Claude/Anthropic em D-029 prevalece sobre a delegação inicial. | `docs/governanca/decisoes.md`, D-018/D-029 | Não reabrir sem nova decisão explícita. |
 | GA-05 | Parcialmente resolvido | A visão do produto e D-028 foram alinhadas com quatro Revelações principais + bónus opcional. D-030 contém cinco horários, mas está datado no futuro e a relação entre horários e bónus requer confirmação. | `docs/produto/visao.md`; D-028–D-030 | Confirmar data e distribuição dos cinco horários antes de congelar o desbloqueio. |
 | GA-06 | Média | A versão das efemérides JPL não está coerente: ADR-0001 indica DE440/DE440s; o script de aquisição e README usam DE421. | `docs/adr/0001-stack.md`; `backend/scripts/fetch_ephemerides.sh`; `README.md` | Confirmar a versão realmente usada nos testes de validação e atualizar ADR/documentação ou script de forma coordenada. |
-| GA-07 | Média | ADR-0001 declara «nenhum job de fundo» na fase inicial; D-031 e `backend/src/arquivo/pregeneration.py` introduzem pré-geração periódica. | ADR-0001; D-031; `pregeneration.py` | Acrescentar nota de evolução arquitetural referenciando D-031 e clarificar processo de execução/deploy do worker. |
+| GA-07 | Resolvido documentalmente | ADR-0001 regista agora a evolução posterior para o worker de pré-geração ao abrigo de D-031; operação e supervisão em produção continuam pendentes. | ADR-0001; D-031; `pregeneration.py` | Definir supervisão/deploy no plano operacional antes de produção. |
 | GA-08 | Resolvido documentalmente | D-010 foi atualizado para referir D-019/D-020, sem manter referências às lacunas já resolvidas. | `docs/governanca/decisoes.md`; `docs/governanca/lacunas.md` | Não requer ação adicional. |
 | GA-09 | Média | A baseline 0000 é um retrato válido de 12-11-2026, mas não representa o estado atual do repositório. | `docs/auditoria/0000-baseline.md`; código atual; catálogo | Preservar a baseline histórica e referi-la sempre como fotografia inicial, nunca como estado corrente. |
 
@@ -49,7 +49,8 @@ A auditoria identificou contradições e metadados por reconciliar. Durante esta
 - D-010 deixou de apontar para L-002/L-003, já resolvidas.
 - D-018 clarifica que a escolha posterior de Claude/Anthropic em D-029 prevalece sobre a delegação inicial.
 - D-028 e a visão do produto foram alinhadas com quatro Revelações principais e um bónus opcional.
-- L-026 e L-027 registam as questões ainda pendentes de cronologia, horários, efemérides e worker.
+- ADR-0001 regista a evolução posterior para o worker de pré-geração definida em D-031.
+- L-026 e L-027 registam as questões ainda pendentes de cronologia, horários e versão das efemérides.
 
 ## 5. Evidência técnica verificada
 
