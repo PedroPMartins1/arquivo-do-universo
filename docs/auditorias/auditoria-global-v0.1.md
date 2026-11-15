@@ -26,29 +26,32 @@ A auditoria distingue decisão, especificação, código presente, teste automat
 
 A arquitetura documental tem uma base coerente: D-022 coloca a aplicação astrológica no centro; ADR-0004 orienta a entrega para fatias utilizáveis; D-008 exige evidência antes de alterar estados; o catálogo e a rastreabilidade identificam código e testes para várias capacidades já presentes.
 
-A auditoria identificou, contudo, contradições e metadados por reconciliar. As mais importantes são:
-1. O README afirma que nenhuma funcionalidade está implementada, embora o repositório contenha código de núcleo, contas, mapa natal, temporalidade, trânsitos, interpretações, pré-geração, diário e arquivo.
-2. Há decisões com data futura relativamente à data desta auditoria, incluindo D-030 (16-11-2026) e a versão de prompt `2026-11-17.1` indicada em D-029.
-3. A decisão D-018 atribui a escolha do fornecedor de IA ao Devin; D-029 regista Claude/Anthropic como escolha do Pedro. A precedência precisa de ficar explícita.
-4. A especificação de produto ainda contém «5 Revelações do Dia», enquanto a decisão funcional mais recente registada no contexto do projeto é «4 principais + bónus opcional». A fonte de decisão e os horários de abertura têm de ser reconciliados antes de alterar regras.
-5. ADR-0001 menciona JPL DE440/DE440s, mas o script efetivo de aquisição descarrega DE421 e o README também indica DE421.
-6. ADR-0001 diz que não há jobs de fundo na fase inicial; D-031 e `pregeneration.py` introduzem um worker periódico. A evolução é legítima, mas a decisão arquitetural deve ser explicitamente ligada à decisão posterior.
+A auditoria identificou contradições e metadados por reconciliar. Durante esta revisão foram já corrigidos o estado do README, o índice documental, as referências obsoletas L-002/L-003, a precedência D-018/D-029 e a contagem de Revelações em D-028/visão do produto. Permanecem por resolver: datas futuras D-030/PROMPT_VERSION, relação dos cinco horários com quatro revelações + bónus, versão DE440/DE421 e registo da evolução do worker de pré-geração.
 
 ## 3. Achados
 
 | ID | Severidade | Achado | Evidência | Ação recomendada |
 |---|---|---|---|---|
-| GA-01 | Alta | README declara que nenhuma funcionalidade está implementada ou validada. A árvore do repositório contém implementação e testes de várias capacidades; a matriz de rastreabilidade aponta ficheiros e testes concretos. | `README.md`; `backend/src/arquivo/`; `frontend/src/`; `docs/requisitos/rastreabilidade.md` | Corrigir o estado público para «fatia vertical parcial implementada; validação automatizada na CI; sem evidência de validação operacional/produção». |
-| GA-02 | Média | O índice de documentação afirma que o Documento Mestre consolidado «vai ser construído», embora já exista `docs/documento-mestre-operacional.md`. | `docs/README.md`; Documento Mestre Operacional | Atualizar para refletir a primeira versão existente e distinguir o Documento Mestre Operacional do Documento Mestre completo do produto. |
+| GA-01 | Resolvido documentalmente | README atualizado para indicar fundação e primeira fatia vertical parcial, CI aprovada na branch de auditoria e ausência de validação operacional/produção demonstrada. | `README.md`; `backend/src/arquivo/`; `frontend/src/`; `docs/requisitos/rastreabilidade.md` | Manter o estado alinhado com o catálogo e a evidência de CI. |
+| GA-02 | Resolvido documentalmente | O índice reconhece a primeira versão do Documento Mestre Operacional e distingue-a do Documento Mestre completo do produto. | `docs/README.md`; `docs/documento-mestre-operacional.md` | Manter esta distinção nas próximas consolidações. |
 | GA-03 | Alta | D-030 tem data 16-11-2026, posterior à data desta auditoria (15-11-2026). D-029 contém `PROMPT_VERSION` 2026-11-17.1, também futura. | `docs/governanca/decisoes.md`, D-029/D-030 | Confirmar se são erros de data, conteúdo preparado para publicação futura ou registos importados com data incorreta. Não retrodatá-los nem tratá-los como aprovados antes da confirmação. |
 | GA-04 | Resolvido documentalmente | A precedência foi explicitada em D-018: a escolha posterior de Claude/Anthropic em D-029 prevalece sobre a delegação inicial. | `docs/governanca/decisoes.md`, D-018/D-029 | Não reabrir sem nova decisão explícita. |
 | GA-05 | Parcialmente resolvido | A visão do produto e D-028 foram alinhadas com quatro Revelações principais + bónus opcional. D-030 contém cinco horários, mas está datado no futuro e a relação entre horários e bónus requer confirmação. | `docs/produto/visao.md`; D-028–D-030 | Confirmar data e distribuição dos cinco horários antes de congelar o desbloqueio. |
 | GA-06 | Média | A versão das efemérides JPL não está coerente: ADR-0001 indica DE440/DE440s; o script de aquisição e README usam DE421. | `docs/adr/0001-stack.md`; `backend/scripts/fetch_ephemerides.sh`; `README.md` | Confirmar a versão realmente usada nos testes de validação e atualizar ADR/documentação ou script de forma coordenada. |
 | GA-07 | Média | ADR-0001 declara «nenhum job de fundo» na fase inicial; D-031 e `backend/src/arquivo/pregeneration.py` introduzem pré-geração periódica. | ADR-0001; D-031; `pregeneration.py` | Acrescentar nota de evolução arquitetural referenciando D-031 e clarificar processo de execução/deploy do worker. |
-| GA-08 | Baixa | D-010 ainda remete para L-002/L-003 como decisões por recuperar, mas ambas estão resolvidas por D-019/D-020. | D-010; `docs/governanca/lacunas.md` | Remover as referências antigas e apontar para as decisões resolvidas. |
+| GA-08 | Resolvido documentalmente | D-010 foi atualizado para referir D-019/D-020, sem manter referências às lacunas já resolvidas. | `docs/governanca/decisoes.md`; `docs/governanca/lacunas.md` | Não requer ação adicional. |
 | GA-09 | Média | A baseline 0000 é um retrato válido de 12-11-2026, mas não representa o estado atual do repositório. | `docs/auditoria/0000-baseline.md`; código atual; catálogo | Preservar a baseline histórica e referi-la sempre como fotografia inicial, nunca como estado corrente. |
 
-## 4. Evidência técnica verificada
+## 4. Correções já aplicadas
+
+- README atualizado para refletir o estado parcial real da implementação e distinguir CI de validação operacional.
+- Índice de documentação atualizado para reconhecer o Documento Mestre Operacional v1 e a auditoria global.
+- D-010 deixou de apontar para L-002/L-003, já resolvidas.
+- D-018 clarifica que a escolha posterior de Claude/Anthropic em D-029 prevalece sobre a delegação inicial.
+- D-028 e a visão do produto foram alinhadas com quatro Revelações principais e um bónus opcional.
+- L-026 e L-027 registam as questões ainda pendentes de cronologia, horários, efemérides e worker.
+
+## 5. Evidência técnica verificada
 
 A árvore da branch auditada contém backend e frontend, migrações, APIs, motor natal, motor temporal, trânsitos, interpretação, pré-geração, diário/arquivo e respetivos testes.
 
@@ -65,7 +68,7 @@ Esta evidência confirma que a suíte automatizada configurada passou nesse comm
 
 A PR #17 continua Draft e não foi mergeada. A auditoria não recomenda merge automático antes de os achados de alta severidade serem reconciliados e a documentação atualizada.
 
-## 5. Estado de maturidade
+## 6. Estado de maturidade
 
 | Área | Estado observado | Limite |
 |---|---|---|
@@ -80,7 +83,7 @@ A PR #17 continua Draft e não foi mergeada. A auditoria não recomenda merge au
 | F78–F82 | Mapa funcional parcial | Fontes autónomas e detalhe F81/F82 em falta |
 | Segurança e privacidade | Regras e componentes parciais | Auditoria de segurança, DPA, retenção/região e controlos pré-produção pendentes |
 
-## 6. Lacunas e bloqueios a preservar
+## 7. Lacunas e bloqueios a preservar
 
 - L-016: recuperação de palavra-passe, verificação de email e limite de tentativas.
 - L-017: DPA, subcontratação, retenção e região da Anthropic antes de abrir ao público.
@@ -92,7 +95,7 @@ A PR #17 continua Draft e não foi mergeada. A auditoria não recomenda merge au
 
 Os achados GA-03, GA-06 e GA-07 continuam pendentes. GA-04 foi resolvido documentalmente; GA-05 foi parcialmente resolvido. As correções de estado público, índice documental e referências L-002/L-003 foram aplicadas no mesmo branch. As alterações preservam o histórico e não mudam main.
 
-## 7. Próxima sequência recomendada
+## 8. Próxima sequência recomendada
 
 1. Resolver os achados de alta severidade GA-03, GA-04 e GA-05 com base nas decisões originais.
 2. Corrigir GA-01, GA-02 e GA-08 na documentação.
