@@ -448,3 +448,33 @@ L-020 — texto integral da FC-06 — está fechada documentalmente pela especif
 | Entrada em produção | Gates definidos | Não declarar produção sem evidência cumulativa |
 
 **Conclusão:** este Documento Mestre consolida a base funcional e de governação disponível. Não aprova automaticamente as propostas de harmonização, não fecha as lacunas históricas e não declara qualquer FC implementado, validado ou em produção. As decisões pendentes devem ser resolvidas por fonte primária ou ADR explícito; a execução técnica deve seguir a sequência de dependências e os gates definidos.
+
+
+## 14. Detalhe histórico adicional F81/F82
+
+A reconciliação documental complementar encontra-se em [reconciliacao-f78-f82-v0.1.md](auditorias/reconciliacao-f78-f82-v0.1.md). Resumo do que foi recuperado em sínteses históricas, sem o promover a especificação autónoma aprovada:
+
+### F81 — 12 componentes identificadas
+1. F81.01 Inteligência de ameaças.
+2. F81.02 Gestão de vulnerabilidades.
+3. F81.03 Deteção de intrusões.
+4. F81.04 Monitorização comportamental.
+5. F81.05 Defesa contra ataques.
+6. F81.06 Proteção de APIs e comunicações.
+7. F81.07 Segurança da cadeia de fornecimento.
+8. F81.08 Isolamento de componentes.
+9. F81.09 Resposta autónoma a incidentes.
+10. F81.10 Recuperação segura.
+11. F81.11 Testes e simulações.
+12. F81.12 Avaliação contínua de segurança.
+
+Autonomia histórica F81: R1 ações automáticas de baixo impacto; R2 ações automáticas condicionadas por políticas/limites; R3 operações críticas com aprovação humana. A referência a 18 componentes foi identificada no histórico como mistura documental e não deve ser reutilizada.
+
+### F82 — estrutura e autonomia recuperadas
+- Título histórico: **Inteligência de Infraestrutura, Orquestração e Gestão Autónoma de Recursos**.
+- 12 componentes F82.01–F82.12; títulos individuais ainda não recuperados.
+- Sete camadas: governação, inteligência, orquestração, computação, armazenamento, comunicações e observabilidade.
+- Autonomia histórica F82: A1 monitorizar/recomendar; A2 otimizar recursos dentro de limites; A3 reorganizar serviços/capacidade segundo políticas; A4 aprovação humana para infraestrutura crítica/despesas extraordinárias.
+- O histórico refere oito cenários de teste: aumento/redução de carga, falhas, excesso orçamental, estrangulamento, falha de rede, recuperação e alteração não autorizada. A formulação integral e os IDs não foram recuperados.
+
+Estas taxonomias são específicas dos respetivos módulos. Não mapear R1–R3 de F81 ou A1–A4 de F82 para os níveis A0–A4 de FC-06.
