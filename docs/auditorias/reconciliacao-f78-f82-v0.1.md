@@ -110,7 +110,7 @@ O histórico identifica oito cenários próprios, descritos por famílias:
 
 A descrição disponível enumera as famílias, mas não recupera a formulação integral dos oito casos, os IDs, pré-condições ou resultados esperados. Não converter esta lista em testes executáveis sem a fonte original.
 
-### 4.4 F82 Parte V
+### 4.4 Esclarecimento da referência «Parte V»
 
 Não foi recuperado texto primário que sustente uma «F82 Parte V» com:
 - níveis R1–R4;
@@ -146,7 +146,7 @@ A consolidação posterior identificou testes INT-01–INT-16 para interações 
 | F82.13–F82.124 | Expansão posterior não oficial segundo auditoria histórica | Não integrar no catálogo oficial |
 | Autonomia F81 R1–R3 | Recuperada em síntese histórica | Manter separada de A0–A4 |
 | Autonomia F82 A1–A4 | Recuperada em síntese histórica | Manter separada de FC-06 A0–A4 |
-| F82 Parte V / R1–R4 | Fonte primária não recuperada | Não adotar |
+| Suposta «F82 Parte V» / R1–R4 | A Parte V encontrada pertence ao Dossiê Mestre global; nenhuma Parte V própria da F82 foi identificada | Não adotar |
 | Modos cold/warm/hot, fencing/split-brain | Não aparecem nos trechos originais recuperados | Decisão técnica pendente, não requisito confirmado |
 
 ## 7. Lacunas e ações
@@ -177,6 +177,6 @@ A existência da Parte V no Dossiê Mestre global está confirmada; a existênci
 
 O mapa funcional F78–F82 está recuperado em síntese suficientemente consistente para orientar responsabilidades e evitar sobreposições. F81 tem 12 componentes identificados e autonomia R1–R3 em síntese histórica. F82 tem título, 12 componentes, sete camadas, autonomia A1–A4 e oito famílias de testes recuperados em síntese.
 
-A referência «Parte V» foi esclarecida: existe no Dossiê Mestre global como «PARTE V — DOMÍNIOS FUNCIONAIS E MOTORES», mas não foi encontrada uma Parte V própria da F82. A reconciliação não está documentalmente fechada ao nível das especificações autónomas: faltam as fontes integrais, os títulos de F82.01–F82.12, o detalhe de F81.01–F81.12, a fonte eventual de F82 Parte V e os testes completos. A implementação técnica não foi avaliada nem declarada.
+A referência «Parte V» foi esclarecida: existe no Dossiê Mestre global como «PARTE V — DOMÍNIOS FUNCIONAIS E MOTORES», mas não foi encontrada uma Parte V própria da F82. A reconciliação não está documentalmente fechada ao nível das especificações autónomas: faltam as fontes integrais, os títulos de F82.01–F82.12, o detalhe integral de F81.01–F81.12 e os testes completos de F82. A implementação técnica não foi avaliada nem declarada.
 
 Nenhum conteúdo posterior atribuído a F82 Parte V, R1–R4, cold/warm/hot ou fencing/split-brain é aceite como decisão sem fonte primária.
