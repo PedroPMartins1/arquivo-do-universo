@@ -41,6 +41,8 @@ A auditoria identificou contradições e metadados por reconciliar. Durante esta
 | GA-07 | Resolvido documentalmente | ADR-0001 regista agora a evolução posterior para o worker de pré-geração ao abrigo de D-031; operação e supervisão em produção continuam pendentes. | ADR-0001; D-031; `pregeneration.py` | Definir supervisão/deploy no plano operacional antes de produção. |
 | GA-08 | Resolvido documentalmente | D-010 foi atualizado para referir D-019/D-020, sem manter referências às lacunas já resolvidas. | `docs/governanca/decisoes.md`; `docs/governanca/lacunas.md` | Não requer ação adicional. |
 | GA-09 | Média | A baseline 0000 é um retrato válido de 12-11-2026, mas não representa o estado atual do repositório. | `docs/auditoria/0000-baseline.md`; código atual; catálogo | Preservar a baseline histórica e referi-la sempre como fotografia inicial, nunca como estado corrente. |
+| GA-10 | Alta | Os endpoints de autenticação não evidenciam limitação de tentativas nem proteção CSRF explícita; o cookie usa SameSite=Lax e Secure apenas em produção. | `backend/src/arquivo/api/auth.py`; `api/deps.py`; D-026; L-016 | Antes de abrir ao público, implementar/validar rate limiting e rever CSRF, origens CORS, HTTPS e gestão de sessões em browser. Não declarar vulnerabilidade explorável sem teste específico. |
+| GA-11 | Média | O limite de falhas de pré-geração por utilizador/dia é mantido num dicionário em memória do processo; reiniciar o worker repõe o contador. | `backend/src/arquivo/pregeneration.py`; `config.py`; D-031 | Persistir o orçamento de tentativas por utilizador/dia ou documentar formalmente que o limite é apenas por ciclo de vida do processo. Testar reinício e execução concorrente de workers. |
 
 ## 4. Correções já aplicadas
 
@@ -50,6 +52,7 @@ A auditoria identificou contradições e metadados por reconciliar. Durante esta
 - D-018 clarifica que a escolha posterior de Claude/Anthropic em D-029 prevalece sobre a delegação inicial.
 - D-028 e a visão do produto foram alinhadas com quatro Revelações principais e um bónus opcional.
 - ADR-0001 regista a evolução posterior para o worker de pré-geração definida em D-031.
+- A revisão de código identificou riscos a tratar antes de produção na proteção de autenticação (GA-10) e persistência do limite de tentativas do worker (GA-11).
 - L-026 e L-027 registam as questões ainda pendentes de cronologia, horários e versão das efemérides.
 
 ## 5. Evidência técnica verificada
@@ -85,6 +88,8 @@ A PR #17 continua Draft e não foi mergeada. A auditoria não recomenda merge au
 | Segurança e privacidade | Regras e componentes parciais | Auditoria de segurança, DPA, retenção/região e controlos pré-produção pendentes |
 
 ## 7. Lacunas e bloqueios a preservar
+
+A revisão de código não substitui uma auditoria de segurança dedicada. GA-10 e GA-11 exigem testes específicos antes de produção.
 
 - L-016: recuperação de palavra-passe, verificação de email e limite de tentativas.
 - L-017: DPA, subcontratação, retenção e região da Anthropic antes de abrir ao público.
