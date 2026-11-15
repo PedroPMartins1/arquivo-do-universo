@@ -43,7 +43,7 @@ A especificação funcional foi declarada concluída em 14-11-2026. Foram recupe
 - Regras: só expandir com necessidade demonstrável, benefício operacional e custo aceitável; baixa confiança conduz a decisão conservadora; a autonomia não se eleva por iniciativa do próprio fluxo; falhas exigem contenção, recuperação ou reversão; segurança e conflitos com FC-04 bloqueiam o provisionamento.
 - Foram definidos eventos, métricas e 20 testes conceptuais; implementação e validação técnica continuam pendentes.
 
-**Nota de nomenclatura:** referências históricas a F81/F81.01–F81.12, R1–R3 e F78–F82 não estão reconciliadas com um catálogo validado no repositório. Não assumir equivalência automática entre A0–A4 e R1–R3, nem atribuir autoridade definitiva a F81/F82 sem reconciliação documental.
+**Nota de nomenclatura:** F78–F82 estão agora mapeadas funcionalmente em 08A v1.1 e na reconciliação complementar; a confirmação contra as especificações autónomas continua pendente. Não assumir equivalência automática entre A0–A4 e R1–R3, nem atribuir autoridade definitiva a F81/F82 sem fonte primária.
 
 ### 2.3 FC-06 — especificação integral recuperada
 
@@ -285,7 +285,7 @@ A fonte 08 confirma expressamente que FC-01, FC-02 e FC-03 têm nomes/objetivos 
 
 **RTO/RPO:** não adotar os valores R1–R4 recuperados em resumos de contexto como valores aprovados para FC-06. O documento FC-06 v1.0 determina aprovação por serviço e não fixa valores globais. A taxonomia A0–A4 da FC-06 também não deve ser mapeada automaticamente para R1–R4 ou R1–R3.
 
-**F78–F82:** a adenda 08 mantém todos estes identificadores por recuperar e proíbe atribuir-lhes nomes/responsabilidades sem fonte primária. A suposta «F82 Parte V» com níveis R1–R4, modos NORMAL/DEGRADADO/CONTINGÊNCIA/RECUPERAÇÃO, failover cold/warm/hot e fencing não foi localizada como documento primário nesta pesquisa; não será incorporada como decisão.
+**F78–F82:** a adenda 08A v1.1 recupera o mapa de responsabilidades. A expressão «PARTE V — DOMÍNIOS FUNCIONAIS E MOTORES» foi localizada no Dossiê Mestre global, não como parte da F82. Não há evidência de uma «F82 Parte V» própria com níveis R1–R4, modos NORMAL/DEGRADADO/CONTINGÊNCIA/RECUPERAÇÃO, failover cold/warm/hot ou fencing; estes elementos não serão incorporados como decisões.
 
 Não foram feitas alterações de código. A atualização é documental e corrige o estado da evidência.
 
@@ -326,10 +326,10 @@ Os estados R0–R9/RE e o contrato normalizado são propostas, não códigos his
 
 A fonte 08A declara o ponto 3 resolvido ao nível de recuperação e reconciliação funcional disponível, sem declarar FC-01–FC-03 historicamente completas nem tecnicamente implementadas. Esta auditoria adota a mesma distinção:
 - **Resolvido documentalmente ao nível funcional disponível:** responsabilidades, princípios, precedências e sequências essenciais de FC-01–FC-03; mapa funcional F78–F82 recuperado em síntese.
-- **Pendente de decisão/validação:** schemas/eventos originais FC-01–FC-03, correspondência exata dos códigos de estado, F81.01–F81.12, fonte autónoma F82 Parte V, autorização de emergência e parâmetros operacionais.
+- **Pendente de decisão/validação:** schemas/eventos originais FC-01–FC-03, correspondência exata dos códigos de estado, especificações autónomas F78–F82 e detalhe integral F81/F82, autorização de emergência e parâmetros operacionais.
 - **Pendente tecnicamente:** contratos executáveis, propagação de correlation ID, testes automatizados e implementação dos fluxos.
 
-A «F82 Parte V» com R1–R4, modos NORMAL/DEGRADADO/CONTINGÊNCIA/RECUPERAÇÃO, topologias cold/warm/hot e fencing/split-brain não foi localizada como fonte primária. Não confundir com FC-06 A0–A4 nem usar como decisão aprovada.
+A «PARTE V — DOMÍNIOS FUNCIONAIS E MOTORES» pertence ao Dossiê Mestre global. Não foi encontrada uma Parte V própria da F82. Os níveis R1–R4, modos NORMAL/DEGRADADO/CONTINGÊNCIA/RECUPERAÇÃO, topologias cold/warm/hot e fencing/split-brain continuam sem fonte primária; não confundir com FC-06 A0–A4 nem usar como decisão aprovada.
 
 ## 14. Matriz de testes integrados recuperada — 18 cenários
 
@@ -381,7 +381,7 @@ A revisão transversal está **resolvida ao nível de planeamento e reconciliaç
 Ficam explicitamente fora de uma declaração de conclusão técnica:
 - execução dos testes conceptuais;
 - implementação de contratos/eventos e correlação distribuída;
-- validação de F81.01–F81.12 e da especificação autónoma F82 Parte V;
+- validação das especificações autónomas F78–F82, incluindo detalhe integral F81 e componentes/testes F82;
 - aprovação dos RTO/RPO por serviço, fornecedores/regiões, orçamento e autoridades D2/D3;
 - demonstração de backup/restore, failover/failback, isolamento e reintegração em ambiente real.
 
