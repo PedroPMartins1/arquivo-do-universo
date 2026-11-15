@@ -158,7 +158,7 @@ A consolidação posterior identificou testes INT-01–INT-16 para interações 
 | F80-SRC | Localizar especificação autónoma F80 e confirmar contratos de identidade | Aberta |
 | F81-SRC | Recuperar documento original F81 e detalhe das 12 componentes, estados, contratos e testes | Aberta |
 | F82-SRC | Recuperar documento original F82 e títulos/contratos das 12 componentes | Aberta |
-| F82-PV | Localizar eventual fonte intitulada Parte V; confirmar se existe e qual a versão | Aberta; não presumir conteúdo |
+| F82-PV | Distinguir a «PARTE V — DOMÍNIOS FUNCIONAIS E MOTORES» do Dossiê Mestre global de uma eventual Parte V autónoma da F82 | Referência global esclarecida; não há evidência de uma Parte V própria da F82 |
 | F82-TST | Recuperar os oito testes próprios em forma integral | Parcial |
 | F82-INT | Recuperar a fonte dos testes INT-01–INT-16 e distinguir original de integração posterior | Parcial |
 
@@ -177,6 +177,6 @@ A existência da Parte V no Dossiê Mestre global está confirmada; a existênci
 
 O mapa funcional F78–F82 está recuperado em síntese suficientemente consistente para orientar responsabilidades e evitar sobreposições. F81 tem 12 componentes identificados e autonomia R1–R3 em síntese histórica. F82 tem título, 12 componentes, sete camadas, autonomia A1–A4 e oito famílias de testes recuperados em síntese.
 
-A reconciliação não está documentalmente fechada ao nível das especificações autónomas: faltam as fontes integrais, os títulos de F82.01–F82.12, o detalhe de F81.01–F81.12, a fonte eventual de F82 Parte V e os testes completos. A implementação técnica não foi avaliada nem declarada.
+A referência «Parte V» foi esclarecida: existe no Dossiê Mestre global como «PARTE V — DOMÍNIOS FUNCIONAIS E MOTORES», mas não foi encontrada uma Parte V própria da F82. A reconciliação não está documentalmente fechada ao nível das especificações autónomas: faltam as fontes integrais, os títulos de F82.01–F82.12, o detalhe de F81.01–F81.12, a fonte eventual de F82 Parte V e os testes completos. A implementação técnica não foi avaliada nem declarada.
 
 Nenhum conteúdo posterior atribuído a F82 Parte V, R1–R4, cold/warm/hot ou fencing/split-brain é aceite como decisão sem fonte primária.
