@@ -64,7 +64,7 @@ A reconciliação histórica 08A v1.1 recupera a seguinte distribuição funcion
 | F81 | Cibersegurança, defesa ativa e resposta a incidentes | Deteta, classifica, contém e coordena risco. F81.01–F81.12 ainda carecem de recuperação individual. |
 | F82 | Infraestrutura, recursos e execução operacional | Executa operações de infraestrutura dentro das autorizações recebidas; não decide legitimidade dos dados nem autorização funcional. |
 
-**Estado da reconciliação:** responsabilidades recuperadas em síntese histórica v1.1. A confirmação contra as especificações autónomas originais continua pendente. A designação e o conteúdo integral de uma alegada «F82 Parte V» não foram localizados como fonte primária nesta revisão.
+**Estado da reconciliação:** responsabilidades recuperadas em síntese histórica v1.1. A confirmação contra as especificações autónomas originais continua pendente. A «PARTE V — DOMÍNIOS FUNCIONAIS E MOTORES» foi localizada no Dossiê Mestre global; não há evidência de uma Parte V própria da F82.
 
 ### 2.1 Regra de autoridade
 
@@ -413,7 +413,7 @@ Bloqueadores absolutos incluem vulnerabilidade crítica sem mitigação aceite, 
 | L-004 | Lista integral de funcionalidades/IDs anteriores a F59 | Catálogo global ainda não definitivo |
 | L-005 | Especificações originais completas de F60/F61 | Especificação histórica incompleta |
 | L-021 | Schemas/eventos históricos FC-01–FC-03, códigos de estado e harmonização de contratos FC-04 | Contratos executáveis ainda não congelados |
-| L-022 | Validar F78–F82 contra fontes autónomas; recuperar F81.01–F81.12 e alegada F82 Parte V | Catálogo especializado ainda não completamente reconciliado |
+| L-022 | Validar F78–F82 contra fontes autónomas; recuperar especificação integral F81, títulos F82.01–F82.12 e testes completos F82 | Catálogo especializado ainda não completamente reconciliado |
 | L-023 | Envelope transversal executável, correlação, idempotência, outbox e operações parciais | Integração técnica não demonstrada |
 | L-024 | Inventário de sistemas derivados e política de backup/retensão | Eliminação distribuída não comprovada |
 | L-025 | RTO/RPO por serviço, orçamento/quotas, fornecedores/regiões, integridade, autoridade D2/D3 e exercícios | Prontidão operacional não aprovada |
@@ -423,7 +423,7 @@ L-020 — texto integral da FC-06 — está fechada documentalmente pela especif
 ### 12.2 Próximos passos por dependência
 
 1. Fechar a revisão dos contratos/estados FC-01–FC-04, preservando a distinção entre histórico e normalização proposta.
-2. Recuperar F81.01–F81.12 e a fonte autónoma F82 Parte V, se existir.
+2. Recuperar as especificações autónomas F78–F82, com prioridade para o detalhe integral F81, os títulos de F82.01–F82.12 e os testes completos F82.
 3. Aprovar envelope de mensagens, correlação ponta a ponta e política de idempotência/outbox.
 4. Definir inventário de dados derivados, backups, fornecedores e regiões.
 5. Aprovar RTO/RPO por serviço, autoridade D2/D3, orçamento e frequência de exercícios.
