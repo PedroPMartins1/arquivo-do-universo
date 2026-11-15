@@ -30,4 +30,6 @@ Requisito → critério de aceitação → código → testes. Atualizada em cad
 | FC-03 | Revogação de identidade/credenciais/autorizações e avaliação de operações em curso | accounts.py (sessões) | Testes de autenticação não comprovam revogação global/cancelamento de operações |
 | FC-04 | Isolamento de serviço comprometido e prevenção de propagação | Não identificado nesta auditoria | Sem testes técnicos FC específicos identificados |
 | FC-05 | Escala apenas com necessidade demonstrável, custo aceitável, política de autonomia e validação de segurança | Especificação funcional recuperada; controlador não identificado | 20 testes conceptuais recuperados; execução técnica pendente |
-| FC-06 | Recuperação de desastre em infraestrutura alternativa, com continuidade verificável | Texto integral da especificação por recuperar (L-020) | Sem RTO/RPO, failover/failback ou testes DR comprovados |
+| FC-06 | Recuperação global, ambiente alternativo, validação, reintegração gradual e encerramento; RTO/RPO aprovados por serviço | docs externos ao repo: 05_FC06_Recuperacao_Desastres_Continuidade.docx, v1.0, §§1–28; contratos/eventos descritos em §19–20 | 20 testes conceptuais definidos; execução técnica e exercícios operacionais pendentes; RTO/RPO finais por aprovar |
+
+| FC-06 / integração | Restore não reintroduz dados eliminados, identidade revogada ou serviço isolado; capacidade alternativa sujeita a FC-05 e autorização | 06_Documento_Mestre_Fluxos_e_Contratos_FC01_FC06.docx, v1.0, §§4, 9–10 | 18 testes integrados conceptuais definidos; execução técnica pendente |
