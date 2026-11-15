@@ -16,5 +16,6 @@
 | [Reconciliação F78–F82](auditorias/reconciliacao-f78-f82-v0.1.md) | Mapa de responsabilidades, componentes F81, estrutura/autonomia F82 e lacunas históricas |
 | [Documento Mestre Operacional](documento-mestre-operacional.md) | Governação, segurança, dados, contratos e continuidade FC-01–FC-06 |
 | [Auditoria transversal FC-01–FC-06](auditorias/auditoria-transversal-fc-01-fc-06-v0.2.md) | Diagnóstico preliminar de coerência, contratos, estados, interações e lacunas |
+| [Auditoria global](auditorias/auditoria-global-v0.1.md) | Coerência entre decisões, ADR, código, testes, catálogo, rastreabilidade e estado do produto |
 
 O [Documento Mestre Operacional](documento-mestre-operacional.md) já tem uma primeira versão, construída a partir das especificações recuperadas dos fluxos FC-01–FC-06 e da governação associada. Não substitui ainda o Documento Mestre completo do produto, nem fecha as lacunas históricas F78–F82. Quando houver divergência de foco do produto, prevalece a visão do produto (D-022); nos restantes temas, prevalecem as decisões registadas e as fontes documentais aprovadas.
