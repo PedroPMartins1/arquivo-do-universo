@@ -162,6 +162,17 @@ A consolidação posterior identificou testes INT-01–INT-16 para interações 
 | F82-TST | Recuperar os oito testes próprios em forma integral | Parcial |
 | F82-INT | Recuperar a fonte dos testes INT-01–INT-16 e distinguir original de integração posterior | Parcial |
 
+## 7.1 Esclarecimento documental — «Parte V»
+
+A pesquisa na Library recuperou o ficheiro **Arquivo_do_Universo_Dossier_Mestre_Transicao_DevIn.md**. Nesse documento, a expressão «PARTE V — DOMÍNIOS FUNCIONAIS E MOTORES» é o título de uma secção do **Dossiê Mestre global do Arquivo do Universo**, que apresenta o mapa funcional geral, os motores especializados e capacidades transversais. Não é identificada como uma parte da especificação F82.
+
+Consequência para a reconciliação:
+- a referência a «F82 Parte V» deve ser tratada como uma confusão de âmbito documental, salvo aparecimento de um documento autónomo com esse título;
+- não existe, com a evidência atualmente recuperada, uma base para atribuir à F82 um capítulo Parte V com níveis R1–R4 ou modos de contingência;
+- a lacuna F82-PV deixa de significar «confirmar conteúdo de uma alegada Parte V da F82» e passa a significar apenas «verificar se existe algum documento autónomo adicional F82 com título/versão próprios».
+
+A existência da Parte V no Dossiê Mestre global está confirmada; a existência de uma «Parte V da F82» continua sem evidência.
+
 ## 8. Conclusão
 
 O mapa funcional F78–F82 está recuperado em síntese suficientemente consistente para orientar responsabilidades e evitar sobreposições. F81 tem 12 componentes identificados e autonomia R1–R3 em síntese histórica. F82 tem título, 12 componentes, sete camadas, autonomia A1–A4 e oito famílias de testes recuperados em síntese.
