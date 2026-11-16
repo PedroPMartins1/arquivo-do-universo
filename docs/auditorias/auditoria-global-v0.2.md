@@ -13,7 +13,7 @@ A revisão v0.2 preserva a auditoria v0.1 como fotografia de 15-11-2026 e atuali
 ## 2. Resultado executivo
 
 - A data D-030 (16-11-2026) já não é futura na data desta revisão.
-- A regra de quatro Revelações principais e bónus opcional é compatível com o limite técnico de cinco e os cinco horários configurados. O algoritmo distribui dinamicamente os horários quando existem menos revelações.
+- A regra de quatro Revelações principais e bónus opcional é compatível com o limite técnico de cinco e os cinco horários configurados, mas a implementação atual ainda não distingue semanticamente as principais do bónus.
 - O valor `PROMPT_VERSION=2026-11-17.1` continua a ser uma referência futura e carece de confirmação.
 - A divergência DE440/DE421 foi esclarecida: a aplicação calcula em execução com Swiss Ephemeris; Skyfield + JPL DE421 são usados nos testes de validação cruzada. ADR-0001 foi atualizado para refletir esta divisão.
 - A CI do commit `9d576000bb836c4a5ce72f3ab9815880cab08b54` terminou com sucesso nos dois jobs (backend e frontend).
@@ -28,7 +28,7 @@ A revisão v0.2 preserva a auditoria v0.1 como fotografia de 15-11-2026 e atuali
 | GA-02 | Baixa | Resolvido documentalmente | Índice reconhece Documento Mestre Operacional v1 e distingue-o do Documento Mestre completo do produto. | Manter distinção. |
 | GA-03 | Média | Parcialmente resolvido | D-030 está datada de 16-11-2026, data desta revisão; deixa de ser futura. D-029 continua a indicar `PROMPT_VERSION=2026-11-17.1`, futura face a 16-11. | Confirmar se a versão do prompt está deliberadamente preparada para 17-11 ou se a data está incorreta. Não alterar sem fonte. |
 | GA-04 | Baixa | Resolvido documentalmente | D-018 declara explicitamente que a escolha posterior Claude/Anthropic em D-029 prevalece. | Não reabrir sem nova decisão. |
-| GA-05 | Baixa | Resolvido na especificação e implementação; teste novo pendente de CI | D-028 fixa quatro principais + bónus opcional. `MAX_REVELATIONS=5`; D-030 define cinco horários. `unlock_times` usa todos quando há cinco e distribui quantidades inferiores entre o primeiro e o último. Foi acrescentado em 16-11 um teste explícito para 4 Revelações; a CI desse novo commit ainda está pendente. | Confirmar na CI o novo teste de quatro Revelações e manter o quinto conteúdo como opcional no contrato de interpretação. |
+| GA-05 | Baixa | Parcialmente resolvido; semântica de bónus por fechar | D-028 fixa quatro principais + bónus opcional. `MAX_REVELATIONS=5`; D-030 define cinco horários e `unlock_times` distribui dinamicamente a quantidade disponível. Contudo, `candidates(... )[:MAX_REVELATIONS]` seleciona até cinco conclusões por ranking, sem marcar quatro como principais nem a quinta como bónus; também pode devolver menos de quatro se houver menos candidatos. Foi acrescentado um teste explícito para 4 horários, ainda sem CI confirmada. | Confirmar a regra semântica: quatro principais e quinta opcional, incluindo critérios de elegibilidade e eventual tag de bónus; alinhar motor, contrato de interpretação, API e UI. Confirmar na CI o teste de quatro horários. |
 | GA-06 | Baixa | Resolvido documentalmente | `chart.py` calcula com Swiss Ephemeris. `test_natal_validation.py` carrega Skyfield e `de421.bsp`; `pyproject.toml` coloca Skyfield nas dependências de desenvolvimento. O script descarrega DE421. Não foi encontrada utilização de Skyfield como motor de execução. ADR-0001 atualizado. | Manter documentação alinhada se o teste ou backend mudar. |
 | GA-07 | Média | Parcialmente resolvido | ADR-0001 regista a evolução para worker de pré-geração via D-031. Supervisão, reinício, deploy, alertas e operação contínua não estão demonstrados. | Definir plano operacional antes de produção. |
 | GA-08 | Baixa | Resolvido documentalmente | D-010 deixou de remeter para L-002/L-003 resolvidas. | Sem ação adicional. |
@@ -78,7 +78,7 @@ A PR #17 permanece Draft, sem reviews ou threads de revisão registadas no momen
 ## 7. Próximas ações
 
 1. Confirmar a intenção da versão `PROMPT_VERSION=2026-11-17.1`.
-2. Acrescentar teste para exatamente quatro Revelações.
+2. Definir e implementar a separação entre quatro Revelações principais e bónus opcional; o teste de distribuição de quatro horários já foi acrescentado e aguarda CI.
 3. Fechar o desenho de hardening de autenticação (rate limiting, CSRF, CORS, HTTPS e testes).
 4. Clarificar se o limite D-031 é por processo ou global por utilizador/dia; só depois decidir persistência.
 5. Definir supervisão e operação do worker.
