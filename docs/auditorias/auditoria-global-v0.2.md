@@ -2,8 +2,7 @@
 
 **Data da revisão:** 16 de novembro de 2026  
 **Branch:** `audit/revisao-transversal-fc-01-fc-06`  
-**HEAD da branch na atualização:** `67bbe4a6b6ca75ba8d254a806b2c3927c0de9a5f`  
-**Commit com CI concluída:** `70ebc1eab6a8cd0361c46ddc94dbebf8231b5703`  
+**Commit de código validado por CI:** `70ebc1eab6a8cd0361c46ddc94dbebf8231b5703`  
 **PR:** [#17 — revisão transversal FC-01 a FC-06](https://github.com/PedroPMartins1/arquivo-do-universo/pull/17)  
 **Estado:** auditoria documental e técnica atualizada. Não aprova produção nem substitui testes de segurança/operacionais.
 
