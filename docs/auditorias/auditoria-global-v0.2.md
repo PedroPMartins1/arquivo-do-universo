@@ -2,8 +2,8 @@
 
 **Data da revisão:** 16 de novembro de 2026  
 **Branch:** `audit/revisao-transversal-fc-01-fc-06`  
-**HEAD da branch na atualização:** `70ebc1eab6a8cd0361c46ddc94dbebf8231b5703`  
-**Commit com CI concluída:** `9d576000bb836c4a5ce72f3ab9815880cab08b54`  
+**HEAD da branch na atualização:** `67bbe4a6b6ca75ba8d254a806b2c3927c0de9a5f`  
+**Commit com CI concluída:** `70ebc1eab6a8cd0361c46ddc94dbebf8231b5703`  
 **PR:** [#17 — revisão transversal FC-01 a FC-06](https://github.com/PedroPMartins1/arquivo-do-universo/pull/17)  
 **Estado:** auditoria documental e técnica atualizada. Não aprova produção nem substitui testes de segurança/operacionais.
 
@@ -29,7 +29,7 @@ A revisão v0.2 preserva a auditoria v0.1 como fotografia de 15-11-2026 e atuali
 | GA-02 | Baixa | Resolvido documentalmente | Índice reconhece Documento Mestre Operacional v1 e distingue-o do Documento Mestre completo do produto. | Manter distinção. |
 | GA-03 | Média | Parcialmente resolvido | D-030 está datada de 16-11-2026, data desta revisão; deixa de ser futura. D-029 continua a indicar `PROMPT_VERSION=2026-11-17.1`, futura face a 16-11. | Confirmar se a versão do prompt está deliberadamente preparada para 17-11 ou se a data está incorreta. Não alterar sem fonte. |
 | GA-04 | Baixa | Resolvido documentalmente | D-018 declara explicitamente que a escolha posterior Claude/Anthropic em D-029 prevalece. | Não reabrir sem nova decisão. |
-| GA-05 | Baixa | Parcialmente resolvido; semântica de bónus por fechar | D-028 fixa quatro principais + bónus opcional. `MAX_REVELATIONS=5`; D-030 define cinco horários e `unlock_times` distribui dinamicamente a quantidade disponível. Contudo, `candidates(... )[:MAX_REVELATIONS]` seleciona até cinco conclusões por ranking, sem marcar quatro como principais nem a quinta como bónus; também pode devolver menos de quatro se houver menos candidatos. Foi acrescentado um teste explícito para 4 horários, ainda sem CI confirmada. | Confirmar a regra semântica: quatro principais e quinta opcional, incluindo critérios de elegibilidade e eventual tag de bónus; alinhar motor, contrato de interpretação, API e UI. Confirmar na CI o teste de quatro horários. |
+| GA-05 | Baixa | Parcialmente resolvido; semântica de bónus por fechar | D-028 fixa quatro principais + bónus opcional. `MAX_REVELATIONS=5`; D-030 define cinco horários e `unlock_times` distribui dinamicamente a quantidade disponível. Contudo, `candidates(... )[:MAX_REVELATIONS]` seleciona até cinco conclusões por ranking, sem marcar quatro como principais nem a quinta como bónus; também pode devolver menos de quatro se houver menos candidatos. Foi acrescentado um teste explícito para 4 horários; passou na CI #74 do commit `70ebc1eab6a8cd0361c46ddc94dbebf8231b5703`. | Confirmar a regra semântica: quatro principais e quinta opcional, incluindo critérios de elegibilidade e eventual tag de bónus; alinhar motor, contrato de interpretação, API e UI. Confirmar na CI o teste de quatro horários. |
 | GA-06 | Baixa | Resolvido documentalmente | `chart.py` calcula com Swiss Ephemeris. `test_natal_validation.py` carrega Skyfield e `de421.bsp`; `pyproject.toml` coloca Skyfield nas dependências de desenvolvimento. O script descarrega DE421. Não foi encontrada utilização de Skyfield como motor de execução. ADR-0001 atualizado. | Manter documentação alinhada se o teste ou backend mudar. |
 | GA-07 | Média | Parcialmente resolvido | ADR-0001 regista a evolução para worker de pré-geração via D-031. Supervisão, reinício, deploy, alertas e operação contínua não estão demonstrados. | Definir plano operacional antes de produção. |
 | GA-08 | Baixa | Resolvido documentalmente | D-010 deixou de remeter para L-002/L-003 resolvidas. | Sem ação adicional. |
@@ -41,12 +41,12 @@ A revisão v0.2 preserva a auditoria v0.1 como fotografia de 15-11-2026 e atuali
 
 ### 4.1 CI no commit verificado
 
-Execução GitHub Actions **#69**, run ID `43753701830`, associada ao commit `9d576000bb836c4a5ce72f3ab9815880cab08b54`.
+Execução GitHub Actions **#74**, run ID `43865837168`, associada ao commit `70ebc1eab6a8cd0361c46ddc94dbebf8231b5703`. A execução anterior #69 também passou no commit `9d576000bb836c4a5ce72f3ab9815880cab08b54`.
 
 - **Backend — sucesso:** aquisição de efemérides, sincronização de dependências, Ruff, formatação, mypy, import-linter e pytest.
 - **Frontend — sucesso:** instalação, lint, testes Vitest e build.
 
-Esta execução confirma a passagem da suíte configurada nesse commit. Não prova segurança, validade astrológica independente em ambiente de produção, operação contínua, recuperação de desastre ou prontidão comercial.
+A execução #74 confirma a passagem da suíte configurada, incluindo o novo teste de distribuição para quatro Revelações. O HEAD atual contém apenas atualizações documentais posteriores a esse commit; não há uma nova execução CI associada a esse HEAD no momento desta revisão. Não prova segurança, validade astrológica independente em ambiente de produção, operação contínua, recuperação de desastre ou prontidão comercial.
 
 ### 4.2 Efemérides
 
@@ -79,7 +79,7 @@ A PR #17 permanece Draft, sem reviews ou threads de revisão registadas no momen
 ## 7. Próximas ações
 
 1. Confirmar a intenção da versão `PROMPT_VERSION=2026-11-17.1`.
-2. Definir e implementar a separação entre quatro Revelações principais e bónus opcional; o teste de distribuição de quatro horários já foi acrescentado e aguarda CI.
+2. Definir e implementar a separação entre quatro Revelações principais e bónus opcional; o teste de distribuição de quatro horários já passou na CI #74.
 3. Fechar o desenho de hardening de autenticação (rate limiting, CSRF, CORS, HTTPS e testes).
 4. Clarificar se o limite D-031 é por processo ou global por utilizador/dia; só depois decidir persistência.
 5. Definir supervisão e operação do worker.
