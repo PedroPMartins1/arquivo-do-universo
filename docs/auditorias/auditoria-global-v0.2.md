@@ -78,9 +78,9 @@ A PR #17 permanece Draft, sem reviews ou threads de revisão registadas no momen
 ## 7. Próximas ações
 
 1. Confirmar a intenção da versão `PROMPT_VERSION=2026-11-17.1`.
-2. Definir e implementar a separação entre quatro Revelações principais e bónus opcional; o teste de distribuição de quatro horários já passou na CI #74.
-3. Fechar o desenho de hardening de autenticação (rate limiting, CSRF, CORS, HTTPS e testes).
-4. Clarificar se o limite D-031 é por processo ou global por utilizador/dia; só depois decidir persistência.
+2. Definir e implementar a separação entre quatro Revelações principais e bónus opcional; o teste de distribuição de quatro horários já passou na CI #74. Tarefa registada em [issue #20](https://github.com/PedroPMartins1/arquivo-do-universo/issues/20).
+3. Fechar o desenho de hardening de autenticação (rate limiting, CSRF, CORS, HTTPS e testes). Tarefa registada em [issue #18](https://github.com/PedroPMartins1/arquivo-do-universo/issues/18).
+4. Clarificar se o limite D-031 é por processo ou global por utilizador/dia; avaliar persistência e coordenação entre workers. Tarefa registada em [issue #19](https://github.com/PedroPMartins1/arquivo-do-universo/issues/19).
 5. Definir supervisão e operação do worker.
 6. Atualizar a matriz requisito → código → teste → evidência e executar revisão final.
 7. Consolidar auditoria v1.0 e Documento Mestre após fechar os achados relevantes.
