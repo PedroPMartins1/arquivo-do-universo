@@ -28,7 +28,7 @@ A revisão v0.2 preserva a auditoria v0.1 como fotografia de 15-11-2026 e atuali
 | GA-02 | Baixa | Resolvido documentalmente | Índice reconhece Documento Mestre Operacional v1 e distingue-o do Documento Mestre completo do produto. | Manter distinção. |
 | GA-03 | Média | Parcialmente resolvido | D-030 está datada de 16-11-2026, data desta revisão; deixa de ser futura. D-029 continua a indicar `PROMPT_VERSION=2026-11-17.1`, futura face a 16-11. | Confirmar se a versão do prompt está deliberadamente preparada para 17-11 ou se a data está incorreta. Não alterar sem fonte. |
 | GA-04 | Baixa | Resolvido documentalmente | D-018 declara explicitamente que a escolha posterior Claude/Anthropic em D-029 prevalece. | Não reabrir sem nova decisão. |
-| GA-05 | Baixa | Resolvido funcionalmente; falta teste específico | D-028 fixa quatro principais + bónus opcional. `MAX_REVELATIONS=5`; D-030 define cinco horários. `unlock_times` usa todos quando há cinco e distribui quantidades inferiores entre o primeiro e o último. Testes cobrem 3 e 5, não 4. | Acrescentar teste explícito para quatro Revelações e confirmar que o quinto conteúdo é opcional no contrato de interpretação. |
+| GA-05 | Baixa | Resolvido na especificação e implementação; teste novo pendente de CI | D-028 fixa quatro principais + bónus opcional. `MAX_REVELATIONS=5`; D-030 define cinco horários. `unlock_times` usa todos quando há cinco e distribui quantidades inferiores entre o primeiro e o último. Foi acrescentado em 16-11 um teste explícito para 4 Revelações; a CI desse novo commit ainda está pendente. | Confirmar na CI o novo teste de quatro Revelações e manter o quinto conteúdo como opcional no contrato de interpretação. |
 | GA-06 | Baixa | Resolvido documentalmente | `chart.py` calcula com Swiss Ephemeris. `test_natal_validation.py` carrega Skyfield e `de421.bsp`; `pyproject.toml` coloca Skyfield nas dependências de desenvolvimento. O script descarrega DE421. Não foi encontrada utilização de Skyfield como motor de execução. ADR-0001 atualizado. | Manter documentação alinhada se o teste ou backend mudar. |
 | GA-07 | Média | Parcialmente resolvido | ADR-0001 regista a evolução para worker de pré-geração via D-031. Supervisão, reinício, deploy, alertas e operação contínua não estão demonstrados. | Definir plano operacional antes de produção. |
 | GA-08 | Baixa | Resolvido documentalmente | D-010 deixou de remeter para L-002/L-003 resolvidas. | Sem ação adicional. |
@@ -63,7 +63,7 @@ A alteração a ADR-0001 é documental; não altera o cálculo nem os ficheiros 
 - Horários por omissão: 09:00, 11:00, 13:00, 15:00 e 17:00 no fuso aplicável.
 - Cinco Revelações usam os cinco horários.
 - Menos de cinco são distribuídas uniformemente entre o primeiro e o último horário.
-- Os testes atuais cobrem 0, 1, 3, 5 e validação de configuração; falta um caso explícito para 4.
+- Os testes cobrem 0, 1, 3 e 5; foi acrescentado um caso para 4 no commit 1a9bca6, ainda sem execução CI confirmada neste ponto.
 
 ## 5. Segurança e fiabilidade — limites da evidência
 
