@@ -23,6 +23,15 @@ def test_unlock_times_uses_all_five_slots() -> None:
     ]
 
 
+def test_unlock_times_spreads_four_revelations_between_endpoints() -> None:
+    assert unlock_times(DAY, LISBON, 4, SLOTS) == [
+        datetime(2026, 11, 16, 9, tzinfo=LISBON),
+        datetime(2026, 11, 16, 11, 40, tzinfo=LISBON),
+        datetime(2026, 11, 16, 14, 20, tzinfo=LISBON),
+        datetime(2026, 11, 16, 17, tzinfo=LISBON),
+    ]
+
+
 def test_unlock_times_spreads_three_revelations_between_endpoints() -> None:
     assert unlock_times(DAY, LISBON, 3, SLOTS) == [
         datetime(2026, 11, 16, hour, tzinfo=LISBON) for hour in (9, 13, 17)
