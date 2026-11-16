@@ -17,8 +17,9 @@ O domínio exige cálculos astronómicos rigorosos, análise temporal, estatíst
   tabelas de arestas com CTE recursivas (grafo) + pgvector (pesquisa semântica). Bases dedicadas (grafo,
   vetorial) só com justificação medida.
 - **Tempo:** `zoneinfo` sobre o pacote `tzdata` com versão fixada (reprodutível e registada como proveniência) e `timezonefinder`.
-- **Astronomia:** Skyfield + efemérides JPL (DE440/DE440s).
-- **Astrologia:** Swiss Ephemeris (`pyswisseph`), com validação cruzada das posições através do Skyfield.
+- **Astronomia em execução:** Swiss Ephemeris com os ficheiros de efemérides próprios (`sepl_18.se1`, `semo_18.se1`, `seas_18.se1`); o código regista o backend e os ficheiros efetivamente utilizados e pode recorrer ao modelo Moshier quando os ficheiros Swiss não estão disponíveis.
+- **Validação astronómica independente:** Skyfield + JPL DE421 nos testes automatizados de validação cruzada. Skyfield é dependência de desenvolvimento/testes, não o motor astronómico de execução da aplicação. O script `backend/scripts/fetch_ephemerides.sh` descarrega DE421 e os testes `backend/tests/test_natal_validation.py` carregam explicitamente esse ficheiro.
+- **Astrologia:** Swiss Ephemeris (`pyswisseph`); os cálculos astrológicos usam posições determinísticas e registam versão da biblioteca, backend e avisos.
 - **Frontend:** React + TypeScript + Vite (SPA). Lint com oxlint, testes com Vitest.
 - **Background jobs:** nenhum na fase inicial. Quando necessário, uma fila sobre Postgres.
 - **IA/LLM:** sem fornecedor fixo. Interface própria; escolha num ADR na Fase 5 (D-018).
@@ -27,4 +28,9 @@ O domínio exige cálculos astronómicos rigorosos, análise temporal, estatíst
 ## Consequências
 - Um único processo e uma única base simplificam o deploy, os backups e a consistência transacional.
 - O Swiss Ephemeris é AGPL, o que exige publicar o código: aceite em ADR-0002.
+- A referência JPL DE421 serve para validação independente nos testes; não substitui os ficheiros Swiss Ephemeris usados em execução.
 - Se algum motor precisar de escalar à parte, a fronteira de pacote facilita extraí-lo para um serviço.
+
+## Evolução posterior — pré-geração em background
+
+A decisão inicial de não introduzir jobs de fundo na fundação foi posteriormente evoluída pela D-031. A pré-geração das leituras diárias é executada por um worker separado (`python -m arquivo.pregeneration`), com intervalo configurável, limites de falha por utilizador/dia e fallback para geração imediata no pedido. Esta evolução não altera a decisão de manter um monólito modular; o processo de execução, supervisão, reinício e deploy do worker tem de ser definido no plano operacional antes de produção.
