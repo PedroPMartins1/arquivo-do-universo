@@ -1,11 +1,12 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Cookie, HTTPException, Response, status
+from fastapi import APIRouter, Cookie, Request, Response, status
 from pydantic import BaseModel, EmailStr, Field, StringConstraints
+from starlette.responses import JSONResponse
 
-from arquivo.api.deps import SESSION_COOKIE, CurrentUser, Db
+from arquivo.api.deps import SESSION_COOKIE, CurrentUser, Db, Now
 from arquivo.config import get_settings
-from arquivo.persistence import accounts
+from arquivo.persistence import accounts, throttle
 from arquivo.persistence.models import User
 
 router = APIRouter(tags=["Contas"])
@@ -54,21 +55,88 @@ def _set_cookie(response: Response, token: str) -> None:
     )
 
 
-@router.post("/auth/register", status_code=status.HTTP_201_CREATED)
-def register(request: RegisterRequest, response: Response, db: Db) -> Me:
+def _delete_cookie(response: Response) -> None:
+    response.delete_cookie(
+        SESSION_COOKIE,
+        path="/",
+        secure=get_settings().environment == "production",
+        httponly=True,
+        samesite="lax",
+    )
+
+
+def _failure_response(
+    status_code: int, detail: str, retry_after: int | None = None
+) -> JSONResponse:
+    headers = {"Cache-Control": "no-store"}
+    if retry_after is not None:
+        headers["Retry-After"] = str(retry_after)
+    return JSONResponse(status_code=status_code, content={"detail": detail}, headers=headers)
+
+
+def _client_ip(request: Request) -> str:
+    return request.client.host if request.client is not None else "desconhecido"
+
+
+@router.post("/auth/register", status_code=status.HTTP_201_CREATED, response_model=Me)
+def register(
+    request: RegisterRequest,
+    http_request: Request,
+    response: Response,
+    db: Db,
+    now: Now,
+    token: Annotated[str | None, Cookie(alias=SESSION_COOKIE)] = None,
+) -> Me | JSONResponse:
+    key = throttle.register_key(_client_ip(http_request))
+    throttle.lock(db, [key])
+    retry = throttle.retry_after(db, [key], now)
+    if retry is not None:
+        return _failure_response(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            "demasiadas tentativas; tenta novamente mais tarde",
+            retry,
+        )
+    throttle.record(db, [key], now)
     try:
         user = accounts.register(db, request.email, request.password, request.display_name)
     except accounts.EmailInUseError as error:
-        raise HTTPException(status.HTTP_409_CONFLICT, str(error)) from error
+        return _failure_response(status.HTTP_409_CONFLICT, str(error))
+    if token:
+        accounts.close_session(db, token)
     _set_cookie(response, accounts.open_session(db, user))
     return Me.of(user)
 
 
-@router.post("/auth/login")
-def login(request: LoginRequest, response: Response, db: Db) -> Me:
+@router.post("/auth/login", response_model=Me)
+def login(
+    request: LoginRequest,
+    http_request: Request,
+    response: Response,
+    db: Db,
+    now: Now,
+    token: Annotated[str | None, Cookie(alias=SESSION_COOKIE)] = None,
+) -> Me | JSONResponse:
+    keys = throttle.login_keys(request.email, _client_ip(http_request))
+    throttle.lock(db, keys)
+    retry = throttle.retry_after(db, keys, now)
+    if retry is not None:
+        return _failure_response(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            "demasiadas tentativas; tenta novamente mais tarde",
+            retry,
+        )
     user = accounts.authenticate(db, request.email, request.password)
     if user is None:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "email ou palavra-passe incorretos")
+        throttle.record(db, keys, now)
+        # A resposta normal confirma os registos; lançar HTTPException faria rollback.
+        return _failure_response(
+            status.HTTP_401_UNAUTHORIZED,
+            "email ou palavra-passe incorretos",
+        )
+    throttle.clear(db, throttle.LOGIN_ACCOUNT_IP, keys[1][1], now)
+    if token:
+        accounts.close_session(db, token)
+    accounts.purge_expired_sessions(db, user, now)
     _set_cookie(response, accounts.open_session(db, user))
     return Me.of(user)
 
@@ -81,7 +149,7 @@ def logout(
 ) -> None:
     if token:
         accounts.close_session(db, token)
-    response.delete_cookie(SESSION_COOKIE, path="/")
+    _delete_cookie(response)
 
 
 @router.get("/me")
@@ -92,4 +160,4 @@ def me(user: CurrentUser) -> Me:
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
 def delete_me(user: CurrentUser, response: Response, db: Db) -> None:
     accounts.delete_account(db, user)
-    response.delete_cookie(SESSION_COOKIE, path="/")
+    _delete_cookie(response)

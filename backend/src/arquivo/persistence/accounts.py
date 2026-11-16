@@ -102,6 +102,15 @@ def close_session(session: Session, token: str) -> None:
     session.execute(delete(AuthSession).where(AuthSession.token_hash == _token_hash(token)))
 
 
+def purge_expired_sessions(session: Session, user: User, now: datetime) -> None:
+    session.execute(
+        delete(AuthSession).where(
+            AuthSession.user_id == user.id,
+            AuthSession.expires_at <= now,
+        )
+    )
+
+
 def delete_account(session: Session, user: User) -> None:
     """Apaga a conta e todos os dados (RGPD). A auditoria fica anonimizada (owner_id = NULL)."""
     audit(session, user.id, "account.deleted")

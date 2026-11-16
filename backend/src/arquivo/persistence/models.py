@@ -79,6 +79,19 @@ class AuthSession(Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
 
+class AuthThrottle(Base):
+    __tablename__ = "auth_throttle"
+    __table_args__ = (
+        Index("ix_auth_throttle_scope_key_created", "scope", "key_hash", "created_at"),
+        Index("ix_auth_throttle_created_at", "created_at"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    scope: Mapped[str] = mapped_column(String(32))
+    key_hash: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
 class Place(Base):
     """Localidade do GeoNames (CC BY 4.0). `search_text` = nomes normalizados entre `|`."""
 
