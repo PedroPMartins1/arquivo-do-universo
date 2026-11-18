@@ -57,14 +57,14 @@ def today_response() -> str:
                     "texto": f"marcador_texto_{index}",
                     "pergunta": f"marcador_pergunta_{index}",
                 }
-                for index in range(5)
+                for index in range(4)
             ],
             "amanha": None,
         }
     )
 
 
-def five_revelations(day: date, zone: str) -> DailySky:
+def four_revelations(day: date, zone: str) -> DailySky:
     local_zone = ZoneInfo(zone)
     event = SkyEvent(
         kind=EventKind.SIGN_INGRESS,
@@ -77,7 +77,7 @@ def five_revelations(day: date, zone: str) -> DailySky:
         zone=zone,
         day_starts=datetime.combine(day, time.min, tzinfo=local_zone),
         day_ends=datetime.combine(day + timedelta(days=1), time.min, tzinfo=local_zone),
-        revelations=[Revelation(weight=1, event=event) for _ in range(5)],
+        revelations=[Revelation(weight=1, event=event) for _ in range(4)],
         tomorrow=None,
         active=[],
         upcoming=[],
@@ -202,7 +202,7 @@ def test_today_and_reading_redact_revelations_until_unlock(
     cast(FastAPI, client.app).dependency_overrides[get_now] = lambda: now
     monkeypatch.setattr(
         "arquivo.api.profile.daily_sky",
-        lambda chart, day, zone: five_revelations(day, zone),
+        lambda chart, day, zone: four_revelations(day, zone),
     )
     model = FakeModel(today_response())
     cast(FastAPI, client.app).dependency_overrides[get_text_model] = lambda: model
@@ -216,13 +216,13 @@ def test_today_and_reading_redact_revelations_until_unlock(
     assert revelation["supporting"] == []
     assert revelation["event"]["other_body"] is None
     assert revelation["event"]["aspect"] is None
-    unlock_hours = [
-        datetime.fromisoformat(slot["unlocks_at"].replace("Z", "+00:00")).hour
+    unlock_times = [
+        datetime.fromisoformat(slot["unlocks_at"]).strftime("%H:%M")
         for slot in sky_json["revelations"]
     ]
-    assert unlock_hours == [9, 11, 13, 15, 17]
+    assert unlock_times == ["09:00", "11:40", "14:20", "17:00"]
+    assert [slot["role"] for slot in sky_json["revelations"]] == ["main", "main", "main", "bonus"]
     assert [slot["revelation"] is not None for slot in sky_json["revelations"]] == [
-        True,
         True,
         False,
         False,
@@ -234,12 +234,11 @@ def test_today_and_reading_redact_revelations_until_unlock(
     reading_json = reading.json()
     assert [revelation is not None for revelation in reading_json["revelations"]] == [
         True,
-        True,
         False,
         False,
         False,
     ]
-    for index in range(2, 5):
+    for index in range(1, 4):
         assert f"marcador_titulo_{index}" not in reading.text
         assert f"marcador_texto_{index}" not in reading.text
         assert f"marcador_pergunta_{index}" not in reading.text
@@ -263,7 +262,7 @@ def test_today_past_is_open_and_future_is_locked(
     cast(FastAPI, client.app).dependency_overrides[get_now] = lambda: now
     monkeypatch.setattr(
         "arquivo.api.profile.daily_sky",
-        lambda chart, day, zone: five_revelations(day, zone),
+        lambda chart, day, zone: four_revelations(day, zone),
     )
     past = client.get("/api/v1/me/today", params={"date": "2026-11-15"}).json()
     future = client.get("/api/v1/me/today", params={"date": "2026-11-17"}).json()

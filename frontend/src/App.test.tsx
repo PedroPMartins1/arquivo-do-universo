@@ -46,6 +46,7 @@ const SKY = {
   now: '2026-11-12T11:00:00Z',
   revelations: [
     {
+      role: 'main',
       unlocks_at: '2026-11-12T07:00:00Z',
       revelation: {
         weight: 6,
