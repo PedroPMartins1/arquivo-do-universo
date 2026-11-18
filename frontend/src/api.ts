@@ -155,6 +155,7 @@ export interface Revelation {
 
 export interface RevelationSlot {
   unlocks_at: string
+  role: 'main' | 'bonus'
   revelation: Revelation | null
 }
 

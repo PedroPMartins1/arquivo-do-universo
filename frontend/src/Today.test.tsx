@@ -43,6 +43,7 @@ const SKY: TodaySky = {
   now: '2026-11-16T11:00:00Z',
   revelations: [
     {
+      role: 'main',
       unlocks_at: '2026-11-16T07:00:00Z',
       revelation: {
         weight: 6,
@@ -80,7 +81,7 @@ const SKY: TodaySky = {
         ],
       },
     },
-    { unlocks_at: '2026-11-16T13:00:00Z', revelation: null },
+    { unlocks_at: '2026-11-16T13:00:00Z', role: 'main', revelation: null },
   ],
   tomorrow: {
     weight: 3.75,
@@ -149,6 +150,25 @@ afterEach(() => {
 })
 
 describe('Hoje', () => {
+  it('identifica o bónus antes de abrir e apresenta o conteúdo depois', async () => {
+    const main = SKY.revelations[0]
+    const locked = { ...SKY.revelations[1], role: 'bonus' as const }
+    const sky = { ...SKY, revelations: [main, main, main, locked] }
+    const fetchMock = vi.fn((url: string) =>
+      url.includes('/me/today') ? Promise.resolve(json(sky)) : responseFor(url),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const view = render(<Today me={ME} onMoved={() => undefined} />)
+    expect(await screen.findByText('Bónus')).toBeInTheDocument()
+    expect(screen.getByText('Abre às 13:00')).toBeInTheDocument()
+
+    sky.revelations[3] = { ...locked, revelation: main.revelation }
+    view.unmount()
+    render(<Today me={ME} onMoved={() => undefined} />)
+    expect(await screen.findByText('Bónus')).toBeInTheDocument()
+    expect(screen.queryByText('Abre às 13:00')).not.toBeInTheDocument()
+  })
+
   it('mostra o conteúdo aberto, a pergunta e o tema do dia', async () => {
     vi.stubGlobal('fetch', vi.fn((url: string) => responseFor(url)))
     render(<Today me={ME} onMoved={() => undefined} />)
