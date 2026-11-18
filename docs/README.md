@@ -9,6 +9,7 @@
 | [Estados oficiais](governanca/estados.md) | Ciclo de vida dos requisitos e das tarefas |
 | [Processo de trabalho](governanca/processo.md) | Como cada incremento é planeado, implementado e entregue |
 | [Lacunas](governanca/lacunas.md) | O que falta recuperar, e que fase cada lacuna bloqueia |
+| [Autenticação e segurança](seguranca/autenticacao.md) | Autenticação, sessões, limites de tentativas, CSRF, CORS e configuração de produção (D-033) |
 | [Catálogo de requisitos](requisitos/catalogo.md) | Funcionalidades, IDs e estado real |
 | [Rastreabilidade](requisitos/rastreabilidade.md) | Requisito → código → testes |
 | [ADR](adr/) | Decisões de arquitetura |

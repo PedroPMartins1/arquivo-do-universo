@@ -29,7 +29,7 @@ Estados conforme [estados oficiais](../governanca/estados.md). Baseline: [audito
 | AU-EVO | Inteligência evolutiva e aprendizagem | §24 | 3 | em especificação | — |
 | AU-VAL | Validação e qualidade | §12, §32 | transversal | em especificação | — |
 | AU-ENG | Engenharia e gestão de versões | §34 | transversal | em desenvolvimento | CI, ADR, este catálogo |
-| AU-SEG | Segurança e privacidade | §28 | transversal | em especificação | — |
+| AU-SEG | Segurança e privacidade | §28 | transversal | em desenvolvimento | Contas, sessões, limites de tentativas, CSRF, CORS e configuração de proxies (D-026, D-033) |
 | AU-EXT | Extensibilidade e portabilidade | §12, §45 | 7 | em especificação | — |
 
 «em especificação» quer dizer que existe descrição funcional no dossiê, mas ainda não existe o conjunto

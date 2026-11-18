@@ -1,13 +1,18 @@
+import ipaddress
 from datetime import time
 from functools import lru_cache
 from itertools import pairwise
 from pathlib import Path
+from typing import Literal
+from urllib.parse import urlsplit
 
-from pydantic import AliasChoices, Field, SecretStr, field_validator
+from pydantic import AliasChoices, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # As leituras históricas podem conter cinco revelações.
 _MIN_UNLOCK_TIMES = 5
+
+DEVELOPMENT_AUTH_RATE_LIMIT_KEY = "arquivo-development-only-rate-limit-key-not-for-production"
 
 
 def default_ephemeris_path(module_file: Path = Path(__file__), cwd: Path | None = None) -> Path:
@@ -23,11 +28,17 @@ def default_ephemeris_path(module_file: Path = Path(__file__), cwd: Path | None 
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="ARQUIVO_", env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_prefix="ARQUIVO_", env_file=".env", extra="ignore", hide_input_in_errors=True
+    )
 
-    environment: str = "development"
+    environment: Literal["development", "test", "production"] = "development"
     database_url: str = "postgresql+psycopg://arquivo:arquivo@localhost:5432/arquivo"
-    cors_origins: list[str] = ["http://localhost:5173"]
+    cors_origins: list[str] = Field(
+        default_factory=lambda: ["http://localhost:5173", "http://127.0.0.1:5173"]
+    )
+    trusted_proxies: list[str] = Field(default_factory=list)
+    auth_rate_limit_key: SecretStr | None = None
     ephemeris_path: Path = Field(default_factory=default_ephemeris_path)
     revelation_unlock_times: list[time] = Field(
         default_factory=lambda: [
@@ -47,6 +58,65 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("ARQUIVO_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY"),
     )
     anthropic_model: str = "claude-sonnet-5-5"
+
+    @field_validator("cors_origins")
+    @classmethod
+    def _validate_cors_origins(cls, origins: list[str]) -> list[str]:
+        for origin in origins:
+            if not origin or "*" in origin or any(character.isspace() for character in origin):
+                raise ValueError("cada origem CORS tem de ser uma origem explícita")
+            if any(character in origin for character in "?#"):
+                raise ValueError("as origens CORS não podem incluir caminho, consulta ou fragmento")
+            parsed = urlsplit(origin)
+            if (
+                parsed.scheme not in ("http", "https")
+                or not parsed.netloc
+                or not parsed.hostname
+                or parsed.path
+                or parsed.query
+                or parsed.fragment
+                or parsed.username is not None
+                or parsed.password is not None
+            ):
+                raise ValueError("cada origem CORS tem de ser scheme://host[:port]")
+            try:
+                port = parsed.port
+            except ValueError as error:
+                raise ValueError("a porta de uma origem CORS é inválida") from error
+            if parsed.netloc.endswith(":") and port is None:
+                raise ValueError("a porta de uma origem CORS é inválida")
+        return origins
+
+    @field_validator("trusted_proxies")
+    @classmethod
+    def _validate_trusted_proxies(cls, proxies: list[str]) -> list[str]:
+        for proxy in proxies:
+            if not proxy or "*" in proxy:
+                raise ValueError("cada proxy de confiança tem de ser um IP ou uma rede CIDR")
+            try:
+                network = ipaddress.ip_network(proxy, strict=False)
+            except ValueError as error:
+                raise ValueError(
+                    "cada proxy de confiança tem de ser um IP ou uma rede CIDR"
+                ) from error
+            if network.prefixlen == 0:
+                raise ValueError("a rede de proxies de confiança tem de ser específica")
+        return proxies
+
+    @model_validator(mode="after")
+    def _validate_production_settings(self) -> "Settings":
+        if self.environment == "production":
+            if not self.cors_origins:
+                raise ValueError("a produção exige pelo menos uma origem CORS")
+            if any(urlsplit(origin).scheme != "https" for origin in self.cors_origins):
+                raise ValueError("a produção só permite origens CORS HTTPS")
+            secret = self.auth_rate_limit_key.get_secret_value() if self.auth_rate_limit_key else ""
+            if len(secret.strip()) < 32 or secret.strip() == DEVELOPMENT_AUTH_RATE_LIMIT_KEY:
+                raise ValueError(
+                    "a produção exige uma chave própria com pelo menos 32 caracteres em "
+                    "ARQUIVO_AUTH_RATE_LIMIT_KEY"
+                )
+        return self
 
     @field_validator("revelation_unlock_times")
     @classmethod
