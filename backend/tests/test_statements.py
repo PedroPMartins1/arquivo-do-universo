@@ -5,7 +5,7 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import select, text, update
+from sqlalchemy import create_engine, inspect, select, update
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 
@@ -245,15 +245,25 @@ def test_audit_is_append_only_but_anonymised_on_user_deletion(
     assert session.scalars(select(Statement).where(Statement.owner_id == user.id)).all() == []
 
 
-def test_migrations_round_trip(alembic_config: Config, database_url: str) -> None:
+@pytest.mark.parametrize(
+    ("previous_revision", "existing_table"),
+    [
+        ("c0cc022174a6", "pregeneration_failures"),
+        ("b8f2c0d91a47", "auth_throttle"),
+    ],
+)
+def test_migrations_round_trip(
+    alembic_config: Config, database_url: str, previous_revision: str, existing_table: str
+) -> None:
     command.downgrade(alembic_config, "base")
-    command.upgrade(alembic_config, "head")
-    from sqlalchemy import create_engine
-
+    command.upgrade(alembic_config, previous_revision)
+    daily_and_auth = {"pregeneration_failures", "auth_throttle"}
     engine = create_engine(database_url)
-    with engine.connect() as connection:
-        tables = connection.execute(
-            text("SELECT tablename FROM pg_tables WHERE schemaname = 'public'")
-        ).scalars()
-        assert {"users", "sources", "statements", "audit_events"} <= set(tables)
-    engine.dispose()
+    try:
+        assert daily_and_auth.intersection(inspect(engine).get_table_names()) == {existing_table}
+        command.upgrade(alembic_config, "head")
+        tables = set(inspect(engine).get_table_names())
+        assert daily_and_auth <= tables
+        assert {"users", "sources", "statements", "audit_events"} <= tables
+    finally:
+        engine.dispose()

@@ -40,11 +40,12 @@ class CSRFMiddleware:
             if fetch_site is not None:
                 allowed = fetch_site in {"same-origin", "none"}
             elif referer is not None:
-                parsed = urlsplit(referer)
-                referer_origin = f"{parsed.scheme}://{parsed.netloc}"
-                allowed = bool(parsed.scheme and parsed.netloc) and (
-                    referer_origin in self.trusted_origins
-                )
+                try:
+                    parsed = urlsplit(referer)
+                except ValueError:
+                    allowed = False
+                else:
+                    allowed = f"{parsed.scheme}://{parsed.netloc}" in self.trusted_origins
             else:
                 allowed = True
 

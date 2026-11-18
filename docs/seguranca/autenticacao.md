@@ -32,8 +32,8 @@ fornecida pela aplicação. Não são guardados emails, IPs nem identificadores 
 | `register_ip` | Pedidos de registo que chegam ao handler, incluindo duplicados | 10 | 60 min | PostgreSQL, tabela `auth_throttle` | HMAC-SHA256 sobre `register_ip:<IP>` | Limpeza oportunística de linhas com mais de 2 h |
 
 O HMAC usa `ARQUIVO_AUTH_RATE_LIMIT_KEY` em produção. Em desenvolvimento e testes, se a variável
-não estiver definida, usa-se uma constante fixa exclusiva para esses ambientes; nunca deve ser
-usada em produção. As operações sobre cada chave são serializadas com advisory locks transacionais,
+estiver ausente, usa-se uma constante fixa. A configuração de produção exige uma chave própria
+e recusa essa constante. As operações sobre cada chave são serializadas com advisory locks transacionais,
 para que pedidos concorrentes e vários workers observem o mesmo limite.
 
 O limite global por email (`login_account`) é intencional: um atacante distribuído pode bloquear
@@ -94,6 +94,9 @@ por clientes.
 
 ## Configuração de produção
 
+A partir de `backend/`, o comando `uv run alembic upgrade head` aplica as migrações de autenticação
+e de pré-geração. Uma base que já tenha recebido uma delas pode seguir o mesmo procedimento.
+
 Define as variáveis através do gestor de segredos e da configuração de deployment, nunca no código
 ou em logs:
 
@@ -107,7 +110,7 @@ ARQUIVO_AUTH_RATE_LIMIT_KEY=<segredo aleatório com pelo menos 32 caracteres>
 As origens têm de ser origens explícitas `http://host[:port]` ou `https://host[:port]`, sem caminho,
 query, fragmento, wildcard ou barra final. Em produção, a lista não pode estar vazia e todas as
 origens têm de usar HTTPS. Endereços dos proxies têm de ser IPs ou redes CIDR válidas. Uma
-configuração inválida impede a aplicação de arrancar. O Uvicorn deve ser executado com
+configuração que confie em toda a Internet (`/0`) impede a aplicação de arrancar. O Uvicorn deve ser executado com
 `--no-proxy-headers`, por exemplo:
 
 ```text

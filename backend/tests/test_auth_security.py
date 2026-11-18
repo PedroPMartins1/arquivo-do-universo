@@ -7,7 +7,6 @@ from typing import Any, Protocol, cast
 
 import pytest
 from fastapi import FastAPI
-from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
 from pydantic import SecretStr, ValidationError
 from sqlalchemy import delete, func, select
@@ -17,7 +16,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from arquivo import main
 from arquivo.api import auth
 from arquivo.api.deps import SESSION_COOKIE, get_db, get_now
-from arquivo.config import Settings, get_settings
+from arquivo.config import DEVELOPMENT_AUTH_RATE_LIMIT_KEY, Settings, get_settings
 from arquivo.persistence import accounts, throttle
 from arquivo.persistence.models import AuditEvent, AuthSession, AuthThrottle, User
 
@@ -366,13 +365,13 @@ def test_parallel_failures_respect_account_ip_limit(engine: Engine) -> None:
 
 def test_invalid_origins_are_rejected_on_every_unsafe_route(client: TestClient) -> None:
     app = cast(FastAPI, client.app)
-    templates = [
-        (route.path, route.methods.intersection({"POST", "PUT", "DELETE", "PATCH"}))
-        for route in app.routes
-        if isinstance(route, APIRoute)
-        and route.methods
-        and route.methods.intersection({"POST", "PUT", "DELETE", "PATCH"})
-    ]
+    operations = {
+        (method.upper(), path)
+        for path, methods in app.openapi()["paths"].items()
+        for method in methods
+        if method in {"post", "put", "delete", "patch"}
+    }
+    assert ("POST", "/api/v1/auth/login") in operations
     invalid_headers = [
         {"Origin": "https://evil.example"},
         {"Origin": "null"},
@@ -381,12 +380,11 @@ def test_invalid_origins_are_rejected_on_every_unsafe_route(client: TestClient) 
         {"Referer": "https://evil.example/x"},
     ]
 
-    for route_path, methods in templates:
+    for method, route_path in operations:
         path = re.sub(r"\{[^{}]+\}", "valor", route_path)
-        for method in methods:
-            for headers in invalid_headers:
-                response = client.request(method, path, headers=headers)
-                assert response.status_code == 403, f"{method} {path} {headers}"
+        for headers in invalid_headers:
+            response = client.request(method, path, headers=headers)
+            assert response.status_code == 403, f"{method} {path} {headers}"
 
 
 def test_allowed_origin_and_form_post_behavior(client: TestClient) -> None:
@@ -444,6 +442,9 @@ def test_settings_reject_unsafe_origins_and_proxies() -> None:
         Settings(trusted_proxies=["*"])
     with pytest.raises(ValidationError):
         Settings(trusted_proxies=["proxy.local"])
+    for network in ("0.0.0.0/0", "::/0"):
+        with pytest.raises(ValidationError):
+            Settings(trusted_proxies=[network])
 
 
 def test_production_settings_fail_closed_and_accept_valid_configuration() -> None:
@@ -473,6 +474,13 @@ def test_production_settings_fail_closed_and_accept_valid_configuration() -> Non
         )
     with pytest.raises(ValidationError):
         Settings.model_validate({"environment": "prodution"})
+    with pytest.raises(ValidationError) as error:
+        Settings(
+            environment="production",
+            cors_origins=["https://arquivo.example"],
+            auth_rate_limit_key=DEVELOPMENT_AUTH_RATE_LIMIT_KEY,
+        )
+    assert DEVELOPMENT_AUTH_RATE_LIMIT_KEY not in str(error.value)
 
     accepted = Settings(
         environment="production",

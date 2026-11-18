@@ -170,6 +170,17 @@ class Interpretation(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
+class PregenerationFailure(Base):
+    __tablename__ = "pregeneration_failures"
+    __table_args__ = (CheckConstraint("count > 0", name="positive_count"),)
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    day: Mapped[date] = mapped_column(Date, primary_key=True)
+    count: Mapped[int] = mapped_column(Integer)
+
+
 class Reflection(Base):
     __tablename__ = "reflections"
     __table_args__ = (

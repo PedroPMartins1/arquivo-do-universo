@@ -13,6 +13,7 @@ from arquivo.natal.chart import ChartError, NatalChart, calculate_chart
 from arquivo.persistence.accounts import audit
 from arquivo.persistence.models import BirthProfile, User
 from arquivo.temporal.zones import UnknownTimeZoneError, zone_for_coordinates
+from arquivo.transits.constants import MAX_MAIN_REVELATIONS
 from arquivo.transits.engine import (
     DailySky,
     Revelation,
@@ -46,6 +47,7 @@ class BirthProfileOut(BirthData):
 
 class RevelationSlot(BaseModel):
     unlocks_at: datetime
+    role: Literal["main", "bonus"]
     revelation: Revelation | None
 
 
@@ -200,9 +202,12 @@ def today(
         revelations=[
             RevelationSlot(
                 unlocks_at=unlocks_at,
+                role="bonus" if index == MAX_MAIN_REVELATIONS else "main",
                 revelation=revelation if immediate or now >= unlocks_at else None,
             )
-            for revelation, unlocks_at in zip(sky.revelations, unlocks, strict=True)
+            for index, (revelation, unlocks_at) in enumerate(
+                zip(sky.revelations, unlocks, strict=True)
+            )
         ],
         tomorrow=sky.tomorrow,
         active=sky.active,

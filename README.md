@@ -44,6 +44,10 @@ cd backend
 uv run python -m arquivo.pregeneration
 ```
 
+Em execução contínua, supervisione o worker com reinício automático e acompanhe os totais de leituras geradas, falhadas e ignoradas após o limite. Investigue falhas consecutivas e passagens sem leituras quando existirem contas ativas elegíveis. Aplique as migrações antes de iniciar os workers.
+
+O PostgreSQL coordena os workers por utilizador e dia local e regista as falhas concluídas. Quando uma ligação termina, o bloqueio da pré-geração é libertado e outra passagem pode retomar o trabalho. Uma interrupção durante o pedido ao fornecedor pode exigir repetir esse pedido. O pedido da aplicação continua a poder gerar a leitura imediatamente.
+
 ### Verificações (as mesmas da CI)
 
 ```bash

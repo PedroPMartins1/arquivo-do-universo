@@ -204,6 +204,7 @@ export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
                     <rect x="4" y="10" width="16" height="11" rx="2" />
                     <path d="M8 10V7a4 4 0 0 1 8 0v3" />
                   </svg>
+                  {slot.role === 'bonus' && <p className="origin">Bónus</p>}
                   <p>Abre às {timeOf(slot.unlocks_at, zone)}</p>
                 </article>
               )
@@ -211,6 +212,7 @@ export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
             const text = reading?.revelations[index]
             return (
               <article className="revelation" key={index}>
+                {slot.role === 'bonus' && <p className="origin">Bónus</p>}
                 <p className="origin">
                   <RevelationOrigin revelation={revelation} zone={zone} since={sky.day_starts} />
                 </p>

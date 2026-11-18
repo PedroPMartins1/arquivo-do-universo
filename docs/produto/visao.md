@@ -27,7 +27,7 @@ para que ela sinta que a aplicação fala dela e lhe pertence, e que vale a pena
 ## Funcionalidades, por prioridade
 
 1. Mapa astral completo, com interpretação profunda da personalidade (sem textos genéricos).
-2. Hoje — as 5 Revelações do Dia: acontecimentos reais do céu cruzados com o mapa natal; «o segredo de amanhã».
+2. Hoje — até três Revelações principais do Dia e um bónus opcional: acontecimentos reais do céu cruzados com o mapa natal; «o segredo de amanhã».
 3. Caminho astral: ciclos, retornos de Saturno e Júpiter, progressões, eclipses, linha temporal da vida.
 4. Arquivo do Universo: história pessoal (leituras recebidas, reflexões, decisões, retrospetivas).
 5. Assistente de IA que conhece o mapa e o histórico da pessoa.
@@ -45,7 +45,7 @@ Navegação em cinco áreas: Hoje, Explorar, Jornada, Arquivo, Perfil. Planos Gr
 - Tom místico e envolvente na experiência; internamente, nunca inventar acontecimentos celestes nem
   apresentar a astrologia como ciência comprovada (D-023).
 - Os cálculos são feitos pelo motor astrológico; a IA interpreta, nunca calcula posições.
-- Se num dia houver menos de cinco correlações relevantes, não se fabricam revelações.
+- As Revelações principais usam até três conclusões relevantes. O bónus explica um termo astrológico ligado a uma quarta conclusão relevante, quando disponível.
 - Data e hora de nascimento exatas (D-020), em vez da hora «desconhecida ou aproximada» da conversa original.
 - Identidade visual «opção C»: experiência mística combinada com design premium (D-024).
 - RGPD: dados de nascimento são dados pessoais; minimizar, proteger e dar controlo ao utilizador.

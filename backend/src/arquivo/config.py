@@ -9,7 +9,8 @@ from urllib.parse import urlsplit
 from pydantic import AliasChoices, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from arquivo.transits.constants import MAX_REVELATIONS
+# As leituras históricas podem conter cinco revelações.
+_MIN_UNLOCK_TIMES = 5
 
 DEVELOPMENT_AUTH_RATE_LIMIT_KEY = "arquivo-development-only-rate-limit-key-not-for-production"
 
@@ -27,7 +28,9 @@ def default_ephemeris_path(module_file: Path = Path(__file__), cwd: Path | None 
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="ARQUIVO_", env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_prefix="ARQUIVO_", env_file=".env", extra="ignore", hide_input_in_errors=True
+    )
 
     environment: Literal["development", "test", "production"] = "development"
     database_url: str = "postgresql+psycopg://arquivo:arquivo@localhost:5432/arquivo"
@@ -91,11 +94,13 @@ class Settings(BaseSettings):
             if not proxy or "*" in proxy:
                 raise ValueError("cada proxy de confiança tem de ser um IP ou uma rede CIDR")
             try:
-                ipaddress.ip_network(proxy, strict=False)
+                network = ipaddress.ip_network(proxy, strict=False)
             except ValueError as error:
                 raise ValueError(
                     "cada proxy de confiança tem de ser um IP ou uma rede CIDR"
                 ) from error
+            if network.prefixlen == 0:
+                raise ValueError("a rede de proxies de confiança tem de ser específica")
         return proxies
 
     @model_validator(mode="after")
@@ -105,10 +110,11 @@ class Settings(BaseSettings):
                 raise ValueError("a produção exige pelo menos uma origem CORS")
             if any(urlsplit(origin).scheme != "https" for origin in self.cors_origins):
                 raise ValueError("a produção só permite origens CORS HTTPS")
-            key = self.auth_rate_limit_key
-            if key is None or len(key.get_secret_value()) < 32:
+            secret = self.auth_rate_limit_key.get_secret_value() if self.auth_rate_limit_key else ""
+            if len(secret.strip()) < 32 or secret.strip() == DEVELOPMENT_AUTH_RATE_LIMIT_KEY:
                 raise ValueError(
-                    "a produção exige ARQUIVO_AUTH_RATE_LIMIT_KEY com pelo menos 32 caracteres"
+                    "a produção exige uma chave própria com pelo menos 32 caracteres em "
+                    "ARQUIVO_AUTH_RATE_LIMIT_KEY"
                 )
         return self
 
@@ -117,8 +123,8 @@ class Settings(BaseSettings):
     def _validate_revelation_unlock_times(cls, values: list[time]) -> list[time]:
         if not values:
             raise ValueError("os horários de abertura não podem estar vazios")
-        if len(values) < MAX_REVELATIONS:
-            raise ValueError(f"são precisos pelo menos {MAX_REVELATIONS} horários de abertura")
+        if len(values) < _MIN_UNLOCK_TIMES:
+            raise ValueError(f"são precisos pelo menos {_MIN_UNLOCK_TIMES} horários de abertura")
         if any(first >= second for first, second in pairwise(values)):
             raise ValueError("os horários de abertura têm de ser estritamente crescentes")
         return values
