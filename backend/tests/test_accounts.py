@@ -129,7 +129,7 @@ def test_today_uses_residence_zone(client: TestClient) -> None:
     assert sky["zone"] == "Europe/Lisbon"
     slots = sky["revelations"]
     assert len(slots) <= 4
-    assert [slot["role"] for slot in slots] == ["main", "main", "main", "bonus"][:len(slots)]
+    assert [slot["role"] for slot in slots] == ["main", "main", "main", "bonus"][: len(slots)]
     bad = {"place_name": "Lugar", "zone": "Marte/Olympus"}
     assert client.put("/api/v1/me/residence", json=bad).status_code == 422
     home = {"place_name": "Tokyo, Japão", "zone": "Asia/Tokyo"}
