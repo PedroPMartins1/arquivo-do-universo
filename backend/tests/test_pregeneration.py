@@ -1,6 +1,8 @@
 import json
 from collections.abc import Iterator
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, date, datetime, time, timedelta
+from threading import Event
 from typing import cast
 from uuid import UUID, uuid4
 from zoneinfo import ZoneInfo
@@ -337,14 +339,60 @@ def test_failure_cap_skips_user_after_max_attempts(
     create_user(test_sessionmaker)
     patch_daily_sky(monkeypatch)
     failing_model = FailingModel()
-    capped = pregeneration.Pregenerator(
-        Settings(pregeneration_workers=1, pregeneration_max_failures=3)
-    )
+    settings = Settings(pregeneration_workers=1, pregeneration_max_failures=3)
     for _ in range(3):
-        assert capped.run_pass(NOW, failing_model).failed == 1
-    final = capped.run_pass(NOW, failing_model)
+        assert pregeneration.Pregenerator(settings).run_pass(NOW, failing_model).failed == 1
+    final = pregeneration.Pregenerator(settings).run_pass(NOW, failing_model)
     assert final == pregeneration.PassReport(0, 0, 1)
     assert failing_model.calls == 9
+    tomorrow = NOW + timedelta(days=1)
+    assert pregeneration.Pregenerator(settings).run_pass(tomorrow, failing_model).failed == 1
+
+
+def test_concurrent_workers_call_model_once(
+    test_sessionmaker: sessionmaker[Session], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    create_user(test_sessionmaker)
+    patch_daily_sky(monkeypatch)
+    entered, release = Event(), Event()
+
+    class BlockingModel(FakeModel):
+        def complete(self, system: str, prompt: str, *, max_tokens: int) -> str:
+            entered.set()
+            assert release.wait(timeout=10)
+            return super().complete(system, prompt, max_tokens=max_tokens)
+
+    model = BlockingModel(reading_response())
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        first = executor.submit(pregeneration.Pregenerator().run_pass, NOW, model)
+        try:
+            assert entered.wait(timeout=10)
+            assert pregeneration.Pregenerator().run_pass(NOW, model) == pregeneration.PassReport(
+                0, 0, 0
+            )
+        finally:
+            release.set()
+        assert first.result(timeout=10) == pregeneration.PassReport(1, 0, 0)
+    assert model.calls == 1
+
+
+def test_interrupted_transaction_releases_worker_lock(
+    test_sessionmaker: sessionmaker[Session], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    class WorkerStopped(BaseException):
+        pass
+
+    class InterruptedModel(FakeModel):
+        def complete(self, system: str, prompt: str, *, max_tokens: int) -> str:
+            raise WorkerStopped
+
+    create_user(test_sessionmaker)
+    patch_daily_sky(monkeypatch)
+    with pytest.raises(WorkerStopped):
+        pregeneration.Pregenerator().run_pass(NOW, InterruptedModel())
+    model = FakeModel(reading_response())
+    assert pregeneration.Pregenerator().run_pass(NOW, model) == pregeneration.PassReport(1, 0, 0)
+    assert model.calls == 1
 
 
 def test_main_continues_after_pass_failure(
