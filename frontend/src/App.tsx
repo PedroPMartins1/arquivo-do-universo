@@ -24,6 +24,7 @@ import { ChartWheel } from './ChartWheel'
 import { Archive } from './Archive'
 import { Today } from './Today'
 import { ResetPasswordForm } from './ResetPassword'
+import { Icon } from './Icon'
 
 type State =
   | { kind: 'loading' }
@@ -32,14 +33,13 @@ type State =
   | { kind: 'ready'; me: Me; chart: NatalChart; birth: BirthProfile }
   | { kind: 'error'; message: string }
 
-type Tab = 'today' | 'explore' | 'journey' | 'archive' | 'profile'
+type Tab = 'today' | 'chart' | 'archive' | 'profile'
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'today', label: 'Hoje' },
-  { id: 'explore', label: 'Explorar' },
-  { id: 'journey', label: 'Jornada' },
-  { id: 'archive', label: 'Arquivo' },
-  { id: 'profile', label: 'Perfil' },
+const TABS: { id: Tab; label: string; icon: 'sun' | 'chart' | 'book' | 'user' }[] = [
+  { id: 'today', label: 'Hoje', icon: 'sun' },
+  { id: 'chart', label: 'Mapa Natal', icon: 'chart' },
+  { id: 'archive', label: 'Diário', icon: 'book' },
+  { id: 'profile', label: 'Perfil', icon: 'user' },
 ]
 
 const messageOf = (error: unknown) => (error instanceof Error ? error.message : String(error))
@@ -274,7 +274,9 @@ function ChartSummary({ chart }: { chart: NatalChart }) {
 
   return (
     <section className="card" aria-label="O teu mapa natal">
+      <p className="eyebrow">Autoconhecimento</p>
       <h2>O teu mapa natal</h2>
+      <p className="section-intro">Um retrato do céu no momento em que nasceste. Começa pelo Sol, pela Lua e pelo Ascendente.</p>
       <ChartWheel chart={chart} />
       <dl className="big-three">
         <div>
@@ -290,6 +292,8 @@ function ChartSummary({ chart }: { chart: NatalChart }) {
           <dd>{signOfLongitude(chart.angles.ascendant)}</dd>
         </div>
       </dl>
+      <details className="technical-details">
+        <summary>Ver posições dos planetas</summary>
       <table className="positions">
         <thead>
           <tr>
@@ -313,6 +317,7 @@ function ChartSummary({ chart }: { chart: NatalChart }) {
           ))}
         </tbody>
       </table>
+      </details>
       {chart.calculation.warnings.map((w) => (
         <p key={w} className="hint">
           {w}
@@ -451,6 +456,14 @@ function App() {
       window.history.replaceState(null, '', window.location.pathname + window.location.search)
   }, [resetToken])
 
+  function navigate(destination: Tab) {
+    setTab(destination)
+    if (contentRef.current) {
+      contentRef.current.scrollTop = 0
+      contentRef.current.focus({ preventScroll: true })
+    }
+  }
+
   const signedIn = state.kind === 'needs-birth' || state.kind === 'ready'
 
   if (resetToken)
@@ -472,12 +485,13 @@ function App() {
 
   return (
     <>
-      <main ref={contentRef}>
+      <main ref={contentRef} tabIndex={-1} id="conteudo">
         <div className="page">
-          <header>
-            <h1>Arquivo do Universo</h1>
+          <header className="app-header">
+            <div className="brand"><Icon name="spark" /><h1>Arquivo do Universo</h1></div>
+            {signedIn && <span className="avatar" aria-label={`Perfil de ${state.me.display_name}`}>{state.me.display_name.slice(0, 1).toLocaleUpperCase('pt-PT')}</span>}
           </header>
-          {signedIn && <p className="subtitle">Olá, {state.me.display_name}.</p>}
+          {signedIn && <p className="greeting">Olá, {state.me.display_name}.</p>}
           {state.kind === 'loading' && <p>A consultar as estrelas…</p>}
           {state.kind === 'error' && <p role="alert">Servidor indisponível: {state.message}</p>}
           {state.kind === 'anonymous' && (
@@ -498,23 +512,12 @@ function App() {
           )}
           {state.kind === 'ready' && (
             <>
-              {tab === 'today' && <Today me={state.me} onMoved={refresh} />}
-              {tab === 'explore' && (
-                <section className="card coming-soon">
-                  <h2>Brevemente</h2>
-                  <p>Ciclos, eclipses e o calendário do teu céu.</p>
-                </section>
-              )}
-              {tab === 'journey' && (
-                <section className="card coming-soon">
-                  <h2>Brevemente</h2>
-                  <p>Percursos de evolução e autodesenvolvimento.</p>
-                </section>
-              )}
-              {tab === 'archive' && <Archive zone={state.me.residence_zone ?? state.birth.zone} />}
+              {tab === 'today' && <Today me={state.me} onMoved={refresh} onDiary={() => navigate('archive')} />}
+              {tab === 'chart' && <ChartSummary chart={state.chart} />}
+              {tab === 'archive' && <Archive zone={state.me.residence_zone ?? state.birth.zone} compose />}
               {tab === 'profile' && (
                 <>
-                  <ChartSummary chart={state.chart} />
+                  <section className="page-heading"><p className="eyebrow">O teu espaço</p><h2>Perfil</h2><p className="section-intro">Os teus dados e a tua conta, num só lugar.</p></section>
                   <BirthSummary birth={state.birth} />
                   <ProfileActions onDone={refresh} />
                 </>
@@ -525,17 +528,15 @@ function App() {
       </main>
       {state.kind === 'ready' && (
         <nav className="bottom-nav" aria-label="Navegação principal">
-          {TABS.map(({ id, label }) => (
+          {TABS.map(({ id, label, icon }) => (
             <button
               key={id}
               type="button"
               aria-current={tab === id ? 'page' : undefined}
-              onClick={() => {
-                setTab(id)
-                if (contentRef.current) contentRef.current.scrollTop = 0
-              }}
+              onClick={() => navigate(id)}
             >
-              {label}
+              <Icon name={icon} />
+              <span>{label}</span>
             </button>
           ))}
         </nav>

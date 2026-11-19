@@ -65,7 +65,7 @@ describe('Arquivo', () => {
     expect(await screen.findByRole('heading', { name: 'segunda-feira, 16 de novembro de 2026' })).toBeInTheDocument()
     expect(screen.getByText('Um convite à pausa')).toBeInTheDocument()
     expect(screen.getByText('Abre às 13:00')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: '← Voltar ao Arquivo' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Voltar ao Arquivo' }))
     expect(await screen.findByRole('heading', { name: 'novembro de 2026' })).toBeInTheDocument()
   })
 
