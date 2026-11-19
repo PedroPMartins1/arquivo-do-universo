@@ -36,7 +36,7 @@ def main() -> None:
             config.attributes["database_url"] = os.environ["ARQUIVO_DATABASE_URL"]
             command.upgrade(config, "head")
             with Session(engine) as session, session.begin():
-                if session.scalar(select(Place.id).limit(1)) is None:
+                if session.scalar(select(Place.geoname_id).limit(1)) is None:
                     directory = Path(os.environ["ARQUIVO_GEONAMES_PATH"])
                     regions = read_admin1(directory / "admin1CodesASCII.txt")
                     count = replace_places(
