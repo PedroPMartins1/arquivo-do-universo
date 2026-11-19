@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import type { NatalChart } from './api'
 import { ChartWheel } from './ChartWheel'
@@ -39,5 +39,12 @@ describe('ChartWheel', () => {
     expect(screen.getByText('MC')).toBeInTheDocument()
     expect(document.querySelectorAll('.wheel-cusp')).toHaveLength(12)
     expect(document.querySelectorAll('.wheel-aspect')).toHaveLength(1)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ampliar mapa' }))
+    expect(screen.getByRole('region', { name: 'Mapa ampliado' })).toHaveAttribute('tabindex', '0')
+    expect(screen.getByRole('button', { name: 'Reduzir mapa' })).toHaveAttribute('aria-expanded', 'true')
+    fireEvent.click(screen.getByRole('button', { name: 'Reduzir mapa' }))
+    expect(screen.queryByRole('region', { name: 'Mapa ampliado' })).not.toBeInTheDocument()
+    expect(wheel).toBeInTheDocument()
   })
 })

@@ -203,6 +203,7 @@ describe('Hoje', () => {
     const openArticle = (await screen.findByText('Um convite à pausa')).closest('article')
     expect(openArticle).not.toBeNull()
     const reflection = within(openArticle as HTMLElement)
+    fireEvent.click(await reflection.findByText('Escrever uma reflexão'))
     const textarea = await reflection.findByLabelText('A tua reflexão')
     fireEvent.change(textarea, {
       target: { value: 'Quero reservar tempo para esta ideia.' },

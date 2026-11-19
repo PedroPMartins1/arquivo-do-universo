@@ -24,6 +24,15 @@ Uma aplicação de astrologia para consulta diária, paga por subscrição e sem
 astrólogo/vidente pessoal transformado num serviço digital. Tudo parte do mapa natal exato de cada pessoa,
 para que ela sinta que a aplicação fala dela e lhe pertence, e que vale a pena voltar todos os dias.
 
+## Dispositivo principal
+
+O telemóvel é o dispositivo principal da aplicação, por decisão do Pedro em 2026-11-18.
+A navegação, os formulários, a leitura diária, o diário e a exploração do mapa natal são
+concebidos primeiro para ecrãs pequenos e utilização por toque. Textos legíveis, controlos
+acessíveis e acesso confortável às ações principais orientam o desenho de cada funcionalidade.
+A experiência será posteriormente adaptada a tablet e computador, com continuidade da conta
+e dos dados pessoais entre dispositivos. A implementação atual funciona no navegador.
+
 ## Funcionalidades, por prioridade
 
 1. Mapa astral completo, com interpretação profunda da personalidade (sem textos genéricos).
