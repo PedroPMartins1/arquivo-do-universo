@@ -53,6 +53,7 @@ jobs:
         run: |
           for attempt in $(seq 1 120); do
             if curl --fail --silent http://localhost:10000/api/v1/health; then break; fi
+            test "$(docker inspect --format '{{.State.Running}}' arquivo-teste)" = true
             sleep 5
           done
           curl --fail http://localhost:10000/ | grep 'Arquivo do Universo'
@@ -62,6 +63,7 @@ jobs:
           docker restart arquivo-teste
           for attempt in $(seq 1 60); do
             if curl --fail --silent http://localhost:10000/api/v1/health; then break; fi
+            test "$(docker inspect --format '{{.State.Running}}' arquivo-teste)" = true
             sleep 2
           done
           curl --fail --silent http://localhost:10000/api/v1/places?q=Lisboa | python -c 'import json,sys; assert json.load(sys.stdin)["results"]'
