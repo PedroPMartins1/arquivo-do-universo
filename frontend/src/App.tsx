@@ -20,7 +20,7 @@ import {
 } from './api'
 import { BODIES, degrees, describePlace, signName, signOfLongitude } from './labels'
 import { PlaceSearch } from './PlaceSearch'
-import { ChartWheel } from './ChartWheel'
+import { ChartExplorer } from './ChartExplorer'
 import { Archive } from './Archive'
 import { Today } from './Today'
 import { ResetPasswordForm } from './ResetPassword'
@@ -277,7 +277,7 @@ function ChartSummary({ chart }: { chart: NatalChart }) {
       <p className="eyebrow">Autoconhecimento</p>
       <h2>O teu mapa natal</h2>
       <p className="section-intro">Um retrato do céu no momento em que nasceste. Começa pelo Sol, pela Lua e pelo Ascendente.</p>
-      <ChartWheel chart={chart} />
+      <ChartExplorer chart={chart} />
       <dl className="big-three">
         <div>
           <dt>Sol</dt>
