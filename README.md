@@ -17,6 +17,9 @@ A visão completa está no [dossiê mestre](docs/dossie/dossie-mestre-v2.0.txt).
 
 ## Desenvolvimento local
 
+Para preparar a versão de teste num telemóvel real, consultar o
+[guia de instalação online](docs/instalacao/teste-online.md).
+
 Requisitos: [uv](https://docs.astral.sh/uv/), Node 22 com pnpm 9, Docker.
 
 ```bash
