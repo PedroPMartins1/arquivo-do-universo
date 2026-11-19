@@ -56,7 +56,7 @@ jobs:
             sleep 5
           done
           curl --fail http://localhost:10000/ | grep 'Arquivo do Universo'
-          curl --fail http://localhost:10000/api/v1/places?q=Lisboa | grep Lisboa
+          curl --fail --silent http://localhost:10000/api/v1/places?q=Lisboa | python -c 'import json,sys; assert json.load(sys.stdin)["results"]'
           curl --fail --json '{"email":"instalacao@example.org","password":"password-ficticia-de-teste","display_name":"Teste"}' \
             -H 'Origin: https://teste.example.org' http://localhost:10000/api/v1/auth/register
           docker restart arquivo-teste
@@ -64,7 +64,7 @@ jobs:
             if curl --fail --silent http://localhost:10000/api/v1/health; then break; fi
             sleep 2
           done
-          curl --fail http://localhost:10000/api/v1/places?q=Lisboa | grep Lisboa
+          curl --fail --silent http://localhost:10000/api/v1/places?q=Lisboa | python -c 'import json,sys; assert json.load(sys.stdin)["results"]'
           curl --fail --json '{"email":"instalacao@example.org","password":"password-ficticia-de-teste"}' \
             -H 'Origin: https://teste.example.org' http://localhost:10000/api/v1/auth/login | grep instalacao@example.org
       - name: Diagnóstico da instalação
