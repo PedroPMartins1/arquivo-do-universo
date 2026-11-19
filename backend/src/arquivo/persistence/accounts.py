@@ -12,9 +12,10 @@ from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from arquivo.persistence.models import AuditEvent, AuthSession, User
+from arquivo.persistence.models import AuditEvent, AuthSession, PasswordResetToken, User
 
 SESSION_TTL = timedelta(days=30)
+PASSWORD_RESET_TTL = timedelta(minutes=30)
 _hasher = PasswordHasher()
 _DUMMY_HASH = _hasher.hash("palavra-passe-inexistente")
 
@@ -100,6 +101,48 @@ def user_for_token(session: Session, token: str) -> User | None:
 
 def close_session(session: Session, token: str) -> None:
     session.execute(delete(AuthSession).where(AuthSession.token_hash == _token_hash(token)))
+
+
+def issue_password_reset(session: Session, email: str, now: datetime) -> str | None:
+    user = session.scalar(
+        select(User).where(User.email == normalize_email(email)).with_for_update()
+    )
+    session.execute(delete(PasswordResetToken).where(PasswordResetToken.expires_at <= now))
+    if user is None:
+        return None
+    token = secrets.token_urlsafe(32)
+    session.add(
+        PasswordResetToken(
+            user_id=user.id, token_hash=_token_hash(token), expires_at=now + PASSWORD_RESET_TTL
+        )
+    )
+    audit(session, user.id, "account.password_reset_requested")
+    session.flush()
+    return token
+
+
+def reset_password(session: Session, token: str, password: str, now: datetime) -> bool:
+    user_id = session.scalar(
+        select(PasswordResetToken.user_id).where(
+            PasswordResetToken.token_hash == _token_hash(token), PasswordResetToken.expires_at > now
+        )
+    )
+    if user_id is None:
+        return False
+    user = session.scalar(select(User).where(User.id == user_id).with_for_update())
+    found = session.scalar(
+        select(PasswordResetToken).where(
+            PasswordResetToken.token_hash == _token_hash(token), PasswordResetToken.expires_at > now
+        )
+    )
+    if user is None or found is None:
+        return False
+    user.password_hash = _hasher.hash(password)
+    session.execute(delete(AuthSession).where(AuthSession.user_id == user.id))
+    session.execute(delete(PasswordResetToken).where(PasswordResetToken.user_id == user.id))
+    audit(session, user.id, "account.password_reset_completed")
+    session.flush()
+    return True
 
 
 def purge_expired_sessions(session: Session, user: User, now: datetime) -> None:

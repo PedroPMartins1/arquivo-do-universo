@@ -1,15 +1,19 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Cookie, Request, Response, status
+from fastapi import APIRouter, BackgroundTasks, Cookie, Depends, Request, Response, status
 from pydantic import BaseModel, EmailStr, Field, StringConstraints
+from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
 
-from arquivo.api.deps import SESSION_COOKIE, CurrentUser, Db, Now
+from arquivo.api.deps import SESSION_COOKIE, CurrentUser, Db, Now, get_db
 from arquivo.config import get_settings
 from arquivo.persistence import accounts, throttle
 from arquivo.persistence.models import User
+from arquivo.recovery_email import send_recovery_email
 
 router = APIRouter(tags=["Contas"])
+RecoveryDb = Annotated[Session, Depends(get_db, scope="function")]
+RECOVERY_MESSAGE = "Se existir uma conta com este email, receberás uma ligação de recuperação."
 
 
 class RegisterRequest(BaseModel):
@@ -23,6 +27,71 @@ class RegisterRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str = Field(max_length=200)
+
+
+class RecoveryRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str = Field(min_length=20, max_length=200)
+    password: str = Field(min_length=10, max_length=200)
+
+
+@router.post("/auth/forgot-password", status_code=status.HTTP_202_ACCEPTED)
+def forgot_password(
+    request: RecoveryRequest,
+    http_request: Request,
+    db: RecoveryDb,
+    now: Now,
+    background: BackgroundTasks,
+) -> JSONResponse:
+    settings = get_settings()
+    if settings.resend_api_key is None or settings.public_url is None:
+        return _failure_response(503, "a recuperação por email ainda não está disponível")
+    email = accounts.normalize_email(request.email)
+    keys = [
+        (
+            throttle.RECOVERY_IP,
+            throttle.key_hash(throttle.RECOVERY_IP.scope, _client_ip(http_request)),
+        ),
+        (throttle.RECOVERY_ACCOUNT, throttle.key_hash(throttle.RECOVERY_ACCOUNT.scope, email)),
+    ]
+    throttle.lock(db, keys)
+    if throttle.retry_after(db, keys, now) is None:
+        throttle.record(db, keys, now)
+        token = accounts.issue_password_reset(db, email, now)
+        if token is not None:
+            background.add_task(send_recovery_email, email, token)
+    return JSONResponse(
+        status_code=202,
+        content={"message": RECOVERY_MESSAGE},
+        headers={"Cache-Control": "no-store"},
+    )
+
+
+@router.post("/auth/reset-password", status_code=status.HTTP_204_NO_CONTENT)
+def reset_password(
+    request: ResetPasswordRequest,
+    http_request: Request,
+    response: Response,
+    db: Db,
+    now: Now,
+) -> Response:
+    keys = [
+        (throttle.RESET_IP, throttle.key_hash(throttle.RESET_IP.scope, _client_ip(http_request)))
+    ]
+    throttle.lock(db, keys)
+    retry = throttle.retry_after(db, keys, now)
+    if retry is not None:
+        return _failure_response(429, "demasiadas tentativas; tenta novamente mais tarde", retry)
+    throttle.record(db, keys, now)
+    if not accounts.reset_password(db, request.token, request.password, now):
+        return _failure_response(400, "a ligação é inválida ou expirou; pede uma nova ligação")
+    _delete_cookie(response)
+    response.headers["Cache-Control"] = "no-store"
+    response.status_code = 204
+    return response
 
 
 class Me(BaseModel):

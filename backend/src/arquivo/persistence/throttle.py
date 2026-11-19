@@ -27,6 +27,9 @@ LOGIN_IP = Limit("login_ip", 20, timedelta(minutes=15))
 LOGIN_ACCOUNT_IP = Limit("login_account_ip", 5, timedelta(minutes=15))
 LOGIN_ACCOUNT = Limit("login_account", 50, timedelta(minutes=60))
 REGISTER_IP = Limit("register_ip", 10, timedelta(minutes=60))
+RECOVERY_IP = Limit("recovery_ip", 20, timedelta(minutes=15))
+RECOVERY_ACCOUNT = Limit("recovery_account", 3, timedelta(minutes=15))
+RESET_IP = Limit("reset_ip", 20, timedelta(minutes=15))
 
 
 def key_hash(scope: str, value: str) -> str:

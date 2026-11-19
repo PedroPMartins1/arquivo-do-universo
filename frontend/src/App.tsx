@@ -15,6 +15,7 @@ import {
   type NatalReading,
   type Place,
   register,
+  requestPasswordRecovery,
   saveBirth,
 } from './api'
 import { BODIES, degrees, describePlace, signName, signOfLongitude } from './labels'
@@ -22,6 +23,7 @@ import { PlaceSearch } from './PlaceSearch'
 import { ChartWheel } from './ChartWheel'
 import { Archive } from './Archive'
 import { Today } from './Today'
+import { ResetPasswordForm } from './ResetPassword'
 
 type State =
   | { kind: 'loading' }
@@ -42,27 +44,47 @@ const TABS: { id: Tab; label: string }[] = [
 
 const messageOf = (error: unknown) => (error instanceof Error ? error.message : String(error))
 
-function AuthForm({ onDone }: { onDone: () => unknown }) {
-  const [mode, setMode] = useState<'login' | 'register'>('register')
+function AuthForm({
+  onDone,
+  initialMode = 'register',
+}: {
+  onDone: () => unknown
+  initialMode?: 'login' | 'register'
+}) {
+  const [mode, setMode] = useState<'login' | 'register' | 'recover'>(initialMode)
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const title =
+    mode === 'register' ? 'Criar conta' : mode === 'recover' ? 'Recuperar acesso' : 'Entrar'
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const form = new FormData(event.currentTarget)
     const email = String(form.get('email'))
     const password = String(form.get('password'))
+    setBusy(true)
+    setError(null)
+    setNotice(null)
     try {
+      if (mode === 'recover') {
+        const result = await requestPasswordRecovery(email)
+        setNotice(result.message)
+        return
+      }
       if (mode === 'register') await register(email, password, String(form.get('name')))
       else await login(email, password)
       onDone()
     } catch (err) {
       setError(messageOf(err))
+    } finally {
+      setBusy(false)
     }
   }
 
   return (
-    <form className="card" onSubmit={submit} aria-label={mode === 'register' ? 'Criar conta' : 'Entrar'}>
-      <h2>{mode === 'register' ? 'Criar conta' : 'Entrar'}</h2>
+    <form className="card" onSubmit={submit} aria-label={title}>
+      <h2>{title}</h2>
       {mode === 'register' && (
         <label>
           Nome
@@ -71,29 +93,61 @@ function AuthForm({ onDone }: { onDone: () => unknown }) {
       )}
       <label>
         Email
-        <input name="email" type="email" required autoComplete="email" autoCapitalize="none" spellCheck={false} />
-      </label>
-      <label>
-        Palavra-passe
         <input
-          name="password"
-          type="password"
+          name="email"
+          type="email"
           required
-          minLength={mode === 'register' ? 10 : undefined}
-          autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+          autoComplete="email"
+          autoCapitalize="none"
+          spellCheck={false}
         />
       </label>
+      {mode !== 'recover' && (
+        <label>
+          Palavra-passe
+          <input
+            name="password"
+            type="password"
+            required
+            minLength={mode === 'register' ? 10 : undefined}
+            autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+          />
+        </label>
+      )}
       {error && <p role="alert">{error}</p>}
-      <button type="submit">{mode === 'register' ? 'Criar conta' : 'Entrar'}</button>
+      {notice && <p role="status">{notice}</p>}
+      <button type="submit" disabled={busy}>
+        {busy ? 'A processar…' : mode === 'recover' ? 'Enviar ligação' : title}
+      </button>
+      {mode === 'login' && (
+        <button
+          type="button"
+          className="link"
+          disabled={busy}
+          onClick={() => {
+            setError(null)
+            setNotice(null)
+            setMode('recover')
+          }}
+        >
+          Esqueci-me da palavra-passe
+        </button>
+      )}
       <button
         type="button"
         className="link"
+        disabled={busy}
         onClick={() => {
           setError(null)
-          setMode(mode === 'register' ? 'login' : 'register')
+          setNotice(null)
+          setMode(mode === 'login' ? 'register' : 'login')
         }}
       >
-        {mode === 'register' ? 'Já tenho conta' : 'Criar uma conta nova'}
+        {mode === 'recover'
+          ? 'Voltar a entrar'
+          : mode === 'register'
+            ? 'Já tenho conta'
+            : 'Criar uma conta nova'}
       </button>
     </form>
   )
@@ -176,10 +230,14 @@ function BirthForm({ onDone, problem }: { onDone: () => unknown; problem?: strin
       ) : (
         <PlaceSearch onSelect={setPlace} />
       )}
-      <button type="button" className="link" onClick={() => {
+      <button
+        type="button"
+        className="link"
+        onClick={() => {
           setPlace(null)
           setManual(!manual)
-        }}>
+        }}
+      >
         {manual ? 'Procurar o local pelo nome' : 'Não encontro o meu local: indicar coordenadas'}
       </button>
       {ambiguous && (
@@ -289,10 +347,22 @@ function BirthSummary({ birth }: { birth: BirthProfile }) {
     <section className="card" aria-label="Dados de nascimento">
       <h2>Dados de nascimento</h2>
       <dl>
-        <div><dt>Data</dt><dd>{formattedDate}</dd></div>
-        <div><dt>Hora</dt><dd>{birth.birth_time.slice(0, 5)}</dd></div>
-        <div><dt>Local</dt><dd>{birth.place_name}</dd></div>
-        <div><dt>Fuso horário</dt><dd>{birth.zone}</dd></div>
+        <div>
+          <dt>Data</dt>
+          <dd>{formattedDate}</dd>
+        </div>
+        <div>
+          <dt>Hora</dt>
+          <dd>{birth.birth_time.slice(0, 5)}</dd>
+        </div>
+        <div>
+          <dt>Local</dt>
+          <dd>{birth.place_name}</dd>
+        </div>
+        <div>
+          <dt>Fuso horário</dt>
+          <dd>{birth.zone}</dd>
+        </div>
       </dl>
     </section>
   )
@@ -303,7 +373,14 @@ function ProfileActions({ onDone }: { onDone: () => unknown }) {
   return (
     <section className="card account-actions" aria-label="Conta">
       {error && <p role="alert">{error}</p>}
-      <button type="button" onClick={() => void logout().then(onDone).catch((err: unknown) => setError(messageOf(err)))}>
+      <button
+        type="button"
+        onClick={() =>
+          void logout()
+            .then(onDone)
+            .catch((err: unknown) => setError(messageOf(err)))
+        }
+      >
         Sair
       </button>
       <button
@@ -311,7 +388,9 @@ function ProfileActions({ onDone }: { onDone: () => unknown }) {
         className="danger"
         onClick={() => {
           if (!window.confirm('Queres mesmo apagar a conta? Esta ação é irreversível.')) return
-          void deleteAccount().then(onDone).catch((err: unknown) => setError(messageOf(err)))
+          void deleteAccount()
+            .then(onDone)
+            .catch((err: unknown) => setError(messageOf(err)))
         }}
       >
         Apagar conta
@@ -346,6 +425,10 @@ async function loadState(): Promise<State> {
 function App() {
   const [state, setState] = useState<State>({ kind: 'loading' })
   const [tab, setTab] = useState<Tab>('today')
+  const [resetToken, setResetToken] = useState(() =>
+    new URLSearchParams(window.location.hash.slice(1)).get('recuperar'),
+  )
+  const [recovered, setRecovered] = useState(false)
   const contentRef = useRef<HTMLElement>(null)
   const refresh = useCallback(() => loadState().then(setState), [])
 
@@ -356,7 +439,36 @@ function App() {
     if (contentRef.current) contentRef.current.scrollTop = 0
   }, [state.kind])
 
+  useEffect(() => {
+    const updateToken = () =>
+      setResetToken(new URLSearchParams(window.location.hash.slice(1)).get('recuperar'))
+    window.addEventListener('hashchange', updateToken)
+    return () => window.removeEventListener('hashchange', updateToken)
+  }, [])
+
+  useEffect(() => {
+    if (resetToken)
+      window.history.replaceState(null, '', window.location.pathname + window.location.search)
+  }, [resetToken])
+
   const signedIn = state.kind === 'needs-birth' || state.kind === 'ready'
+
+  if (resetToken)
+    return (
+      <main>
+        <div className="page">
+          <h1>Arquivo do Universo</h1>
+          <ResetPasswordForm
+            token={resetToken}
+            onClose={(changed) => {
+              setResetToken(null)
+              setRecovered(changed)
+              void refresh()
+            }}
+          />
+        </div>
+      </main>
+    )
 
   return (
     <>
@@ -368,10 +480,19 @@ function App() {
           {signedIn && <p className="subtitle">Olá, {state.me.display_name}.</p>}
           {state.kind === 'loading' && <p>A consultar as estrelas…</p>}
           {state.kind === 'error' && <p role="alert">Servidor indisponível: {state.message}</p>}
-          {state.kind === 'anonymous' && <AuthForm onDone={refresh} />}
+          {state.kind === 'anonymous' && (
+            <>
+              {recovered && <p role="status">Palavra-passe atualizada. Já podes entrar.</p>}
+              <AuthForm onDone={refresh} initialMode={recovered ? 'login' : 'register'} />
+            </>
+          )}
           {state.kind === 'needs-birth' && (
             <>
-              <BirthForm key={state.problem ?? 'sem-problema'} onDone={refresh} problem={state.problem} />
+              <BirthForm
+                key={state.problem ?? 'sem-problema'}
+                onDone={refresh}
+                problem={state.problem}
+              />
               <ProfileActions onDone={refresh} />
             </>
           )}
@@ -390,9 +511,7 @@ function App() {
                   <p>Percursos de evolução e autodesenvolvimento.</p>
                 </section>
               )}
-              {tab === 'archive' && (
-                <Archive zone={state.me.residence_zone ?? state.birth.zone} />
-              )}
+              {tab === 'archive' && <Archive zone={state.me.residence_zone ?? state.birth.zone} />}
               {tab === 'profile' && (
                 <>
                   <ChartSummary chart={state.chart} />

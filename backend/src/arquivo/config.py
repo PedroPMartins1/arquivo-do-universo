@@ -58,6 +58,27 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("ARQUIVO_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY"),
     )
     anthropic_model: str = "claude-sonnet-5-5"
+    resend_api_key: SecretStr | None = None
+    recovery_email_from: str = "Arquivo do Universo <onboarding@resend.dev>"
+    public_url: str | None = None
+
+    @field_validator("public_url")
+    @classmethod
+    def _validate_public_url(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        parsed = urlsplit(value)
+        if (
+            parsed.scheme != "https"
+            or not parsed.hostname
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.path not in ("", "/")
+            or parsed.query
+            or parsed.fragment
+        ):
+            raise ValueError("o endereço público exige uma origem HTTPS")
+        return value.rstrip("/")
 
     @field_validator("cors_origins")
     @classmethod
