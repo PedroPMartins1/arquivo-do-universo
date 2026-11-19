@@ -1,4 +1,4 @@
-import { type FormEvent, useCallback, useEffect, useState } from 'react'
+import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import {
   ApiError,
   type BirthData,
@@ -71,7 +71,7 @@ function AuthForm({ onDone }: { onDone: () => unknown }) {
       )}
       <label>
         Email
-        <input name="email" type="email" required autoComplete="email" />
+        <input name="email" type="email" required autoComplete="email" autoCapitalize="none" spellCheck={false} />
       </label>
       <label>
         Palavra-passe
@@ -232,13 +232,13 @@ function ChartSummary({ chart }: { chart: NatalChart }) {
           <dd>{signOfLongitude(chart.angles.ascendant)}</dd>
         </div>
       </dl>
-      <table>
+      <table className="positions">
         <thead>
           <tr>
-            <th>Corpo</th>
-            <th>Signo</th>
-            <th>Grau</th>
-            <th>Casa</th>
+            <th scope="col">Corpo</th>
+            <th scope="col">Signo</th>
+            <th scope="col">Grau</th>
+            <th scope="col">Casa</th>
           </tr>
         </thead>
         <tbody>
@@ -246,7 +246,7 @@ function ChartSummary({ chart }: { chart: NatalChart }) {
             <tr key={b.body}>
               <td>
                 {BODIES[b.body] ?? b.body}
-                {b.retrograde && <abbr title="retrógrado"> ℞</abbr>}
+                {b.retrograde && <small className="retrograde-label">retrógrado</small>}
               </td>
               <td>{signName(b.sign)}</td>
               <td>{degrees(b.degree_in_sign)}</td>
@@ -346,71 +346,82 @@ async function loadState(): Promise<State> {
 function App() {
   const [state, setState] = useState<State>({ kind: 'loading' })
   const [tab, setTab] = useState<Tab>('today')
+  const contentRef = useRef<HTMLElement>(null)
   const refresh = useCallback(() => loadState().then(setState), [])
 
   useEffect(() => {
     void loadState().then(setState)
   }, [])
+  useEffect(() => {
+    if (contentRef.current) contentRef.current.scrollTop = 0
+  }, [state.kind])
+
   const signedIn = state.kind === 'needs-birth' || state.kind === 'ready'
 
   return (
-    <main className={state.kind === 'ready' ? 'with-bottom-nav' : undefined}>
-      <header>
-        <h1>Arquivo do Universo</h1>
-      </header>
-      {signedIn && <p className="subtitle">Olá, {state.me.display_name}.</p>}
-      {state.kind === 'loading' && <p>A consultar as estrelas…</p>}
-      {state.kind === 'error' && <p role="alert">Servidor indisponível: {state.message}</p>}
-      {state.kind === 'anonymous' && <AuthForm onDone={refresh} />}
-      {state.kind === 'needs-birth' && (
-        <>
-          <BirthForm key={state.problem ?? 'sem-problema'} onDone={refresh} problem={state.problem} />
-          <ProfileActions onDone={refresh} />
-        </>
-      )}
-      {state.kind === 'ready' && (
-        <>
-          {tab === 'today' && <Today me={state.me} onMoved={refresh} />}
-          {tab === 'explore' && (
-            <section className="card coming-soon">
-              <h2>Brevemente</h2>
-              <p>Ciclos, eclipses e o calendário do teu céu.</p>
-            </section>
-          )}
-          {tab === 'journey' && (
-            <section className="card coming-soon">
-              <h2>Brevemente</h2>
-              <p>Percursos de evolução e autodesenvolvimento.</p>
-            </section>
-          )}
-          {tab === 'archive' && (
-            <Archive zone={state.me.residence_zone ?? state.birth.zone} />
-          )}
-          {tab === 'profile' && (
+    <>
+      <main ref={contentRef}>
+        <div className="page">
+          <header>
+            <h1>Arquivo do Universo</h1>
+          </header>
+          {signedIn && <p className="subtitle">Olá, {state.me.display_name}.</p>}
+          {state.kind === 'loading' && <p>A consultar as estrelas…</p>}
+          {state.kind === 'error' && <p role="alert">Servidor indisponível: {state.message}</p>}
+          {state.kind === 'anonymous' && <AuthForm onDone={refresh} />}
+          {state.kind === 'needs-birth' && (
             <>
-              <ChartSummary chart={state.chart} />
-              <BirthSummary birth={state.birth} />
+              <BirthForm key={state.problem ?? 'sem-problema'} onDone={refresh} problem={state.problem} />
               <ProfileActions onDone={refresh} />
             </>
           )}
-          <nav className="bottom-nav" aria-label="Navegação principal">
-            {TABS.map(({ id, label }) => (
-              <button
-                key={id}
-                type="button"
-                aria-current={tab === id ? 'page' : undefined}
-                onClick={() => {
-                  setTab(id)
-                  window.scrollTo({ top: 0 })
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </nav>
-        </>
+          {state.kind === 'ready' && (
+            <>
+              {tab === 'today' && <Today me={state.me} onMoved={refresh} />}
+              {tab === 'explore' && (
+                <section className="card coming-soon">
+                  <h2>Brevemente</h2>
+                  <p>Ciclos, eclipses e o calendário do teu céu.</p>
+                </section>
+              )}
+              {tab === 'journey' && (
+                <section className="card coming-soon">
+                  <h2>Brevemente</h2>
+                  <p>Percursos de evolução e autodesenvolvimento.</p>
+                </section>
+              )}
+              {tab === 'archive' && (
+                <Archive zone={state.me.residence_zone ?? state.birth.zone} />
+              )}
+              {tab === 'profile' && (
+                <>
+                  <ChartSummary chart={state.chart} />
+                  <BirthSummary birth={state.birth} />
+                  <ProfileActions onDone={refresh} />
+                </>
+              )}
+            </>
+          )}
+        </div>
+      </main>
+      {state.kind === 'ready' && (
+        <nav className="bottom-nav" aria-label="Navegação principal">
+          {TABS.map(({ id, label }) => (
+            <button
+              key={id}
+              type="button"
+              aria-current={tab === id ? 'page' : undefined}
+              onClick={() => {
+                setTab(id)
+                if (contentRef.current) contentRef.current.scrollTop = 0
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
       )}
-    </main>
+    </>
   )
 }
 

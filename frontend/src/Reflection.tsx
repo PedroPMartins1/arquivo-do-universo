@@ -71,7 +71,7 @@ export function ReflectionEditor({
     }
   }
 
-  return (
+  const editor = (
     <section className="reflection-editor">
       {hint && <p className="hint">{hint}</p>}
       {error && <p role="alert">{error}</p>}
@@ -121,5 +121,13 @@ export function ReflectionEditor({
         </>
       )}
     </section>
+  )
+
+  if (slot === null) return editor
+  return (
+    <details className="reflection-disclosure">
+      <summary>{saved ? 'Ler a tua reflexão' : 'Escrever uma reflexão'}</summary>
+      {editor}
+    </details>
   )
 }

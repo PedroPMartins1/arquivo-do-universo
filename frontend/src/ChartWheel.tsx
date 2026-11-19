@@ -1,3 +1,4 @@
+import { useEffect, useId, useRef, useState } from 'react'
 import type { NatalChart } from './api'
 import { SIGNS } from './labels'
 
@@ -53,6 +54,44 @@ function ringPath(inner: number, outer: number): string {
 }
 
 export function ChartWheel({ chart }: { chart: NatalChart }) {
+  const [enlarged, setEnlarged] = useState(false)
+  const viewport = useRef<HTMLDivElement>(null)
+  const viewportId = useId()
+
+  useEffect(() => {
+    if (enlarged && viewport.current) {
+      const panel = viewport.current
+      panel.scrollLeft = (panel.scrollWidth - panel.clientWidth) / 2
+      panel.scrollTop = (panel.scrollHeight - panel.clientHeight) / 2
+    }
+  }, [enlarged])
+
+  return (
+    <div className="chart-viewer">
+      <button
+        type="button"
+        className="chart-zoom"
+        aria-controls={viewportId}
+        aria-expanded={enlarged}
+        onClick={() => setEnlarged(!enlarged)}
+      >
+        {enlarged ? 'Reduzir mapa' : 'Ampliar mapa'}
+      </button>
+      <div
+        id={viewportId}
+        ref={viewport}
+        className={enlarged ? 'chart-viewport enlarged' : 'chart-viewport'}
+        role={enlarged ? 'region' : undefined}
+        aria-label={enlarged ? 'Mapa ampliado' : undefined}
+        tabIndex={enlarged ? 0 : undefined}
+      >
+        <WheelGraphic chart={chart} />
+      </div>
+    </div>
+  )
+}
+
+function WheelGraphic({ chart }: { chart: NatalChart }) {
   const bodyPoint = new Map(chart.bodies.map((b) => [b.body, polar(b.longitude, R_PLANETS)]))
   return (
     <svg
