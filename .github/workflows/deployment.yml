@@ -1,0 +1,74 @@
+name: Validação da instalação
+
+on:
+  pull_request:
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - render.yaml
+      - deploy/**
+      - backend/**
+      - frontend/**
+      - .github/workflows/deployment.yml
+  push:
+    branches: [main]
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - render.yaml
+      - deploy/**
+      - backend/**
+      - frontend/**
+      - .github/workflows/deployment.yml
+
+jobs:
+  container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: arquivo
+          POSTGRES_PASSWORD: arquivo
+          POSTGRES_DB: arquivo
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U arquivo"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Construir a imagem de instalação
+        run: docker build -t arquivo-teste .
+      - name: Iniciar com as definições de produção
+        run: |
+          docker run -d --name arquivo-teste --network host --memory=512m \
+            -e DATABASE_URL=postgresql://arquivo:arquivo@127.0.0.1:5432/arquivo \
+            -e RENDER_EXTERNAL_URL=https://teste.example.org \
+            -e ARQUIVO_AUTH_RATE_LIMIT_KEY=chave-ficticia-usada-apenas-neste-teste \
+            arquivo-teste
+      - name: Verificar arranque e reinício com dados persistentes
+        run: |
+          for attempt in $(seq 1 120); do
+            if curl --fail --silent http://localhost:10000/api/v1/health; then break; fi
+            test "$(docker inspect --format '{{.State.Running}}' arquivo-teste)" = true
+            sleep 5
+          done
+          curl --fail http://localhost:10000/ | grep 'Arquivo do Universo'
+          curl --fail --silent http://localhost:10000/api/v1/places?q=Lisboa | python -c 'import json,sys; assert json.load(sys.stdin)["results"]'
+          curl --fail --json '{"email":"instalacao@example.org","password":"password-ficticia-de-teste","display_name":"Teste"}' \
+            -H 'Origin: https://teste.example.org' http://localhost:10000/api/v1/auth/register
+          docker restart arquivo-teste
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://localhost:10000/api/v1/health; then break; fi
+            test "$(docker inspect --format '{{.State.Running}}' arquivo-teste)" = true
+            sleep 2
+          done
+          curl --fail --silent http://localhost:10000/api/v1/places?q=Lisboa | python -c 'import json,sys; assert json.load(sys.stdin)["results"]'
+          curl --fail --json '{"email":"instalacao@example.org","password":"password-ficticia-de-teste"}' \
+            -H 'Origin: https://teste.example.org' http://localhost:10000/api/v1/auth/login | grep instalacao@example.org
+      - name: Diagnóstico da instalação
+        if: failure()
+        run: docker logs arquivo-teste

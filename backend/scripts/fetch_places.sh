@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # Descarrega a base de localidades do GeoNames (CC BY 4.0) e carrega-a na base de dados.
 set -euo pipefail
+case "${1:-}" in
+  ""|--download-only) ;;
+  *) echo "Uso: $0 [--download-only]" >&2; exit 2 ;;
+esac
 dest="${ARQUIVO_GEONAMES_PATH:-$(cd "$(dirname "$0")/../.." && pwd)/data/geonames}"
 mkdir -p "$dest"
 base="https://download.geonames.org/export/dump"
@@ -14,5 +18,7 @@ if [ ! -f "$dest/cities500.txt" ]; then
   unzip -p "$dest/cities500.zip" cities500.txt > "$dest/cities500.txt.part"
   mv "$dest/cities500.txt.part" "$dest/cities500.txt"
 fi
-cd "$(dirname "$0")/.."
-uv run python -m arquivo.persistence.places "$dest"
+if [ "${1:-}" != "--download-only" ]; then
+  cd "$(dirname "$0")/.."
+  uv run python -m arquivo.persistence.places "$dest"
+fi
