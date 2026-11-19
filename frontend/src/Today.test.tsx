@@ -172,7 +172,7 @@ describe('Hoje', () => {
   it('mostra o conteúdo aberto, a pergunta e o tema do dia', async () => {
     vi.stubGlobal('fetch', vi.fn((url: string) => responseFor(url)))
     render(<Today me={ME} onMoved={() => undefined} />)
-    expect(await screen.findByRole('heading', { name: 'A energia do dia' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Um momento para ti.' })).toBeInTheDocument()
     expect(await screen.findByText('Um convite à pausa')).toBeInTheDocument()
     expect(screen.getByText('Este trânsito convida-te a observar os teus limites.')).toBeInTheDocument()
     expect(screen.getByText('Que espaço podes criar para ti hoje?')).toBeInTheDocument()
@@ -209,7 +209,7 @@ describe('Hoje', () => {
       target: { value: 'Quero reservar tempo para esta ideia.' },
     })
     fireEvent.click(reflection.getByRole('button', { name: 'Guardar' }))
-    expect(await reflection.findByText('Guardada')).toBeInTheDocument()
+    expect(await reflection.findByText('Guardada no teu diário')).toBeInTheDocument()
     expect(reflection.getByText('Quero reservar tempo para esta ideia.')).toBeInTheDocument()
     expect(fetchMock).toHaveBeenCalledWith(
       `/api/v1/me/reflections/${SKY.date}/revelations/0`,
@@ -228,7 +228,7 @@ describe('Hoje', () => {
       target: { value: 'Hoje escolhi avançar com calma.' },
     })
     fireEvent.click(note.getByRole('button', { name: 'Guardar' }))
-    expect(await note.findByText('Guardada')).toBeInTheDocument()
+    expect(await note.findByText('Guardada no teu diário')).toBeInTheDocument()
     expect(fetchMock).toHaveBeenCalledWith(
       `/api/v1/me/reflections/${SKY.date}/note`,
       expect.objectContaining({
@@ -324,7 +324,7 @@ describe('Hoje', () => {
     const fetchMock = vi.fn((url: string) => responseFor(url))
     vi.stubGlobal('fetch', fetchMock)
     const { rerender } = render(<Today me={ME} onMoved={() => undefined} />)
-    await screen.findByRole('heading', { name: 'A energia do dia' })
+    await screen.findByRole('heading', { name: 'Um momento para ti.' })
     expect(todayCalls(fetchMock)).toBe(1)
     rerender(<Today me={{ ...ME, residence_name: 'Sintra' }} onMoved={() => undefined} />)
     await waitFor(() => expect(todayCalls(fetchMock)).toBe(2))

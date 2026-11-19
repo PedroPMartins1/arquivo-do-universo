@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { fetchArchive, fetchArchiveDay, type ArchiveDay, type ArchiveDayDetail, type Reflection } from './api'
+import { DiaryNote } from './DiaryNote'
 import { RevelationOrigin } from './Today'
 import { ReflectionEditor } from './Reflection'
 
@@ -20,7 +21,7 @@ const timeOf = (instant: string, zone: string) =>
 
 const messageOf = (error: unknown) => (error instanceof Error ? error.message : String(error))
 
-export function Archive({ zone }: { zone: string }) {
+export function Archive({ zone, compose = false }: { zone: string; compose?: boolean }) {
   const [page, setPage] = useState<{ days: ArchiveDay[]; next_before: string | null } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -86,7 +87,7 @@ export function Archive({ zone }: { zone: string }) {
             void loadPage()
           }}
         >
-          ← Voltar ao Arquivo
+          Voltar ao Arquivo
         </button>
         {detailLoading && <p>A abrir o dia…</p>}
         {detailError && <p role="alert">{detailError}</p>}
@@ -156,7 +157,13 @@ export function Archive({ zone }: { zone: string }) {
 
   return (
     <section className="card archive" aria-label="Arquivo">
-      <h2>Arquivo</h2>
+      {compose ? <>
+        <p className="eyebrow">O teu espaço de reflexão</p>
+        <h2>Diário</h2>
+        <p className="section-intro">O que sentes também faz parte da tua história. Escreve livremente e revisita as tuas leituras.</p>
+        <DiaryNote zone={zone} onSaved={() => void loadPage()} />
+        <div className="section-heading"><h3>O teu Arquivo</h3><span className="hint">Leituras e reflexões</span></div>
+      </> : <h2>Arquivo</h2>}
       {error && <p role="alert">{error}</p>}
       {loading && <p>A abrir o Arquivo…</p>}
       {!loading && !error && page?.days.length === 0 && (

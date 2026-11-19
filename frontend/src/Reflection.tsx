@@ -78,7 +78,7 @@ export function ReflectionEditor({
       {saved && !editing ? (
         <>
           <p className="reflection-body">{saved.body}</p>
-          <p className="reflection-status">Guardada</p>
+          <p className="reflection-status" role="status">Guardada no teu diário</p>
           <div className="reflection-actions">
             <button type="button" className="link" disabled={busy} onClick={() => setEditing(true)}>
               Editar
@@ -100,7 +100,7 @@ export function ReflectionEditor({
             />
           </label>
           <div className="reflection-actions">
-            <button type="button" disabled={busy} onClick={() => void save()}>
+            <button type="button" disabled={busy || !draft.trim()} onClick={() => void save()}>
               {busy ? 'A guardar…' : 'Guardar'}
             </button>
             {saved && (

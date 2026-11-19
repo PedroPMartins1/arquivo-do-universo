@@ -224,7 +224,7 @@ describe('App', () => {
     expect(
       screen.getByText('Mercúrio retoma o movimento direto em Escorpião, na tua casa 3'),
     ).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Perfil' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Mapa Natal' }))
     // Cada signo aparece na roda, no resumo e/ou na tabela.
     expect(await screen.findAllByText('Touro')).toHaveLength(3)
     expect(screen.getAllByText('Peixes')).toHaveLength(3)
@@ -263,44 +263,32 @@ describe('App', () => {
       }),
     )
     render(<App />)
-    fireEvent.click(await screen.findByRole('button', { name: 'Perfil' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Mapa Natal' }))
     expect(await screen.findByRole('heading', { name: 'A tua leitura' })).toBeInTheDocument()
     expect(await screen.findByText('Uma secção mockada.')).toBeInTheDocument()
     expect(screen.getByRole('img', { name: 'Roda do mapa natal' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Perfil' }))
     expect(screen.getByRole('heading', { name: 'Dados de nascimento' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Apagar conta' })).toBeInTheDocument()
   })
 
-  it('mostra os cartões Brevemente nos separadores correspondentes', async () => {
-    vi.stubGlobal(
-      'fetch',
-      route({
-        'GET /api/v1/me': () => json(ME),
-        'GET /api/v1/me/birth': () => json(BIRTH),
-        'GET /api/v1/me/chart': () => json(CHART),
-        'GET /api/v1/me/today': () => json(SKY),
-        'GET /api/v1/me/reading/today': () =>
-          json({ theme: null, revelations: [], tomorrow: null }),
-        'GET /api/v1/me/archive': () => json({ days: [], next_before: null }),
-      }),
-    )
+  it('dá acesso direto ao mapa e ao diário sem separadores vazios', async () => {
+    vi.stubGlobal('fetch', route({
+      'GET /api/v1/me': () => json(ME),
+      'GET /api/v1/me/birth': () => json(BIRTH),
+      'GET /api/v1/me/chart': () => json(CHART),
+      'GET /api/v1/me/today': () => json(SKY),
+      'GET /api/v1/me/reading/today': () => json({ theme: null, revelations: [], tomorrow: null }),
+      'GET /api/v1/me/archive': () => json({ days: [], next_before: null }),
+    }))
     render(<App />)
-    for (const [tab, text] of [
-      ['Explorar', 'Ciclos, eclipses e o calendário do teu céu.'],
-      ['Jornada', 'Percursos de evolução e autodesenvolvimento.'],
-    ]) {
-      fireEvent.click(await screen.findByRole('button', { name: tab }))
-      expect(await screen.findByText(text)).toBeInTheDocument()
-      expect(screen.getByRole('heading', { name: 'Brevemente' })).toBeInTheDocument()
-    }
-    fireEvent.click(await screen.findByRole('button', { name: 'Arquivo' }))
-    expect(
-      await screen.findByText(
-        'O teu Arquivo começa hoje: as leituras e reflexões de cada dia vão ficando guardadas aqui.',
-      ),
-    ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Arquivo' })).toHaveAttribute('aria-current', 'page')
+    fireEvent.click(await screen.findByRole('button', { name: /^Diário$/ }))
+    expect(await screen.findByRole('heading', { name: 'Como estás a viver este dia?' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Diário$/ })).toHaveAttribute('aria-current', 'page')
+    expect(screen.queryByRole('button', { name: 'Explorar' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Jornada' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Mapa Natal' })).toBeInTheDocument()
   })
 
   it('pede a ocorrência quando a hora aconteceu duas vezes', async () => {

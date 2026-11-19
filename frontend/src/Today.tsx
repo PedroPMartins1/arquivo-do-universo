@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   type Me,
   fetchReflections,
@@ -14,6 +14,7 @@ import {
 import { describeEvent, describePlace, describeTransit } from './labels'
 import { PlaceSearch } from './PlaceSearch'
 import { ReflectionEditor } from './Reflection'
+import { Icon } from './Icon'
 
 const when = (iso: string, zone: string) =>
   new Intl.DateTimeFormat('pt-PT', {
@@ -85,7 +86,8 @@ function ReadingSkeleton() {
   )
 }
 
-export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
+export function Today({ me, onMoved, onDiary }: { me: Me; onMoved: () => unknown; onDiary?: () => void }) {
+  const revelationsRef = useRef<HTMLDivElement>(null)
   const [sky, setSky] = useState<TodaySky | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [reading, setReading] = useState<TodayReading | null>(null)
@@ -152,16 +154,19 @@ export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
   const zone = sky.zone
   return (
     <section className="card today" aria-label="Hoje">
-      <h2>A energia do dia</h2>
-      <p className="hint">
+      <p className="eyebrow">O teu céu, hoje</p>
+      <h2 className="screen-title">Um momento para ti.</h2>
+      <p className="day-date">
         {new Intl.DateTimeFormat('pt-PT', { dateStyle: 'full', timeZone: 'UTC' }).format(
           new Date(`${sky.date}T12:00:00Z`),
         )}{' '}
         · {me.residence_name ?? zone}{' '}
-        <button type="button" className="link" onClick={() => setMoving(!moving)}>
-          Mudar o local onde vives
-        </button>
       </p>
+      <details className="location-settings">
+        <summary>O teu local e horário</summary>
+        <p className="hint">As revelações seguem o horário do local onde vives.</p>
+        <button type="button" className="link" onClick={() => setMoving(!moving)} aria-expanded={moving}>Mudar o local onde vives</button>
+      </details>
       {moving && (
         <PlaceSearch
           onSelect={(place) => {
@@ -181,12 +186,23 @@ export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
           }}
         />
       )}
-      {reading?.theme && <p className="day-theme">{reading.theme}</p>}
-      {!reading && !readingError && <p className="day-theme skeleton" aria-busy="true" />}
+      <div className="daily-hero">
+        <div className="celestial-orbit" aria-hidden="true"><span /><Icon name="spark" /></div>
+        <p className="eyebrow">A energia do dia</p>
+        {reading?.theme && <p className="day-theme">{reading.theme}</p>}
+        {!reading && !readingError && <p className="day-theme skeleton" aria-busy="true" />}
+        <p className="hero-description">O céu encontra o teu mapa. Descobre as leituras de hoje e guarda o que faz sentido para ti.</p>
+        {sky.revelations.length > 0 && <>
+          <p className="availability">{sky.revelations.filter((slot) => slot.revelation !== null).length} de {sky.revelations.length} revelações disponíveis</p>
+          <button type="button" onClick={() => revelationsRef.current?.scrollIntoView({ block: 'start' })}>Ler as revelações</button>
+        </>}
+      </div>
+      {onDiary && <button type="button" className="diary-shortcut" onClick={onDiary}><Icon name="book" /><span><strong>O teu diário</strong><span>Regista o que sentes. Volta ao que guardaste.</span></span><span className="shortcut-action">Abrir</span></button>}
+      <div className="section-heading"><h3>Revelações do dia</h3><span className="hint">Ao teu ritmo</span></div>
       {sky.revelations.length === 0 ? (
         <p>Hoje o céu está calmo sobre o teu mapa.</p>
       ) : (
-        <div className="revelations">
+        <div className="revelations" ref={revelationsRef}>
           {sky.revelations.map((slot, index) => {
             const revelation = slot.revelation
             if (!revelation) {
@@ -213,9 +229,10 @@ export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
             return (
               <article className="revelation" key={index}>
                 {slot.role === 'bonus' && <p className="origin">Bónus</p>}
-                <p className="origin">
-                  <RevelationOrigin revelation={revelation} zone={zone} since={sky.day_starts} />
-                </p>
+                <details className="revelation-source">
+                  <summary>O céu por trás desta leitura</summary>
+                  <p className="origin"><RevelationOrigin revelation={revelation} zone={zone} since={sky.day_starts} /></p>
+                </details>
                 {text ? (
                   <>
                     <h3>{text.title}</h3>
@@ -269,7 +286,7 @@ export function Today({ me, onMoved }: { me: Me; onMoved: () => unknown }) {
         )}
       </article>
       {reflectionError && <p role="alert">{reflectionError}</p>}
-      {readingError && <p className="hint">{readingError}</p>}
+      {readingError && <div role="alert"><p>{readingError}</p><button type="button" className="secondary" onClick={requestToday}>Tentar novamente</button></div>}
       {sky.upcoming.length > 0 && (
         <>
           <h3>O que se aproxima</h3>
