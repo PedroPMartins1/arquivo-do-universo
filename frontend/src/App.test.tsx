@@ -228,7 +228,7 @@ describe('App', () => {
     // Cada signo aparece na roda, no resumo e/ou na tabela.
     expect(await screen.findAllByText('Touro')).toHaveLength(3)
     expect(screen.getAllByText('Peixes')).toHaveLength(3)
-    expect(screen.getAllByText('Virgem')).toHaveLength(2)
+    expect(screen.getAllByText('Virgem')).toHaveLength(3)
   })
 
   it('mostra uma secção da leitura natal', async () => {
@@ -266,7 +266,7 @@ describe('App', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Mapa Natal' }))
     expect(await screen.findByRole('heading', { name: 'A tua leitura' })).toBeInTheDocument()
     expect(await screen.findByText('Uma secção mockada.')).toBeInTheDocument()
-    expect(screen.getByRole('img', { name: 'Roda do mapa natal' })).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'Mapa natal interativo' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Perfil' }))
     expect(screen.getByRole('heading', { name: 'Dados de nascimento' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument()
