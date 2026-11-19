@@ -123,7 +123,7 @@ de CORS deve conter apenas os frontends autorizados.
 ## Riscos residuais
 
 - O registo continua a devolver `409` quando o email já existe, o que permite alguma enumeração.
-  A verificação de email e a recuperação de palavra-passe permanecem abertas em L-016.
+  A verificação de email permanece aberta em L-016. A recuperação depende do serviço de email configurado.
 - O limite global por email pode ser usado para negação de serviço temporária contra essa conta.
 - `GET /me/reading/today` pode gerar e guardar uma leitura, apesar de ser um `GET`.
 - O cookie não usa o prefixo `__Host-`.
@@ -131,3 +131,45 @@ de CORS deve conter apenas os frontends autorizados.
 - Ainda não existe ação para terminar todas as sessões de uma conta.
 - Os limites dependem da disponibilidade e consistência da base de dados PostgreSQL; não há fallback
   local que enfraqueça a proteção quando a base de dados está indisponível.
+
+## Recuperação de palavra-passe
+
+A interface disponibiliza «Esqueci-me da palavra-passe» no ecrã de login. O pedido usa
+`POST /api/v1/auth/forgot-password` e devolve a mesma mensagem para emails existentes, inexistentes
+ou temporariamente limitados. O limite é de 20 pedidos por IP e 3 por email em 15 minutos,
+com as mesmas chaves HMAC e bloqueios PostgreSQL dos restantes limites de autenticação.
+Sem serviço de email configurado, o endpoint devolve 503 para qualquer endereço.
+
+A ligação contém um token aleatório de 256 bits, válido durante 30 minutos. Só o hash SHA-256
+é guardado na base de dados. O token segue no fragmento do URL e a interface remove esse fragmento
+do endereço depois de o receber. As respostas destes endpoints usam `Cache-Control: no-store`.
+A origem do URL é uma definição HTTPS validada, independente do cabeçalho Host do pedido.
+
+O envio pelo Resend ocorre em background, após a confirmação da transação de criação do token.
+O fornecedor recebe o destinatário e o texto da recuperação, incluindo a ligação temporária.
+Os logs da aplicação guardam apenas falhas genéricas de entrega, sem destinatário, token ou chave.
+Uma interrupção antes da entrega exige repetir o pedido. Pedidos repetidos não alteram a palavra-passe
+e as ligações anteriores conservam a validade até à expiração ou a uma recuperação bem-sucedida.
+
+`POST /api/v1/auth/reset-password` exige o token e uma palavra-passe entre 10 e 200 caracteres.
+O bloqueio da conta serializa tentativas concorrentes. Uma alteração bem-sucedida invalida todos
+os tokens de recuperação e todas as sessões dessa conta na mesma transação. A interface exige
+confirmação da nova palavra-passe e volta ao login. Os dados da conta são preservados.
+O endpoint de alteração limita a 20 tentativas por IP em 15 minutos.
+
+### Configuração de entrega
+
+Definir `ARQUIVO_RESEND_API_KEY` no alojamento. A instalação Render deriva `ARQUIVO_PUBLIC_URL`
+do endereço HTTPS do serviço. `ARQUIVO_RECOVERY_EMAIL_FROM` define o remetente e usa
+`Arquivo do Universo <onboarding@resend.dev>` por omissão. Esse remetente de teste só permite
+enviar para o email da própria conta Resend. Para os restantes utilizadores, configurar
+um domínio verificado e o respetivo remetente.
+
+A entrega real tem de ser confirmada antes de considerar a recuperação operacional.
+A integração não substitui a verificação do email no registo, que continua pendente.
+
+Referências consultadas em 19-11-2026
+
+- https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html
+- https://resend.com/docs/send-with-python
+- https://resend.com/docs/knowledge-base/403-error-resend-dev-domain

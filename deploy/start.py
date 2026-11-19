@@ -20,6 +20,7 @@ def main() -> None:
     database_url = database_url.set(drivername="postgresql+psycopg")
     os.environ["ARQUIVO_DATABASE_URL"] = database_url.render_as_string(hide_password=False)
     os.environ.setdefault("ARQUIVO_ENVIRONMENT", "production")
+    os.environ.setdefault("ARQUIVO_PUBLIC_URL", os.environ["RENDER_EXTERNAL_URL"])
     os.environ.setdefault("ARQUIVO_CORS_ORIGINS", json.dumps([os.environ["RENDER_EXTERNAL_URL"]]))
 
     # Validar antes de alterar a base de dados. Os valores secretos nunca são impressos.

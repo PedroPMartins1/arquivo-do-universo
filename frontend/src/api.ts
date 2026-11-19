@@ -95,6 +95,10 @@ export const register = (email: string, password: string, displayName: string) =
 export const login = (email: string, password: string) =>
   post<Me>('/auth/login', { email, password })
 export const logout = () => post<void>('/auth/logout')
+export const requestPasswordRecovery = (email: string) =>
+  post<{ message: string }>('/auth/forgot-password', { email })
+export const resetPassword = (token: string, password: string) =>
+  post<void>('/auth/reset-password', { token, password })
 export const deleteAccount = () => request<void>('/me', { method: 'DELETE' })
 export const fetchBirth = () => request<BirthProfile>('/me/birth')
 export const saveBirth = (data: BirthData) => post<BirthProfile>('/me/birth', data, 'PUT')

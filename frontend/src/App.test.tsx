@@ -111,6 +111,64 @@ afterEach(() => {
 })
 
 describe('App', () => {
+  it('pede uma ligação de recuperação sem pedir a palavra-passe antiga', async () => {
+    const fetchMock = route({
+      'GET /api/v1/me': () => json({ detail: 'sessão' }, 401),
+      'POST /api/v1/auth/forgot-password': () =>
+        json({ message: 'Confirma a tua caixa de correio.' }, 202),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    render(<App />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Já tenho conta' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Esqueci-me da palavra-passe' }))
+    expect(screen.queryByLabelText('Palavra-passe')).not.toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'ana@example.org' } })
+    fireEvent.submit(screen.getByRole('form', { name: 'Recuperar acesso' }))
+    expect(await screen.findByText('Confirma a tua caixa de correio.')).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/auth/forgot-password',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ email: 'ana@example.org' }),
+      }),
+    )
+  })
+
+  it('recebe a ligação, retira o token do endereço e permite escolher nova palavra-passe', async () => {
+    window.history.replaceState(null, '', '/#recuperar=token-ficticio-de-utilizacao-unica')
+    const fetchMock = route({
+      'GET /api/v1/me': () => json({ detail: 'sessão' }, 401),
+      'POST /api/v1/auth/reset-password': () => new Response(null, { status: 204 }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    render(<App />)
+    expect(screen.getByRole('form', { name: 'Nova palavra-passe' })).toBeInTheDocument()
+    expect(window.location.hash).toBe('')
+    fireEvent.change(screen.getByLabelText('Escolhe uma palavra-passe'), {
+      target: { value: 'nova-password-segura' },
+    })
+    fireEvent.change(screen.getByLabelText('Repete a palavra-passe'), {
+      target: { value: 'outra-password' },
+    })
+    fireEvent.submit(screen.getByRole('form', { name: 'Nova palavra-passe' }))
+    expect(screen.getByRole('alert')).toHaveTextContent('As palavras-passe têm de ser iguais.')
+    fireEvent.change(screen.getByLabelText('Repete a palavra-passe'), {
+      target: { value: 'nova-password-segura' },
+    })
+    fireEvent.submit(screen.getByRole('form', { name: 'Nova palavra-passe' }))
+    expect(await screen.findByRole('form', { name: 'Entrar' })).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/auth/reset-password',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          token: 'token-ficticio-de-utilizacao-unica',
+          password: 'nova-password-segura',
+        }),
+      }),
+    )
+  })
+
   it('pede para criar conta quando não há sessão', async () => {
     vi.stubGlobal('fetch', route({ 'GET /api/v1/me': () => json({ detail: 'sessão' }, 401) }))
     render(<App />)
@@ -149,7 +207,9 @@ describe('App', () => {
     )
     render(<App />)
     const form = await screen.findByRole('form', { name: 'Dados de nascimento' })
-    fireEvent.change(screen.getByLabelText('Data de nascimento'), { target: { value: '1993-05-20' } })
+    fireEvent.change(screen.getByLabelText('Data de nascimento'), {
+      target: { value: '1993-05-20' },
+    })
     fireEvent.change(screen.getByLabelText('Hora exata'), { target: { value: '14:35' } })
     fireEvent.change(screen.getByLabelText('Local de nascimento'), { target: { value: 'Lisb' } })
     fireEvent.click(await screen.findByRole('button', { name: 'Lisbon, Lisbon, Portugal' }))
@@ -161,7 +221,9 @@ describe('App', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Lisbon, Lisbon, Portugal' }))
     fireEvent.submit(form)
     expect(await screen.findByText('Saturno em quadratura com Júpiter natal')).toBeInTheDocument()
-    expect(screen.getByText('Mercúrio retoma o movimento direto em Escorpião, na tua casa 3')).toBeInTheDocument()
+    expect(
+      screen.getByText('Mercúrio retoma o movimento direto em Escorpião, na tua casa 3'),
+    ).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Perfil' }))
     // Cada signo aparece na roda, no resumo e/ou na tabela.
     expect(await screen.findAllByText('Touro')).toHaveLength(3)
@@ -202,9 +264,7 @@ describe('App', () => {
     )
     render(<App />)
     fireEvent.click(await screen.findByRole('button', { name: 'Perfil' }))
-    expect(
-      await screen.findByRole('heading', { name: 'A tua leitura' }),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'A tua leitura' })).toBeInTheDocument()
     expect(await screen.findByText('Uma secção mockada.')).toBeInTheDocument()
     expect(screen.getByRole('img', { name: 'Roda do mapa natal' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Dados de nascimento' })).toBeInTheDocument()
@@ -220,7 +280,8 @@ describe('App', () => {
         'GET /api/v1/me/birth': () => json(BIRTH),
         'GET /api/v1/me/chart': () => json(CHART),
         'GET /api/v1/me/today': () => json(SKY),
-        'GET /api/v1/me/reading/today': () => json({ theme: null, revelations: [], tomorrow: null }),
+        'GET /api/v1/me/reading/today': () =>
+          json({ theme: null, revelations: [], tomorrow: null }),
         'GET /api/v1/me/archive': () => json({ days: [], next_before: null }),
       }),
     )
@@ -332,7 +393,9 @@ describe('App', () => {
     )
     render(<App />)
     const form = await screen.findByRole('form', { name: 'Dados de nascimento' })
-    fireEvent.change(screen.getByLabelText('Data de nascimento'), { target: { value: '1993-05-20' } })
+    fireEvent.change(screen.getByLabelText('Data de nascimento'), {
+      target: { value: '1993-05-20' },
+    })
     fireEvent.change(screen.getByLabelText('Hora exata'), { target: { value: '14:35' } })
     fireEvent.change(screen.getByLabelText('Local de nascimento'), { target: { value: 'Lisb' } })
     fireEvent.click(await screen.findByRole('button', { name: 'Lisbon, Lisbon, Portugal' }))
