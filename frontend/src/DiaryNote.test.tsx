@@ -14,7 +14,7 @@ describe('Acesso direto ao Diário', () => {
     render(<DiaryNote zone="Europe/Lisbon" onSaved={onSaved} />)
     expect(await screen.findByText(saved.body)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Editar' }))
-    fireEvent.change(screen.getByLabelText('Nota do dia'), { target: { value: 'A mesma nota, com mais uma ideia.' } })
+    fireEvent.change(await screen.findByLabelText('Nota do dia'), { target: { value: 'A mesma nota, com mais uma ideia.' } })
     fireEvent.click(screen.getByRole('button', { name: 'Guardar' }))
     await waitFor(() => expect(screen.getByText('A mesma nota, com mais uma ideia.', { selector: 'p' })).toBeInTheDocument())
     await waitFor(() => expect(onSaved).toHaveBeenCalledOnce())

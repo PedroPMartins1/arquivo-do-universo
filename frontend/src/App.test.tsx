@@ -225,10 +225,10 @@ describe('App', () => {
       screen.getByText('Mercúrio retoma o movimento direto em Escorpião, na tua casa 3'),
     ).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Mapa Natal' }))
-    // Cada signo aparece na roda, no resumo e/ou na tabela.
-    expect(await screen.findAllByText('Touro')).toHaveLength(3)
-    expect(screen.getAllByText('Peixes')).toHaveLength(3)
-    expect(screen.getAllByText('Virgem')).toHaveLength(3)
+    expect(screen.getByRole('group', { name: 'Começar pelo essencial' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Compreender Sol em Touro' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Compreender Lua em Peixes' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Compreender Ascendente em Virgem' })).toBeInTheDocument()
   })
 
   it('mostra uma secção da leitura natal', async () => {
@@ -264,6 +264,7 @@ describe('App', () => {
     )
     render(<App />)
     fireEvent.click(await screen.findByRole('button', { name: 'Mapa Natal' }))
+    fireEvent.click(screen.getByText('Leitura integrada do teu mapa'))
     expect(await screen.findByRole('heading', { name: 'A tua leitura' })).toBeInTheDocument()
     expect(await screen.findByText('Uma secção mockada.')).toBeInTheDocument()
     expect(screen.getByRole('group', { name: 'Mapa natal interativo' })).toBeInTheDocument()

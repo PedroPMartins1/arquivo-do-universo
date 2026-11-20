@@ -22,16 +22,43 @@ export function ChartExplorer({ chart }: { chart: NatalChart }) {
   const firstBody = chart.bodies.find((body) => body.body === 'sun') ?? chart.bodies[0]
   const [selection, setSelection] = useState<ChartSelection | null>(firstBody ? { kind: 'body', id: firstBody.body } : null)
   const [category, setCategory] = useState<Category>('body')
+  const [view, setView] = useState<'map' | 'browse' | 'detail'>('map')
+  const [history, setHistory] = useState<ChartSelection[]>([])
   const detailRef = useRef<HTMLElement>(null)
   const mapRef = useRef<HTMLDivElement>(null)
   const detailId = useId()
 
   function choose(next: ChartSelection) {
+    if (view === 'detail' && selection && !sameSelection(selection, next)) {
+      setHistory((items) => [...items, selection])
+    } else if (view !== 'detail') setHistory([])
+    setView('detail')
     setSelection(next)
     setCategory(next.kind === 'angle' ? 'body' : next.kind)
     requestAnimationFrame(() => {
       detailRef.current?.focus({ preventScroll: true })
       detailRef.current?.scrollIntoView({ block: 'nearest' })
+    })
+  }
+
+  function openView(next: 'map' | 'browse') {
+    setView(next)
+    setHistory([])
+    requestAnimationFrame(() => {
+      mapRef.current?.focus({ preventScroll: true })
+      mapRef.current?.scrollIntoView({ block: 'start' })
+    })
+  }
+
+  function goBack() {
+    const previous = history[history.length - 1]
+    if (!previous) return openView('map')
+    setHistory((items) => items.slice(0, -1))
+    setSelection(previous)
+    setCategory(previous.kind === 'angle' ? 'body' : previous.kind)
+    requestAnimationFrame(() => {
+      detailRef.current?.focus({ preventScroll: true })
+      detailRef.current?.scrollIntoView({ block: 'start' })
     })
   }
 
@@ -54,10 +81,30 @@ export function ChartExplorer({ chart }: { chart: NatalChart }) {
   else if (angle) title = `${angle === 'ascendant' ? 'Ascendente' : 'Meio do Céu'} em ${signOfLongitude(chart.angles[angle])}`
 
   return <section className="chart-explorer" aria-label="Explorar o mapa natal">
-    <p className="section-intro">Toca num elemento da roda ou escolhe nos botões abaixo. As ligações permitem seguir de um planeta para o seu signo, casa e aspetos.</p>
     <div ref={mapRef} tabIndex={-1} className="explorer-map">
-      <ChartWheel chart={chart} selection={selection} onSelect={choose} />
+      <div className="chart-view-switch" role="group" aria-label="Organização do mapa">
+        <button type="button" aria-pressed={view === 'map'} onClick={() => openView('map')}>Visão geral</button>
+        <button type="button" aria-pressed={view !== 'map'} onClick={() => openView('browse')}>Explorar elementos</button>
+      </div>
     </div>
+    {view === 'map' && <>
+      <div className="chart-start" role="group" aria-label="Começar pelo essencial">
+        {(['sun', 'moon'] as const).map((id) => {
+          const item = chart.bodies.find((position) => position.body === id)
+          return item && <button key={id} type="button" aria-label={`Compreender ${bodyName(id)} em ${signName(item.sign)}`} onClick={() => choose({ kind: 'body', id })}>
+            <span>{bodyName(id)} · {id === 'sun' ? 'Identidade' : 'Emoções'}</span>
+            <strong>{signName(item.sign)}</strong><span>Compreender este pilar</span>
+          </button>
+        })}
+        <button type="button" aria-label={`Compreender Ascendente em ${signOfLongitude(chart.angles.ascendant)}`} onClick={() => choose({ kind: 'angle', id: 'ascendant' })}>
+          <span>Ascendente · Apresentação</span><strong>{signOfLongitude(chart.angles.ascendant)}</strong><span>Compreender este pilar</span>
+        </button>
+      </div>
+      <ChartWheel chart={chart} selection={selection} onSelect={choose} />
+      <p className="hint">Toca na roda para explorar ou começa por um dos três pilares acima.</p>
+    </>}
+    {view === 'browse' && <>
+      <div className="chart-browser-heading"><h3>O que queres compreender?</h3><p className="hint">Escolhe um tipo de elemento e depois um item do teu mapa.</p></div>
     <div className="chart-categories" role="group" aria-label="Tipo de elemento">
       {CATEGORIES.map(({ id, name }) => <button key={id} type="button" aria-pressed={category === id} aria-controls={`${detailId}-choices`} onClick={() => setCategory(id)}>{name}</button>)}
     </div>
@@ -71,6 +118,9 @@ export function ChartExplorer({ chart }: { chart: NatalChart }) {
       {category === 'aspect' && chart.aspects.map((item, index) => <button type="button" key={`${item.first}-${item.second}-${item.kind}`} aria-pressed={sameSelection(selection, { kind: 'aspect', index })} onClick={() => choose({ kind: 'aspect', index })}><strong>{bodyName(item.first)} · {bodyName(item.second)}</strong><span>{ASPECTS[item.kind] ?? item.kind} · orbe {degrees(item.orb)}</span></button>)}
       {category === 'aspect' && chart.aspects.length === 0 && <p className="hint">Não há aspetos neste resultado com as tolerâncias de cálculo atuais.</p>}
     </div>
+    </>}
+    {view === 'detail' && <>
+    <div className="chart-context"><button type="button" className="link" onClick={goBack}>{history.length ? 'Voltar ao elemento anterior' : 'Voltar à visão geral'}</button><span className="hint">{selection?.kind === 'body' ? 'Planeta ou ponto' : selection?.kind === 'sign' ? 'Signo' : selection?.kind === 'house' ? 'Casa' : selection?.kind === 'aspect' ? 'Relação entre elementos' : 'Ângulo do mapa'}</span></div>
     <section id={detailId} ref={detailRef} tabIndex={-1} className="chart-detail" aria-label="Elemento selecionado">
       <p className="eyebrow">No teu mapa</p>
       <h3>{title}</h3>
@@ -78,16 +128,19 @@ export function ChartExplorer({ chart }: { chart: NatalChart }) {
         <p className="chart-position">{degrees(body.degree_in_sign)} de {signName(body.sign)} · Casa {body.house}{body.retrograde ? ' · Retrógrado' : ''}</p>
         <h4>O que representa</h4>
         <p>{BODY_GUIDE[body.body]?.meaning ?? 'Este elemento faz parte do resultado calculado do teu mapa.'}</p>
-        <h4>Como explorar esta posição</h4>
-        <p>O planeta ou ponto indica o tema, o signo descreve um modo de expressão e a casa situa uma área de vida. Consulta cada ligação para compreender estas camadas em conjunto.</p>
-        <div className="chart-relations" aria-label="Signo e casa deste elemento">
-          {relation({ kind: 'sign', index: signIndex(body.longitude) }, `Signo ${signName(body.sign)}`)}
-          {chart.houses.some((item) => item.house === body.house) && relation({ kind: 'house', number: body.house }, `Casa ${body.house} · ${HOUSE_GUIDE[body.house - 1]}`)}
-        </div>
+        <h4>Como se expressa · {signName(body.sign)}</h4>
+        <p>{SIGN_GUIDE[signIndex(body.longitude)].meaning}</p>
+        <div className="chart-relations">{relation({ kind: 'sign', index: signIndex(body.longitude) }, `Signo ${signName(body.sign)}`)}</div>
+        <h4>Em que área · Casa {body.house}</h4>
+        <p>{HOUSE_GUIDE[body.house - 1]}</p>
+        <div className="chart-relations">{chart.houses.some((item) => item.house === body.house) && relation({ kind: 'house', number: body.house }, `Casa ${body.house} · ${HOUSE_GUIDE[body.house - 1]}`)}</div>
         {body.retrograde && <p className="hint">Retrógrado descreve um movimento aparente visto da Terra no nascimento. Não é, por si só, uma indicação negativa.</p>}
-        <h4>Ligações a outros elementos</h4>
-        <div className="chart-relations">{relatedAspects.map(({ index }) => relation({ kind: 'aspect', index }, aspectName(chart, index)))}</div>
-        {relatedAspects.length === 0 && <p className="hint">Não há aspetos calculados para este elemento nas tolerâncias atuais.</p>}
+        <details className="chart-related-details" key={body.body}>
+          <summary>Relações com outros elementos ({relatedAspects.length})</summary>
+          <p className="hint">Os aspetos ligam este tema a outras funções do teu mapa.</p>
+          <div className="chart-relations">{relatedAspects.map(({ index }) => relation({ kind: 'aspect', index }, aspectName(chart, index)))}</div>
+          {relatedAspects.length === 0 && <p className="hint">Não há aspetos calculados para este elemento nas tolerâncias atuais.</p>}
+        </details>
         {BODY_GUIDE[body.body] && <p className="question">{BODY_GUIDE[body.body].question}</p>}
       </>}
       {sign && selection?.kind === 'sign' && <>
@@ -111,7 +164,7 @@ export function ChartExplorer({ chart }: { chart: NatalChart }) {
         <h4>O que representa</h4><p>{ASPECT_GUIDE[aspect.kind]?.meaning ?? 'Uma relação angular identificada pelo cálculo entre dois elementos do mapa.'}</p>
         <p className="hint">O orbe é o desvio em relação ao ângulo exato do aspeto. A lista mostra apenas as relações presentes no resultado calculado.</p>
         <h4>Explorar os dois elementos</h4>
-        <div className="chart-relations">{[aspect.first, aspect.second].filter((id) => chart.bodies.some((item) => item.body === id)).map((id) => relation({ kind: 'body', id }, bodyName(id)))}</div>
+        <div className="chart-relations">{[aspect.first, aspect.second].filter((id) => chart.bodies.some((item) => item.body === id)).map((id) => relation({ kind: 'body', id }, `${bodyName(id)} · ${BODY_GUIDE[id]?.theme ?? 'Elemento do mapa'}`))}</div>
         <p className="question">Como reconheces a relação entre estes dois temas na tua experiência?</p>
       </>}
       {angle && <>
@@ -122,13 +175,14 @@ export function ChartExplorer({ chart }: { chart: NatalChart }) {
       </>}
       {!selection && <p>Usa a roda ou os botões para começar.</p>}
       <p className="chart-education">Guia simbólico e educativo. Estas explicações não substituem a leitura global do teu mapa.</p>
-      <button type="button" className="link" onClick={() => { mapRef.current?.focus({ preventScroll: true }); mapRef.current?.scrollIntoView({ block: 'start' }) }}>Voltar à roda do mapa</button>
+      <button type="button" className="link" onClick={() => openView('browse')}>Escolher outro elemento</button>
     </section>
-    <details className="chart-help">
+    </>}
+    {view === 'map' && <details className="chart-help">
       <summary>Como ler os elementos e as ligações</summary>
       <p>Os símbolos representam planetas e pontos. A faixa exterior mostra os signos; os números identificam as casas; as linhas interiores representam aspetos. O destaque acompanha o elemento selecionado. Quando dois símbolos ficam próximos, uma linha fina liga o símbolo deslocado à sua posição calculada.</p>
       <p>Os dados vêm do teu mapa calculado. As descrições são um guia editorial de linguagem astrológica, separado da interpretação personalizada apresentada abaixo.</p>
       <a href="https://www.astro.com/astrology/in_intro_e.htm" target="_blank" rel="noopener noreferrer">Referência educativa: Astrodienst</a>
-    </details>
+    </details>}
   </section>
 }

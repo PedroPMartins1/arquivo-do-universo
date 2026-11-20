@@ -18,7 +18,7 @@ import {
   requestPasswordRecovery,
   saveBirth,
 } from './api'
-import { BODIES, degrees, describePlace, signName, signOfLongitude } from './labels'
+import { BODIES, degrees, describePlace, signName } from './labels'
 import { PlaceSearch } from './PlaceSearch'
 import { ChartExplorer } from './ChartExplorer'
 import { Archive } from './Archive'
@@ -260,8 +260,6 @@ function BirthForm({ onDone, problem }: { onDone: () => unknown; problem?: strin
 function ChartSummary({ chart }: { chart: NatalChart }) {
   const [reading, setReading] = useState<NatalReading | null>(null)
   const [readingError, setReadingError] = useState<string | null>(null)
-  const sun = chart.bodies.find((b) => b.body === 'sun')
-  const moon = chart.bodies.find((b) => b.body === 'moon')
 
   useEffect(() => {
     fetchNatalReading()
@@ -278,20 +276,6 @@ function ChartSummary({ chart }: { chart: NatalChart }) {
       <h2>O teu mapa natal</h2>
       <p className="section-intro">Um retrato do céu no momento em que nasceste. Começa pelo Sol, pela Lua e pelo Ascendente.</p>
       <ChartExplorer chart={chart} />
-      <dl className="big-three">
-        <div>
-          <dt>Sol</dt>
-          <dd>{sun && signName(sun.sign)}</dd>
-        </div>
-        <div>
-          <dt>Lua</dt>
-          <dd>{moon && signName(moon.sign)}</dd>
-        </div>
-        <div>
-          <dt>Ascendente</dt>
-          <dd>{signOfLongitude(chart.angles.ascendant)}</dd>
-        </div>
-      </dl>
       <details className="technical-details">
         <summary>Ver posições dos planetas</summary>
       <table className="positions">
@@ -323,8 +307,11 @@ function ChartSummary({ chart }: { chart: NatalChart }) {
           {w}
         </p>
       ))}
-      <section aria-label="A tua leitura">
+      <details className="integrated-reading">
+        <summary>Leitura integrada do teu mapa</summary>
+        <section aria-label="A tua leitura">
         <h3>A tua leitura</h3>
+        <p className="hint">Depois de explorares as partes, esta leitura reúne os temas do mapa.</p>
         {readingError && <p className="hint">{readingError}</p>}
         {!reading && !readingError && <p className="hint">A interpretar o mapa…</p>}
         {reading?.sections.map((section) => (
@@ -338,7 +325,8 @@ function ChartSummary({ chart }: { chart: NatalChart }) {
               ))}
           </article>
         ))}
-      </section>
+        </section>
+      </details>
     </section>
   )
 }
