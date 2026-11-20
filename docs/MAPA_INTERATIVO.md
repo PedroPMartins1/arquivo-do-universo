@@ -20,7 +20,7 @@ O painel apresenta dados do resultado natal já existente. As ligações entre p
 
 Os elementos interativos da roda têm nomes em português, estado selecionado, foco e ativação por Enter ou Espaço. A roda estática preserva o papel de imagem quando usada sem seleção. A versão interativa usa um grupo com controlos identificados.
 
-Os botões de seleção e de relação têm pelo menos 44 px de altura e indicação textual. A lista de elementos tem deslocamento próprio para evitar uma página excessivamente longa. Ao selecionar, o foco passa ao painel de detalhe; existe um botão para regressar à roda. O zoom da roda continua disponível. Os símbolos próximos são afastados radialmente, com linhas de ligação às posições reais; as longitudes e as linhas de aspetos não se alteram.
+Os botões de seleção e de relação têm pelo menos 44 px de altura e indicação textual. A visão geral, a escolha de elementos e o detalhe são apresentados em vistas separadas. A lista de escolha acompanha o deslocamento normal da página, sem uma segunda área de deslocamento encaixada. Ao selecionar, o foco passa ao painel de detalhe. Os botões de regresso permitem voltar ao elemento anterior ou à visão geral, preservando o contexto do percurso. O zoom da roda continua disponível. Os símbolos próximos são afastados radialmente, com linhas de ligação às posições reais; as longitudes e as linhas de aspetos não se alteram.
 
 ## Referências editoriais
 
@@ -42,3 +42,13 @@ Os testes verificam seleção por toque e teclado, dados exibidos, navegação e
 ## Limites
 
 Não há ainda perguntas livres ao assistente a partir de um elemento, coleções de explorações ou histórico persistente de seleção. Esta entrega acrescenta a exploração direta do mapa calculado, preservando a interpretação natal e o motor de cálculo existentes.
+
+## Organização após o primeiro teste de utilização
+
+O utilizador confirmou a interação, mas identificou informação desconexa e confusa. A revisão passa a apresentar:
+
+1. **Visão geral:** entradas para Sol, Lua e Ascendente, seguidas da roda.
+2. **Explorar elementos:** escolha de categoria e elemento, sem apresentar simultaneamente o painel de detalhe.
+3. **Explicação:** um único elemento, com ligações contextuais e regresso ao anterior. Nos planetas e pontos, a sequência é «O que representa», «Como se expressa» (signo) e «Em que área» (casa). Os aspetos ficam numa secção expansível.
+
+O resumo repetido de Sol/Lua/Ascendente no fim da página foi removido. A leitura global passa a estar identificada como «Leitura integrada do teu mapa», numa secção expansível distinta da exploração educativa.
